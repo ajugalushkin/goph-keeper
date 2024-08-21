@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "github.com/ajugalushkin/goph-keeper/pkg/ydx/goph-keeper/v1";
+
+package auth.v1;
+
+import "buf/validate/validate.proto";
+
+service AuthV1{
+  rpc RegisterV1(RegisterRequestV1) returns (RegisterResponseV1);
+  rpc LoginV1(LoginRequestV1) returns (LoginResponseV1);
+}
+
+message RegisterRequestV1{
+  string email = 1 [(buf.validate.field).string.email = true];
+  string password = 2;
+}
+
+message RegisterResponseV1{
+  int64 user_id = 1;
+}
+
+message LoginRequestV1{
+  string email = 1;
+  string password = 2;
+  int32 app_id = 3;
+}
+
+message LoginResponseV1{
+  string token = 1;
+}
