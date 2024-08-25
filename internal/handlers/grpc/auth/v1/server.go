@@ -5,36 +5,72 @@ import (
 
 	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 )
 
+type Auth interface {
+	Login(
+		ctx context.Context,
+		email string,
+		password string,
+	) (token string, err error)
+	RegisterNewUser(
+		ctx context.Context,
+		email string,
+		password string,
+	) (userID int64, err error)
+}
+
 type serverAPI struct {
 	authv1.UnimplementedAuthV1Server
+	auth Auth
 }
 
-func Register(gRPC *grpc.Server) {
-	authv1.RegisterAuthV1Server(gRPC, &serverAPI{})
+func Register(gRPC *grpc.Server, auth Auth) {
+	authv1.RegisterAuthV1Server(gRPC, &serverAPI{auth: auth})
 }
 
-func RegisterV1(
+func (s *serverAPI) RegisterV1(
 	ctx context.Context,
 	req *authv1.RegisterRequestV1,
 ) (*authv1.RegisterResponseV1, error) {
-	v, err := protovalidate.New()
+	validator, err := protovalidate.New()
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if err := v.Validate(req); err != nil {
-		return nil, err
+	if err := validator.Validate(req); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	return &authv1.RegisterResponseV1{}, nil
+	user, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to register new user")
+	}
+
+	return &authv1.RegisterResponseV1{UserId: user}, nil
 }
 
-func LoginV1(
+func (s *serverAPI) LoginV1(
 	ctx context.Context,
 	req *authv1.LoginRequestV1,
-) (*authv1.LoginRequestV1, error) {
-	panic("implement me")
+) (*authv1.LoginResponseV1, error) {
+	validator, err := protovalidate.New()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if err := validator.Validate(req); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	return &authv1.LoginResponseV1{
+		Token: token,
+	}, nil
 }
