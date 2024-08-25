@@ -1,0 +1,32 @@
+services:
+  shortener-api:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./cmd/shortener/Dockerfile
+    image: shortener-api:v1.0
+    container_name: shortener-api
+    hostname: shortener-api
+    ports:
+      - 8080:8080
+      - 40000:40000
+    environment:
+      SERVER_ADDRESS: ${SERVER_ADDRESS:?Please configure RUN_ADDRESS in the .env file}
+      BASE_URL: ${BASE_URL:?Please configure LOG_LEVEL in the .env file}
+      LOG_LEVEL: ${LOG_LEVEL:?Please configure LOG_LEVEL in the .env file}
+      FILE_STORAGE_PATH: ${FILE_STORAGE_PATH:?Please configure LOG_LEVEL in the .env file}
+      DATABASE_DSN: ${DATABASE_DSN:?Please configure LOG_LEVEL in the .env file}
+      SECRET_KEY: ${SECRET_KEY:?Please configure LOG_LEVEL in the .env file}
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    command: /dlv --headless --listen=:40000 --api-version=2 exec /server
+    deploy:
+      restart_policy:
+        condition: on-failure
+    networks:
+      - shortener-network

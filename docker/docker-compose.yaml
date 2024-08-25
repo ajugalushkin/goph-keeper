@@ -1,0 +1,5 @@
+name: shortener-api
+
+networks:
+  shortener-network:
+    driver: bridge

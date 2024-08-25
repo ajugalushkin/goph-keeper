@@ -1,64 +1,49 @@
 package config
 
 import (
+	"flag"
+	"os"
 	"time"
 
-	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
-
-	"github.com/ajugalushkin/goph-keeper/cmd"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 // Config структура параметров заауска.
 type Config struct {
-	ServerAddress string        `env:"SERVER_ADDRESS" env-required:"true"`
-	TokenTTL      time.Duration `env:"TOKEN_TTL" env-required:"true"`
-	Env           string        `env:"ENV" env-required:"true"`
+	ServerAddress string        `yaml:"server_address" env-required:"true"`
+	TokenTTL      time.Duration `yaml:"token_ttl" env-required:"true"`
+	Env           string        `yaml:"env" env-required:"true"`
 }
 
-// init функция инициализации начальных значений для параметров запуска.
-func init() {
-	err := godotenv.Load("/docker/.env")
-	if err != nil {
-		//log.Debug("Error loading .env file", "error", err)
-	}
-	viper.SetDefault("Server_Address", "localhost:8080")
-	viper.SetDefault("Token_TTL", "1h")
-	viper.SetDefault("Env", "")
-}
-
-// bindToEnv функция для маппинга полей из ENV с полями структуры.
-func bindToEnv() {
-	_ = viper.BindEnv("Server_Address")
-	_ = viper.BindEnv("Token_TTL")
-	_ = viper.BindEnv("Env")
-}
-
+// MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
 func MustLoad() *Config {
-	bindToEnv()
-
-	err := cmd.Execute()
-	if err != nil {
-		//fmt.Println(err)
+	configPath := fetchConfig()
+	if configPath == "" {
+		panic("config path is empty")
 	}
 
-	result := Config{
-		ServerAddress: viper.GetString("Server_Address"),
-		TokenTTL:      viper.GetDuration("Token_TTL"),
-		Env:           viper.GetString("Env"),
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config path does not exist" + configPath)
 	}
 
-	if result.ServerAddress == "" {
-		panic("Server_Address is empty")
+	var config Config
+	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
+		panic("error reading config: " + err.Error())
 	}
 
-	if result.TokenTTL == 0 {
-		panic("Token_TTL is empty")
-	}
+	return &config
+}
 
-	if result.Env == "" {
-		panic("Env is empty")
-	}
+// fetchConfig функция для чтения флага config или переменнной окружения CONFIG.
+// приоритет flag>env
+func fetchConfig() string {
+	var result string
 
-	return &result
+	flag.StringVar(&result, "config", "", "config file path")
+	flag.Parse()
+
+	if result == "" {
+		result = os.Getenv("CONFIG")
+	}
+	return result
 }

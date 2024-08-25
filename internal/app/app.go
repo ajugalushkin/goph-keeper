@@ -2,28 +2,22 @@ package app
 
 import (
 	"log/slog"
+	"time"
 
-	"google.golang.org/grpc"
-
-	authgrpcv1 "github.com/ajugalushkin/goph-keeper/internal/handlers/grpc/auth/v1"
+	grpcapp "github.com/ajugalushkin/goph-keeper/internal/app/grpc"
 )
 
 type App struct {
-	log        *slog.Logger
-	gRPCServer *grpc.Server
-	port       int
+	GRPCSrv *grpcapp.App
 }
 
 func New(
 	log *slog.Logger,
-	port int,
+	grpcAddress string,
+	tokenTTL time.Duration,
 ) *App {
-	grpcServer := grpc.NewServer()
-	authgrpcv1.Register(grpcServer)
-
+	grpcApp := grpcapp.New(log, grpcAddress)
 	return &App{
-		log:        log,
-		gRPCServer: grpcServer,
-		port:       port,
+		GRPCSrv: grpcApp,
 	}
 }

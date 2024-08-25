@@ -1,17 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ajugalushkin/goph-keeper/internal/app"
 	"github.com/ajugalushkin/goph-keeper/internal/config"
 )
 
 const (
-	envDev    = "debug"
-	envProd   = "info"
+	envDev  = "dev"
+	envProd = "prod"
 )
 
 func main() {
@@ -21,9 +22,19 @@ func main() {
 
 	log.Info("starting application")
 
-	application := app.New(log,00,"",cfg.TokenTTL)
+	application := app.New(log, cfg.ServerAddress, cfg.TokenTTL)
 
-	application.GRPCSrv.MustRun()
+	go application.GRPCSrv.MustRun()
+
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	sign := <-stop
+	log.Info("stopping application", slog.String("signal", sign.String()))
+
+	application.GRPCSrv.Stop()
+	log.Info("application stopped")
 }
 
 func setupLogger(Env string) *slog.Logger {
@@ -38,6 +49,6 @@ func setupLogger(Env string) *slog.Logger {
 		log = slog.New(
 			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
 		)
-
+	}
 	return log
 }
