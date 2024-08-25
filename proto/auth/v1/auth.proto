@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/ajugalushkin/goph-keeper/pkg/ydx/goph-keeper/v1";
+option go_package = "/auth/v1";
 
 package auth.v1;
 

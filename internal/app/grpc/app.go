@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	authgrpcv1 "github.com/ajugalushkin/goph-keeper/internal/handlers/grpc/auth/v1"
 )
@@ -23,6 +24,9 @@ func New(
 ) *App {
 	gRPCServer := grpc.NewServer()
 	authgrpcv1.Register(gRPCServer)
+
+	// Register reflection service on gRPC server.
+	reflection.Register(gRPCServer)
 
 	return &App{
 		log:        log,
