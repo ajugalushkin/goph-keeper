@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 
+	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/grpc"
 
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
@@ -19,8 +20,16 @@ func Register(gRPC *grpc.Server) {
 func RegisterV1(
 	ctx context.Context,
 	req *authv1.RegisterRequestV1,
-) (*authv1.RegisterRequestV1, error) {
-	panic("implement me")
+) (*authv1.RegisterResponseV1, error) {
+	v, err := protovalidate.New()
+	if err != nil {
+		return nil, err
+	}
+	if err := v.Validate(req); err != nil {
+		return nil, err
+	}
+
+	return &authv1.RegisterResponseV1{}, nil
 }
 
 func LoginV1(

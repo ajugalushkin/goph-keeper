@@ -35,7 +35,7 @@ func MustLoad() *Config {
 }
 
 // fetchConfig функция для чтения флага config или переменнной окружения CONFIG.
-// приоритет flag>env
+// приоритет flag
 func fetchConfig() string {
 	var result string
 

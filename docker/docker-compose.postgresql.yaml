@@ -26,7 +26,7 @@ services:
     ports:
       - 5432:5432
     networks:
-      - shortener-network
+      - goph-keeper-network
 
   pgadmin:
     image: dpage/pgadmin4:8.5
@@ -47,4 +47,4 @@ services:
     ports:
       - ${PGADMIN_PORT:-7080}:80
     networks:
-      - shortener-network
+      - goph-keeper-network
