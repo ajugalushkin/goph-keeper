@@ -20,10 +20,11 @@ type App struct {
 // New функция создания экземпляра приложения
 func New(
 	log *slog.Logger,
+	authService authgrpcv1.Auth,
 	Address string,
 ) *App {
 	gRPCServer := grpc.NewServer()
-	authgrpcv1.Register(gRPCServer)
+	authgrpcv1.Register(gRPCServer, authService)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(gRPCServer)

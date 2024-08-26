@@ -13,7 +13,7 @@ service AuthV1{
 
 message RegisterRequestV1{
   string email = 1 [(buf.validate.field).string.email = true];
-  string password = 2 [(buf.validate.field).bytes = { min_len: 8 }];
+  string password = 2 [(buf.validate.field).string = { min_len: 8 }];
 }
 
 message RegisterResponseV1{
@@ -22,7 +22,7 @@ message RegisterResponseV1{
 
 message LoginRequestV1{
   string email = 1[(buf.validate.field).string.email = true];
-  string password = 2 [(buf.validate.field).bytes = { min_len: 8 }];
+  string password = 2 [(buf.validate.field).string = { min_len: 8 }];
 }
 
 message LoginResponseV1{

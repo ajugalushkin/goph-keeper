@@ -8,11 +8,18 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+type GRPC struct {
+	ServerAddress string        `yaml:"server_address" env-required:"true"`
+	Timeout       time.Duration `yaml:"timeout" env-default:"1h"`
+}
+
 // Config структура параметров заауска.
 type Config struct {
-	ServerAddress string        `yaml:"server_address" env-required:"true"`
-	TokenTTL      time.Duration `yaml:"token_ttl" env-required:"true"`
-	Env           string        `yaml:"env" env-required:"true"`
+	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
+	Env         string        `yaml:"env" env-required:"true"`
+	StoragePath string        `yaml:"storage_path" env-required:"true"`
+	GRPC        GRPC
+	TokenSecret string
 }
 
 // MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
@@ -22,6 +29,12 @@ func MustLoad() *Config {
 		panic("config path is empty")
 	}
 
+	cfg := MustLoadByPath(configPath)
+	cfg.TokenSecret = os.Getenv("TOKEN_SECRET")
+	return cfg
+}
+
+func MustLoadByPath(configPath string) *Config {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config path does not exist" + configPath)
 	}

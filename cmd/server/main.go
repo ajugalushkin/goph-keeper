@@ -22,7 +22,7 @@ func main() {
 
 	log.Info("starting application")
 
-	application := app.New(log, cfg.ServerAddress, cfg.TokenTTL)
+	application := app.New(log, cfg)
 
 	go application.GRPCSrv.MustRun()
 

@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -9,7 +8,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
 )
 
-func NewToken(user models.User, duration time.Duration) (string, error) {
+func NewToken(user models.User, duration time.Duration, tokenSecret string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -17,8 +16,7 @@ func NewToken(user models.User, duration time.Duration) (string, error) {
 	claims["email"] = user.Email
 	claims["exp"] = time.Now().Add(duration).Unix()
 
-	tokenKey := os.Getenv("TOKEN_SECRET")
-	tokenString, err := token.SignedString([]byte(tokenKey))
+	tokenString, err := token.SignedString([]byte(tokenSecret))
 	if err != nil {
 		return "", err
 	}

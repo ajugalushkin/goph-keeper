@@ -2,9 +2,11 @@ package app
 
 import (
 	"log/slog"
-	"time"
 
 	grpcapp "github.com/ajugalushkin/goph-keeper/internal/app/grpc"
+	"github.com/ajugalushkin/goph-keeper/internal/config"
+	"github.com/ajugalushkin/goph-keeper/internal/services/auth"
+	"github.com/ajugalushkin/goph-keeper/internal/storage/postgres"
 )
 
 type App struct {
@@ -13,10 +15,17 @@ type App struct {
 
 func New(
 	log *slog.Logger,
-	grpcAddress string,
-	tokenTTL time.Duration,
+	cfg *config.Config,
 ) *App {
-	grpcApp := grpcapp.New(log, grpcAddress)
+
+	storage, err := postgres.New(cfg.StoragePath)
+	if err != nil {
+		panic(err)
+	}
+
+	serviceAuth := auth.New(log, storage, storage, cfg)
+
+	grpcApp := grpcapp.New(log, serviceAuth, cfg.GRPC.ServerAddress)
 	return &App{
 		GRPCSrv: grpcApp,
 	}

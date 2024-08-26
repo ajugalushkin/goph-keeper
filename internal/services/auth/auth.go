@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ajugalushkin/goph-keeper/internal/config"
 	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
 	"github.com/ajugalushkin/goph-keeper/internal/lib/jwt"
 	"github.com/ajugalushkin/goph-keeper/internal/storage"
@@ -18,7 +18,7 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	tokenTTl    time.Duration
+	cfg         *config.Config
 }
 
 type UserSaver interface {
@@ -39,17 +39,12 @@ var (
 )
 
 // New returns a new instance of the Auth service.
-func New(
-	log *slog.Logger,
-	userSaver UserSaver,
-	userProvider UserProvider,
-	tokenTTL time.Duration,
-) *Auth {
+func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, cfg *config.Config) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,
 		usrProvider: userProvider,
-		tokenTTl:    tokenTTL,
+		cfg:         cfg,
 	}
 }
 
@@ -80,7 +75,7 @@ func (a *Auth) Login(
 
 	log.Info("user logged in successfully")
 
-	token, err := jwt.NewToken(user, a.tokenTTl)
+	token, err := jwt.NewToken(user, a.cfg.TokenTTL, a.cfg.TokenSecret)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
