@@ -5,12 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v7"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
+	authv1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/tests/auth/suite"
 )
 

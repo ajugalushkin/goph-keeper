@@ -7,8 +7,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 	"github.com/ajugalushkin/goph-keeper/internal/config"
+
+	authv1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
 )
 
 type Suite struct {
