@@ -2,10 +2,8 @@ package v1
 
 import (
 	"context"
-	"errors"
 
 	v1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
-	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
