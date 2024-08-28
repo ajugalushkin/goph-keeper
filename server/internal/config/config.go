@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
-
-	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
 )
 
 type GRPC struct {
@@ -22,7 +20,6 @@ type Config struct {
 	StoragePath string        `yaml:"storage_path" env-required:"true"`
 	GRPC        GRPC
 	TokenSecret string
-	Client      models.Client
 }
 
 // MustLoad функция заполнения структуры Config, в случае ошибки паникуем.

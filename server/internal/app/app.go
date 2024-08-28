@@ -3,10 +3,10 @@ package app
 import (
 	"log/slog"
 
-	grpcapp "github.com/ajugalushkin/goph-keeper/internal/app/grpc"
-	"github.com/ajugalushkin/goph-keeper/internal/config"
-	"github.com/ajugalushkin/goph-keeper/internal/services/auth"
-	"github.com/ajugalushkin/goph-keeper/internal/storage/postgres"
+	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
+	"github.com/ajugalushkin/goph-keeper/server/internal/config"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
 )
 
 type App struct {

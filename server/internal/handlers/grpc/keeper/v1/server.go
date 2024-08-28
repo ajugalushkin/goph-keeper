@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 
+	v1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
 	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/ajugalushkin/goph-keeper/internal/services/auth"
-
-	"github.com/ajugalushkin/goph-keeper/common/gen/auth/v1"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
 )
 
 type Auth interface {
@@ -28,7 +27,7 @@ type Auth interface {
 }
 
 type serverAPI struct {
-	v1.UnimplementedAuthV1Server
+	v1.UnimplementedKeeperServiceV1Server
 	auth Auth
 }
 

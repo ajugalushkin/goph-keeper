@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	authgrpcv1 "github.com/ajugalushkin/goph-keeper/internal/handlers/grpc/keeper/v1"
+	keeperv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/keeper/v1"
 )
 
 type App struct {
@@ -20,11 +20,11 @@ type App struct {
 // New функция создания экземпляра приложения
 func New(
 	log *slog.Logger,
-	authService authgrpcv1.Auth,
+	authService keeperv1.Auth,
 	Address string,
 ) *App {
 	gRPCServer := grpc.NewServer()
-	authgrpcv1.Register(gRPCServer, authService)
+	keeperv1.Register(gRPCServer, authService)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(gRPCServer)
