@@ -21,6 +21,7 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application")
+	log.Debug("Config", cfg)
 
 	application := app.New(log, cfg)
 

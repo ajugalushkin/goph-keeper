@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ajugalushkin/goph-keeper/internal/config"
 	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
 	"github.com/ajugalushkin/goph-keeper/internal/lib/jwt"
 	"github.com/ajugalushkin/goph-keeper/internal/storage"
@@ -18,7 +18,7 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	cfg         *config.Config
+	tokenTTL    time.Duration
 }
 
 type UserSaver interface {
@@ -36,15 +36,16 @@ type UserProvider interface {
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUserExists         = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 // New returns a new instance of the Auth service.
-func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, cfg *config.Config) *Auth {
+func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, tokenTTL time.Duration) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,
 		usrProvider: userProvider,
-		cfg:         cfg,
+		tokenTTL:    tokenTTL,
 	}
 }
 
@@ -65,7 +66,7 @@ func (a *Auth) Login(
 		}
 
 		a.log.Error("failed to get user", slog.String("error", err.Error()))
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, ErrUserNotFound)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
@@ -75,10 +76,12 @@ func (a *Auth) Login(
 
 	log.Info("user logged in successfully")
 
-	token, err := jwt.NewToken(user, a.cfg.TokenTTL, a.cfg.TokenSecret)
+	token, err := jwt.NewToken(user, a.tokenTTL)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
+
+	log.Debug("Created token", slog.String("token", token))
 
 	return token, nil
 }

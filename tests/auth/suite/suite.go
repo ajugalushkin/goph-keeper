@@ -2,7 +2,6 @@ package suite
 
 import (
 	"context"
-	"encoding/base64"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -18,16 +17,11 @@ type Suite struct {
 	AuthClient authv1.AuthV1Client
 }
 
-const (
-	TokenSecret = "secret"
-)
-
 func New(t *testing.T) (context.Context, *Suite) {
 	t.Helper()
 	t.Parallel()
 
 	cfg := config.MustLoadByPath("../../config/dev.yaml")
-	cfg.TokenSecret = base64.StdEncoding.Encode(TokenSecret)
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
 
 	t.Cleanup(func() {

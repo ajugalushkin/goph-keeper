@@ -75,6 +75,11 @@ func (s *serverAPI) LoginV1(
 		if errors.Is(err, auth.ErrInvalidCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
 		}
+
+		if errors.Is(err, auth.ErrUserNotFound) {
+			return nil, status.Error(codes.InvalidArgument, "invalid email or password")
+
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 

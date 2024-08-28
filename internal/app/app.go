@@ -23,7 +23,7 @@ func New(
 		panic(err)
 	}
 
-	serviceAuth := auth.New(log, storage, storage, cfg)
+	serviceAuth := auth.New(log, storage, storage, cfg.TokenTTL)
 
 	grpcApp := grpcapp.New(log, serviceAuth, cfg.GRPC.ServerAddress)
 	return &App{
