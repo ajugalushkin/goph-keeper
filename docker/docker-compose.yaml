@@ -1,0 +1,5 @@
+name: goph-keeper-api
+
+networks:
+  goph-keeper-network:
+    driver: bridge

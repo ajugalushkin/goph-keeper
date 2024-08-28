@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "0": {
+      "Name": "Keeper Database",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "goph_keeper",
+      "Username": "praktikum",
+      "SSLMode": "prefer"
+    }
+  }
+}
