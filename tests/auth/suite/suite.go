@@ -3,7 +3,7 @@ package suite
 //type Suite struct {
 //	*testing.T
 //	Cfg        *config.Config
-//	AuthClient keeperv1.AuthV1Client
+//	AuthClient v1.KeeperServiceV1Client
 //}
 //
 //func New(t *testing.T) (context.Context, *Suite) {
@@ -27,6 +27,6 @@ package suite
 //	return ctx, &Suite{
 //		T:          t,
 //		Cfg:        cfg,
-//		AuthClient: authv1.NewAuthV1Client(cc),
+//		AuthClient: v1.NewKeeperServiceV1Client(cc),
 //	}
 //}

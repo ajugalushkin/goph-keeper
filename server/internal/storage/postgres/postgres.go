@@ -76,3 +76,13 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 
 	return user, nil
 }
+
+func (s *Storage) List(ctx context.Context) []models.Item {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Storage) Save(ctx context.Context, item models.Item) error {
+	//TODO implement me
+	panic("implement me")
+}

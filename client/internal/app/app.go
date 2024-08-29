@@ -1,7 +1,7 @@
 package app
 
 import (
-	v1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
+	"github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
 type Client struct {

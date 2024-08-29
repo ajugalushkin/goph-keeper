@@ -5,7 +5,9 @@ import (
 
 	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
 	"github.com/ajugalushkin/goph-keeper/server/internal/config"
+	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services/keeper"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
 )
 
@@ -23,9 +25,19 @@ func New(
 		panic(err)
 	}
 
-	serviceAuth := auth.New(log, storage, storage, cfg.TokenTTL)
+	jwtManager := jwt.NewJWTManager(cfg.TokenSecret, cfg.TokenTTL)
 
-	grpcApp := grpcapp.New(log, serviceAuth, cfg.GRPC.ServerAddress)
+	serviceAuth := auth.New(log, storage, storage, jwtManager)
+	serviceKeeper := keeper.New(log, storage, storage)
+
+	grpcApp := grpcapp.New(
+		log,
+		serviceAuth,
+		serviceKeeper,
+		jwtManager,
+		cfg.GRPC.ServerAddress,
+	)
+
 	return &App{
 		GRPCSrv: grpcApp,
 	}

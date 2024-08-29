@@ -8,7 +8,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/keeper/v1"
+	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services/interceptors"
 )
 
 type App struct {
@@ -18,13 +21,14 @@ type App struct {
 }
 
 // New функция создания экземпляра приложения
-func New(
-	log *slog.Logger,
-	authService keeperv1.Auth,
-	Address string,
-) *App {
-	gRPCServer := grpc.NewServer()
-	keeperv1.Register(gRPCServer, authService)
+func New(log *slog.Logger, authService keeperv1.Auth, keeperService keeperv1.Keeper, jwtManager *jwt.JWTManager, Address string) *App {
+
+	interceptor := interceptors.NewAuthInterceptor(jwtManager, accessibleMethods())
+
+	gRPCServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.Unary()))
+
+	keeperv1.Register(gRPCServer, authService, keeperService)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(gRPCServer)
@@ -33,6 +37,13 @@ func New(
 		log:        log,
 		gRPCServer: gRPCServer,
 		address:    Address,
+	}
+}
+
+func accessibleMethods() []string {
+	return []string{
+		v1.KeeperServiceV1_RegisterV1_FullMethodName,
+		v1.KeeperServiceV1_LoginV1_FullMethodName,
 	}
 }
 

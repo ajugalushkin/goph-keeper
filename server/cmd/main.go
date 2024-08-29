@@ -11,21 +11,23 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/config"
 )
 
-const (
-	envDev  = "dev"
-	envProd = "prod"
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
 )
 
 func main() {
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
-
-	log.Info("starting application")
-	log.Debug("Config", cfg)
+	log.Info(
+		"starting application",
+		slog.String("env", cfg.Env),
+		slog.String("build version", buildVersion),
+		slog.String("build date", buildDate),
+	)
 
 	application := app.New(log, cfg)
-
 	go application.GRPCSrv.MustRun()
 
 	// Graceful shutdown
@@ -40,6 +42,11 @@ func main() {
 }
 
 func setupLogger(Env string) *slog.Logger {
+	const (
+		envDev  = "dev"
+		envProd = "prod"
+	)
+
 	var log *slog.Logger
 
 	switch Env {
