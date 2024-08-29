@@ -1,0 +1,21 @@
+services:
+  goph-keeper-client:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    build:
+      context: ../client
+      dockerfile: ../client/cmd/Dockerfile
+    image: goph-keeper-client:v1.0
+    container_name: goph-keeper-client
+    hostname: goph-keeper-client
+    ports:
+      - 8080:8080
+    environment:
+      CONFIG: ${CONFIG_CLIENT:?Please configure CONFIG_CLIENT in the .env file}
+    deploy:
+      restart_policy:
+        condition: on-failure
+    networks:
+      - goph-keeper-network
