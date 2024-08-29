@@ -9,6 +9,8 @@ import "buf/validate/validate.proto";
 service KeeperServiceV1{
   rpc RegisterV1(RegisterRequestV1) returns (RegisterResponseV1);
   rpc LoginV1(LoginRequestV1) returns (LoginResponseV1);
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  rpc SetItem(SetItemRequest) returns (SetItemResponse);
 }
 
 message RegisterRequestV1{
@@ -27,4 +29,36 @@ message LoginRequestV1{
 
 message LoginResponseV1{
   string token = 1;
+}
+
+message ListItemsRequest {
+  int64 since = 1;
+}
+
+message Item {
+  enum Type {
+    PASSWORD = 0;
+    TEXT = 1;
+    BINARY = 2;
+    CARD = 3;
+  }
+
+  string id   = 1;
+  string name = 2;
+  Type type = 3;
+  bytes value = 4;
+  int64 server_updated_at = 5;
+  bool is_deleted = 6;
+}
+
+message ListItemsResponse {
+  repeated Item items = 1;
+}
+
+message SetItemRequest {
+  Item item = 1;
+}
+
+message SetItemResponse {
+  int64 server_updated_at = 1;
 }

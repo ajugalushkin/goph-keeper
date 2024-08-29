@@ -8,7 +8,6 @@ package v1
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -22,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	KeeperServiceV1_RegisterV1_FullMethodName = "/keeper.v1.KeeperServiceV1/RegisterV1"
 	KeeperServiceV1_LoginV1_FullMethodName    = "/keeper.v1.KeeperServiceV1/LoginV1"
+	KeeperServiceV1_ListItems_FullMethodName  = "/keeper.v1.KeeperServiceV1/ListItems"
+	KeeperServiceV1_SetItem_FullMethodName    = "/keeper.v1.KeeperServiceV1/SetItem"
 )
 
 // KeeperServiceV1Client is the client API for KeeperServiceV1 service.
@@ -30,6 +31,8 @@ const (
 type KeeperServiceV1Client interface {
 	RegisterV1(ctx context.Context, in *RegisterRequestV1, opts ...grpc.CallOption) (*RegisterResponseV1, error)
 	LoginV1(ctx context.Context, in *LoginRequestV1, opts ...grpc.CallOption) (*LoginResponseV1, error)
+	ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error)
+	SetItem(ctx context.Context, in *SetItemRequest, opts ...grpc.CallOption) (*SetItemResponse, error)
 }
 
 type keeperServiceV1Client struct {
@@ -60,12 +63,34 @@ func (c *keeperServiceV1Client) LoginV1(ctx context.Context, in *LoginRequestV1,
 	return out, nil
 }
 
+func (c *keeperServiceV1Client) ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListItemsResponse)
+	err := c.cc.Invoke(ctx, KeeperServiceV1_ListItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keeperServiceV1Client) SetItem(ctx context.Context, in *SetItemRequest, opts ...grpc.CallOption) (*SetItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetItemResponse)
+	err := c.cc.Invoke(ctx, KeeperServiceV1_SetItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KeeperServiceV1Server is the server API for KeeperServiceV1 service.
 // All implementations must embed UnimplementedKeeperServiceV1Server
 // for forward compatibility.
 type KeeperServiceV1Server interface {
 	RegisterV1(context.Context, *RegisterRequestV1) (*RegisterResponseV1, error)
 	LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error)
+	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
+	SetItem(context.Context, *SetItemRequest) (*SetItemResponse, error)
 	mustEmbedUnimplementedKeeperServiceV1Server()
 }
 
@@ -81,6 +106,12 @@ func (UnimplementedKeeperServiceV1Server) RegisterV1(context.Context, *RegisterR
 }
 func (UnimplementedKeeperServiceV1Server) LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginV1 not implemented")
+}
+func (UnimplementedKeeperServiceV1Server) ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListItems not implemented")
+}
+func (UnimplementedKeeperServiceV1Server) SetItem(context.Context, *SetItemRequest) (*SetItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetItem not implemented")
 }
 func (UnimplementedKeeperServiceV1Server) mustEmbedUnimplementedKeeperServiceV1Server() {}
 func (UnimplementedKeeperServiceV1Server) testEmbeddedByValue()                         {}
@@ -139,6 +170,42 @@ func _KeeperServiceV1_LoginV1_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KeeperServiceV1_ListItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServiceV1Server).ListItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeeperServiceV1_ListItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServiceV1Server).ListItems(ctx, req.(*ListItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KeeperServiceV1_SetItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServiceV1Server).SetItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeeperServiceV1_SetItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServiceV1Server).SetItem(ctx, req.(*SetItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KeeperServiceV1_ServiceDesc is the grpc.ServiceDesc for KeeperServiceV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +220,14 @@ var KeeperServiceV1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginV1",
 			Handler:    _KeeperServiceV1_LoginV1_Handler,
+		},
+		{
+			MethodName: "ListItems",
+			Handler:    _KeeperServiceV1_ListItems_Handler,
+		},
+		{
+			MethodName: "SetItem",
+			Handler:    _KeeperServiceV1_SetItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
