@@ -5,8 +5,8 @@ services:
         condition: service_healthy
     restart: always
     build:
-      context: ../
-      dockerfile: ./cmd/server/Dockerfile
+      context: ../server
+      dockerfile: ../server/cmd/Dockerfile
     image: goph-keeper:v1.0
     container_name: goph-keeper
     hostname: goph-keeper
@@ -14,7 +14,7 @@ services:
       - 8080:8080
       - 40000:40000
     environment:
-      CONFIG: ${CONFIG:?Please configure CONFIG in the .env file}
+      CONFIG: ${CONFIG_SERVER:?Please configure CONFIG_SERVER in the .env file}
     security_opt:
       - "seccomp:unconfined"
     cap_add:
