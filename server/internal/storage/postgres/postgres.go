@@ -11,8 +11,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
 
-	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
-	"github.com/ajugalushkin/goph-keeper/internal/storage"
+	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
 type Storage struct {

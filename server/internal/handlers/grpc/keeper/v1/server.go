@@ -2,11 +2,14 @@ package v1
 
 import (
 	"context"
+	"errors"
 
-	v1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
+	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	keeperv1 "github.com/ajugalushkin/goph-keeper/common/gen/keeper/v1"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
 )
@@ -25,18 +28,18 @@ type Auth interface {
 }
 
 type serverAPI struct {
-	v1.UnimplementedKeeperServiceV1Server
+	keeperv1.UnimplementedKeeperServiceV1Server
 	auth Auth
 }
 
 func Register(gRPC *grpc.Server, auth Auth) {
-	v1.RegisterAuthV1Server(gRPC, &serverAPI{auth: auth})
+	keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{auth: auth})
 }
 
 func (s *serverAPI) RegisterV1(
 	ctx context.Context,
-	req *v1.RegisterRequestV1,
-) (*v1.RegisterResponseV1, error) {
+	req *keeperv1.RegisterRequestV1,
+) (*keeperv1.RegisterResponseV1, error) {
 	validator, err := protovalidate.New()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -53,13 +56,13 @@ func (s *serverAPI) RegisterV1(
 		return nil, status.Error(codes.Internal, "failed to register new user")
 	}
 
-	return &v1.RegisterResponseV1{UserId: user}, nil
+	return &keeperv1.RegisterResponseV1{UserId: user}, nil
 }
 
 func (s *serverAPI) LoginV1(
 	ctx context.Context,
-	req *v1.LoginRequestV1,
-) (*v1.LoginResponseV1, error) {
+	req *keeperv1.LoginRequestV1,
+) (*keeperv1.LoginResponseV1, error) {
 	validator, err := protovalidate.New()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -81,7 +84,7 @@ func (s *serverAPI) LoginV1(
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	return &v1.LoginResponseV1{
+	return &keeperv1.LoginResponseV1{
 		Token: token,
 	}, nil
 }

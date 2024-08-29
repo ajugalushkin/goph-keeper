@@ -9,9 +9,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
-	"github.com/ajugalushkin/goph-keeper/internal/lib/jwt"
-	"github.com/ajugalushkin/goph-keeper/internal/storage"
+	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
+	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
 type Auth struct {

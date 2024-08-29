@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/ajugalushkin/goph-keeper/internal/dto/models"
+	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
 func NewToken(user models.User, duration time.Duration) (string, error) {
