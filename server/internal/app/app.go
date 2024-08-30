@@ -3,8 +3,8 @@ package app
 import (
 	"log/slog"
 
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
-	"github.com/ajugalushkin/goph-keeper/server/internal/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services/keeper"
@@ -25,7 +25,7 @@ func New(
 		panic(err)
 	}
 
-	jwtManager := jwt.NewJWTManager(cfg.TokenSecret, cfg.TokenTTL)
+	jwtManager := jwt.NewJWTManager(log, cfg.Token.TokenSecret, cfg.Token.TokenTTL)
 
 	serviceAuth := auth.New(log, storage, storage, jwtManager)
 	serviceKeeper := keeper.New(log, storage, storage)

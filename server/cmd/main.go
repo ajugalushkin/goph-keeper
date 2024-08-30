@@ -6,9 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/app"
-
-	"github.com/ajugalushkin/goph-keeper/server/internal/config"
 )
 
 var (

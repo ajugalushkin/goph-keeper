@@ -4,5 +4,4 @@ grpc:
   timeout: 1h
 token:
   token_ttl: 10h
-  token_secret: secret_key
 storage_path: postgres://praktikum:pass@postgres:5432/goph_keeper

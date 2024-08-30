@@ -8,6 +8,11 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+type Token struct {
+	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
+	TokenSecret string        `yaml:"token_secret"`
+}
+
 type GRPC struct {
 	ServerAddress string        `yaml:"server_address" env-required:"true"`
 	Timeout       time.Duration `yaml:"timeout" env-default:"1h"`
@@ -15,11 +20,10 @@ type GRPC struct {
 
 // Config структура параметров заауска.
 type Config struct {
-	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
-	Env         string        `yaml:"env" env-required:"true"`
-	StoragePath string        `yaml:"storage_path" env-required:"true"`
+	Env         string `yaml:"env" env-required:"true"`
+	StoragePath string `yaml:"storage_path" env-required:"true"`
 	GRPC        GRPC
-	TokenSecret string
+	Token       Token
 }
 
 // MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
@@ -29,9 +33,7 @@ func MustLoad() *Config {
 		panic("config path is empty")
 	}
 
-	cfg := MustLoadByPath(configPath)
-	cfg.TokenSecret = os.Getenv("TOKEN_SECRET")
-	return cfg
+	return MustLoadByPath(configPath)
 }
 
 func MustLoadByPath(configPath string) *Config {
@@ -39,12 +41,17 @@ func MustLoadByPath(configPath string) *Config {
 		panic("config path does not exist" + configPath)
 	}
 
-	var config Config
-	if err := cleanenv.ReadConfig(configPath, &config); err != nil {
+	var newConfig Config
+	if err := cleanenv.ReadConfig(configPath, &newConfig); err != nil {
 		panic("error reading config: " + err.Error())
 	}
 
-	return &config
+	tokenSecret := os.Getenv("TOKEN_SECRET")
+	if tokenSecret != "" {
+		newConfig.Token.TokenSecret = tokenSecret
+	}
+
+	return &newConfig
 }
 
 // fetchConfig функция для чтения флага config или переменнной окружения CONFIG.

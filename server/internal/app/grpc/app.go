@@ -23,7 +23,7 @@ type App struct {
 // New функция создания экземпляра приложения
 func New(log *slog.Logger, authService keeperv1.Auth, keeperService keeperv1.Keeper, jwtManager *jwt.JWTManager, Address string) *App {
 
-	interceptor := interceptors.NewAuthInterceptor(jwtManager, accessibleMethods())
+	interceptor := interceptors.NewAuthInterceptor(log, jwtManager, accessibleMethods())
 
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptor.Unary()))

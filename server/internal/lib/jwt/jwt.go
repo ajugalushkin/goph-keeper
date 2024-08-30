@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,15 +11,23 @@ import (
 )
 
 type JWTManager struct {
+	log           *slog.Logger
 	secretKey     string
 	tokenDuration time.Duration
 }
 
-func NewJWTManager(secretKey string, tokenDuration time.Duration) *JWTManager {
-	return &JWTManager{secretKey, tokenDuration}
+func NewJWTManager(log *slog.Logger, secretKey string, tokenDuration time.Duration) *JWTManager {
+	return &JWTManager{
+		log,
+		secretKey,
+		tokenDuration,
+	}
 }
 
 func (manager *JWTManager) NewToken(user models.User) (string, error) {
+	const op = "JWTManager.NewToken"
+	log := manager.log.With("op", op)
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"uid":   user.ID,
@@ -28,18 +37,24 @@ func (manager *JWTManager) NewToken(user models.User) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(manager.secretKey))
 	if err != nil {
+		log.Debug("Failed to sign token", "error", err)
 		return "", err
 	}
 
+	log.Debug("JWT token generated", "token", tokenString, "secretKey", manager.secretKey)
 	return tokenString, nil
 }
 
 func (manager *JWTManager) Verify(accessToken string) (bool, error) {
-	_, err := jwt.Parse(
+	const op = "JWTManager.Verify"
+	log := manager.log.With("op", op)
+
+	token, err := jwt.Parse(
 		accessToken,
 		func(token *jwt.Token) (interface{}, error) {
 			_, ok := token.Method.(*jwt.SigningMethodHMAC)
 			if !ok {
+				log.Debug("Unexpected signing method")
 				return nil, fmt.Errorf("unexpected token signing method")
 			}
 
@@ -47,7 +62,8 @@ func (manager *JWTManager) Verify(accessToken string) (bool, error) {
 		},
 	)
 
-	if err != nil {
+	if err != nil || !token.Valid {
+		log.Debug("Failed to verify token", "error", err)
 		return false, fmt.Errorf("invalid token: %w", err)
 	}
 
