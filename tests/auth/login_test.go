@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 	"github.com/ajugalushkin/goph-keeper/tests/auth/suite"
 )
 
@@ -23,14 +23,14 @@ func TestLogin_Login_HappyPath(t *testing.T) {
 	email := gofakeit.Email()
 	pass := randomFakePassword()
 
-	respReq, err := st.AuthClient.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+	respReq, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
 		Email:    email,
 		Password: pass,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, respReq.GetUserId())
 
-	respLog, err := st.AuthClient.LoginV1(ctx, &keeperv1.LoginRequestV1{
+	respLog, err := st.AuthClient.LoginV1(ctx, &authv1.LoginRequestV1{
 		Email:    email,
 		Password: pass,
 	})
@@ -62,14 +62,14 @@ func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
 	email := gofakeit.Email()
 	pass := randomFakePassword()
 
-	respReg, err := st.AuthClient.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+	respReg, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
 		Email:    email,
 		Password: pass,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, respReg.GetUserId())
 
-	respReg, err = st.AuthClient.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+	respReg, err = st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
 		Email:    email,
 		Password: pass,
 	})
@@ -109,7 +109,7 @@ func TestRegister_FailCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := st.AuthClient.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+			_, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
 				Email:    tt.email,
 				Password: tt.password,
 			})
@@ -157,13 +157,13 @@ func TestLogin_FailCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := st.AuthClient.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+			_, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
 				Email:    gofakeit.Email(),
 				Password: randomFakePassword(),
 			})
 			require.NoError(t, err)
 
-			_, err = st.AuthClient.LoginV1(ctx, &keeperv1.LoginRequestV1{
+			_, err = st.AuthClient.LoginV1(ctx, &authv1.LoginRequestV1{
 				Email:    tt.email,
 				Password: tt.password,
 			})

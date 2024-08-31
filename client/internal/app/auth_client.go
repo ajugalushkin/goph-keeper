@@ -1,4 +1,4 @@
-package client
+package app
 
 import (
 	"context"
@@ -13,11 +13,11 @@ import (
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpcretry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 
-	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 )
 
 type Client struct {
-	api keeperv1.KeeperServiceV1Client
+	api authv1.AuthServiceV1Client
 }
 
 func New(
@@ -52,7 +52,7 @@ func New(
 	}
 
 	return &Client{
-		api: keeperv1.NewKeeperServiceV1Client(cc),
+		api: authv1.NewAuthServiceV1Client(cc),
 	}, nil
 }
 
@@ -65,7 +65,7 @@ func InterceptorLogger(l *slog.Logger) grpclog.Logger {
 func (c *Client) Register(ctx context.Context, email string, password string) error {
 	const op = "client.keeper.Register"
 
-	_, err := c.api.RegisterV1(ctx, &keeperv1.RegisterRequestV1{
+	_, err := c.api.RegisterV1(ctx, &authv1.RegisterRequestV1{
 		Email:    email,
 		Password: password,
 	})
@@ -79,7 +79,7 @@ func (c *Client) Register(ctx context.Context, email string, password string) er
 func (c *Client) Login(ctx context.Context, email string, password string) (string, error) {
 	const op = "client.keeper.Login"
 
-	resp, err := c.api.LoginV1(ctx, &keeperv1.LoginRequestV1{
+	resp, err := c.api.LoginV1(ctx, &authv1.LoginRequestV1{
 		Email:    email,
 		Password: password,
 	})

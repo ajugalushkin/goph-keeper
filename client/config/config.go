@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -20,27 +21,32 @@ type Config struct {
 	Client Client
 }
 
-// MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
-func MustLoad() *Config {
-	configPath := fetchConfig()
-	if configPath == "" {
-		panic("config path is empty")
-	}
-
-	return MustLoadByPath(configPath)
+type CfgInstance struct {
+	Config Config
 }
 
-func MustLoadByPath(configPath string) *Config {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		panic("config path does not exist" + configPath)
-	}
+var (
+	singleton *CfgInstance
+	once      sync.Once
+)
 
-	var newConfig Config
-	if err := cleanenv.ReadConfig(configPath, &newConfig); err != nil {
-		panic("error reading config: " + err.Error())
-	}
+func GetInstance() *CfgInstance {
+	once.Do(
+		func() {
+			configPath := fetchConfig()
+			if configPath == "" {
+				panic("config path is empty")
+			}
 
-	return &newConfig
+			var newConfig Config
+			if err := cleanenv.ReadConfig(configPath, &newConfig); err != nil {
+				panic("error reading config: " + err.Error())
+			}
+
+			singleton = &CfgInstance{newConfig}
+		})
+
+	return singleton
 }
 
 // fetchConfig функция для чтения флага config или переменнной окружения CONFIG.
