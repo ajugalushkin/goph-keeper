@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"os"
 
+	"github.com/ajugalushkin/goph-keeper/client/cmd"
 	"github.com/ajugalushkin/goph-keeper/client/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/client"
 )
 
 var (
@@ -25,10 +24,14 @@ func main() {
 		slog.String("build date", buildDate),
 	)
 
-	_, err := client.New(context.Background(), log, cfg.Client.Address, cfg.Client.Timeout, cfg.Client.RetriesCount)
-	if err != nil {
-		log.Info("failed to initialize client")
-	}
+	//_, err := client.New(context.Background(), log, cfg.Client.Address, cfg.Client.Timeout, cfg.Client.RetriesCount)
+	//if err != nil {
+	//	log.Info("failed to initialize client")
+	//}
+
+	//tui.MustRun()
+
+	cmd.Execute()
 
 	//// Graceful shutdown
 	//stop := make(chan os.Signal, 1)
