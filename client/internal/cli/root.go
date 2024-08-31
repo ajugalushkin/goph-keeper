@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "goph_keeper_client",
+	Use:   "gophkeeper_client",
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
 
