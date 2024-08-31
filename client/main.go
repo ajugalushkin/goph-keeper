@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/ajugalushkin/goph-keeper/client/internal/cli"
 	"log/slog"
 	"os"
 
+	"github.com/ajugalushkin/goph-keeper/client/cmd"
 	"github.com/ajugalushkin/goph-keeper/client/config"
 )
 
@@ -31,7 +31,7 @@ func main() {
 
 	//tui.MustRun()
 
-	cli.Execute()
+	cmd.Execute()
 
 	//// Graceful shutdown
 	//stop := make(chan os.Signal, 1)
