@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 
+	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpcretry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/spf13/cobra"
@@ -26,7 +28,9 @@ import (
 
 var cfgFile string
 
-var ClientConnection *grpc.ClientConn
+var AuthClientConnection *grpc.ClientConn
+
+var ValtClientConnection *grpc.ClientConn
 
 // RootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -34,6 +38,10 @@ var rootCmd = &cobra.Command{
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		const op = "rootCmd.PersistentPreRun"
+		log := logger.GetInstance().Log.With("op", op)
+
+		cfg := config.GetInstance().Config
 		retryOpts := []grpcretry.CallOption{
 			grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
 			grpcretry.WithMax(uint(cfg.Client.Retries)),
@@ -45,7 +53,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		var err error
-		ClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
+		AuthClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithChainUnaryInterceptor(
 				grpclog.UnaryClientInterceptor(app.InterceptorLogger(log), logOpts...),
@@ -53,8 +61,25 @@ var rootCmd = &cobra.Command{
 			),
 		)
 		if err != nil {
-			slog.Error("Unable to connect to server", "error", err)
+			log.Error("Unable to connect to server", "error", err)
 		}
+
+		interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods(), cfg.Client.Timeout)
+		if err != nil {
+			log.Error("Unable to create interceptor", "error", err)
+		}
+
+		ValtClientConnection, err = grpc.DialContext(
+			context.Background(),
+			cfg.Client.Address,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(interceptor.Unary()),
+			grpc.WithStreamInterceptor(interceptor.Stream()),
+		)
+		if err != nil {
+			log.Error("Unable to connect to server", "error", err)
+		}
+
 	},
 }
 
@@ -111,4 +136,11 @@ func initConfig() {
 
 	config.GetInstance()
 	logger.GetInstance()
+}
+
+func authMethods() map[string]bool {
+	return map[string]bool{
+		keeperv1.KeeperServiceV1_ListItemV1_FullMethodName: true,
+		keeperv1.KeeperServiceV1_SetItemV1_FullMethodName:  true,
+	}
 }

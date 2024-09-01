@@ -8,20 +8,20 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/config"
 )
 
-type LogInstance struct {
+type logInstance struct {
 	Log *slog.Logger
 }
 
 var (
-	log  *LogInstance
+	log  *logInstance
 	once sync.Once
 )
 
-func GetInstance() *LogInstance {
+func GetInstance() *logInstance {
 	once.Do(
 		func() {
 			cfg := config.GetInstance().Config
-			log = &LogInstance{
+			log = &logInstance{
 				Log: setupLogger(cfg.Env),
 			}
 		})

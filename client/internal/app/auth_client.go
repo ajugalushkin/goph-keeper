@@ -13,59 +13,11 @@ type AuthClient struct {
 	api authv1.AuthServiceV1Client
 }
 
-//func NewAuthClient(
-//	ctx context.Context,
-//	log *slog.Logger,
-//	addr string,
-//	timeout time.Duration,
-//	retriesCount int,
-//) (*AuthClient, error) {
-//	const op = "grpc.New"
-//
-//	retryOpts := []grpcretry.CallOption{
-//		grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
-//		grpcretry.WithMax(uint(retriesCount)),
-//		grpcretry.WithPerRetryTimeout(timeout),
-//	}
-//
-//	logOpts := []grpclog.Option{
-//		grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
-//	}
-//
-//	cc, err := grpc.DialContext(ctx, addr,
-//		grpc.WithTransportCredentials(insecure.NewCredentials()),
-//		grpc.WithChainUnaryInterceptor(
-//			grpclog.UnaryClientInterceptor(InterceptorLogger(log), logOpts...),
-//			grpcretry.UnaryClientInterceptor(retryOpts...),
-//		),
-//	)
-//
-//	if err != nil {
-//		return nil, fmt.Errorf("%s: %w", op, err)
-//	}
-//
-//	return &AuthClient{
-//		api: authv1.NewAuthServiceV1Client(cc),
-//	}, nil
-//}
-
-//type AuthClient struct {
-//	service  pb.AuthServiceClient
-//	username string
-//	password string
-//}
-
 // NewAuthClient returns a new auth client
 func NewAuthClient(cc *grpc.ClientConn) *AuthClient {
 	service := authv1.NewAuthServiceV1Client(cc)
 	return &AuthClient{service}
 }
-
-//func InterceptorLogger(l *slog.Logger) grpclog.Logger {
-//	return grpclog.LoggerFunc(func(ctx context.Context, lvl grpclog.Level, msg string, fields ...any) {
-//		l.Log(ctx, slog.Level(lvl), msg, fields...)
-//	})
-//}
 
 func (c *AuthClient) Register(ctx context.Context, email string, password string) error {
 	const op = "client.keeper.Register"

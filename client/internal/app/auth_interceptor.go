@@ -101,13 +101,13 @@ func (interceptor *AuthInterceptor) scheduleRefreshToken(refreshDuration time.Du
 }
 
 func (interceptor *AuthInterceptor) refreshToken() error {
-	accessToken, err := interceptor.authClient.Login()
-	if err != nil {
-		return err
-	}
-
-	interceptor.accessToken = accessToken
-	log.Printf("token refreshed: %v", accessToken)
+	//accessToken, err := interceptor.authClient.Login()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//interceptor.accessToken = accessToken
+	//log.Printf("token refreshed: %v", accessToken)
 
 	return nil
 }
