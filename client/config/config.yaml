@@ -2,4 +2,4 @@ env: "dev"  #dev, prod
 client:
   address: ":8080"
   timeout: 1h
-  retries_count: 3
+  retries: 3

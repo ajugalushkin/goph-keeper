@@ -4,25 +4,57 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"os"
 	"strings"
 
+	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	grpcretry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/ajugalushkin/goph-keeper/client/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
+var ClientConnection *grpc.ClientConn
+
+// RootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gophkeeper_client",
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
-	Run: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		retryOpts := []grpcretry.CallOption{
+			grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
+			grpcretry.WithMax(uint(cfg.Client.Retries)),
+			grpcretry.WithPerRetryTimeout(cfg.Client.Timeout),
+		}
 
+		logOpts := []grpclog.Option{
+			grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
+		}
+
+		var err error
+		ClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithChainUnaryInterceptor(
+				grpclog.UnaryClientInterceptor(app.InterceptorLogger(log), logOpts...),
+				grpcretry.UnaryClientInterceptor(retryOpts...),
+			),
+		)
+		if err != nil {
+			slog.Error("Unable to connect to server", "error", err)
+		}
 	},
 }
 
@@ -49,7 +81,13 @@ func initConfig() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("./client/config")
+		viper.AddConfigPath("/etc/goph-keeper/")
+		viper.AddConfigPath("$HOME/.goph-keeper")
+		viper.AddConfigPath(".")
 	}
+
+	usedFile := viper.ConfigFileUsed()
+	slog.Debug("load config file:", usedFile)
 
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
@@ -70,4 +108,7 @@ func initConfig() {
 			slog.Error("Error parsing flag: ", err)
 		}
 	})
+
+	config.GetInstance()
+	logger.GetInstance()
 }

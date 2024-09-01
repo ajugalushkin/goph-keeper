@@ -1,21 +1,23 @@
 package config
 
 import (
-	"github.com/spf13/viper"
+	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type Client struct {
-	Address      string        `yaml:"address" env-required:"true"`
-	Timeout      time.Duration `yaml:"timeout" env-required:"1h"`
-	RetriesCount int           `yaml:"retries_count" env-default:"1"`
+	Address string        `yaml:"address" env-required:"true"`
+	Timeout time.Duration `yaml:"timeout" env-required:"true"`
+	Retries int           `yaml:"retries" env-required:"true"`
 }
 
 // Config структура параметров заауска.
 type Config struct {
 	Env    string `yaml:"env" env-required:"true"`
-	Client Client
+	Client Client `yaml:"client" env-required:"true"`
 }
 
 type CfgInstance struct {
@@ -30,14 +32,13 @@ var (
 func GetInstance() *CfgInstance {
 	once.Do(
 		func() {
-			singleton = &CfgInstance{Config{
-				Env: viper.GetString("env"),
-				Client: Client{
-					Address:      viper.GetString("address"),
-					Timeout:      viper.GetDuration("timeout"),
-					RetriesCount: viper.GetInt("retriesCount"),
-				},
-			}}
+			var config Config
+			if err := viper.Unmarshal(&config); err != nil {
+				slog.Error("Unable to unmarshal config file: ", err)
+				panic(err)
+			}
+
+			singleton = &CfgInstance{config}
 		})
 
 	return singleton
