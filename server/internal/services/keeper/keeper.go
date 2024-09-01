@@ -18,7 +18,7 @@ type ItemProvider interface {
 }
 
 type ItemSaver interface {
-	Save(ctx context.Context, item models.Item) error
+	Create(ctx context.Context, item *models.Item) (*models.Item, error)
 }
 
 func New(log *slog.Logger, provider ItemProvider, saver ItemSaver) *Keeper {
@@ -29,15 +29,15 @@ func New(log *slog.Logger, provider ItemProvider, saver ItemSaver) *Keeper {
 	}
 }
 
+func (k Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
+	newItem, err := k.itmSaver.Create(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+	return newItem, nil
+}
+
 func (k Keeper) ListItem(ctx context.Context, since int64) (list *models.ListItem, err error) {
 	k.itmProvider.List(ctx)
 	return nil, nil
-}
-
-func (k Keeper) SaveItem(ctx context.Context, item *models.Item) (serverUpdateAt string, err error) {
-	err = k.itmSaver.Save(ctx, *item)
-	if err != nil {
-		return "", err
-	}
-	return "", nil
 }

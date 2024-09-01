@@ -15,21 +15,21 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
-type Storage struct {
+type UserStorage struct {
 	db *sql.DB
 }
 
-func New(storagePath string) (*Storage, error) {
-	const op = "storage.postgres.New"
+func NewUserStorage(storagePath string) (*UserStorage, error) {
+	const op = "storage.postgres.NewUserStorage"
 	db, err := sql.Open("pgx", storagePath)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Storage{db: db}, nil
+	return &UserStorage{db: db}, nil
 }
 
-func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (uid int64, err error) {
+func (s *UserStorage) SaveUser(ctx context.Context, email string, passHash []byte) (uid int64, err error) {
 	const op = "storage.postgres.SaveUser"
 
 	stmt, err := s.db.Prepare("INSERT INTO users(email, password_hash) VALUES ($1, $2)")
@@ -55,7 +55,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 	return lastUser.ID, nil
 }
 
-func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
+func (s *UserStorage) User(ctx context.Context, email string) (models.User, error) {
 	const op = "storage.postgres.User"
 
 	stmt, err := s.db.Prepare("SELECT id, email, password_hash FROM users WHERE email = $1")
@@ -75,14 +75,4 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	}
 
 	return user, nil
-}
-
-func (s *Storage) List(ctx context.Context) []models.Item {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *Storage) Save(ctx context.Context, item models.Item) error {
-	//TODO implement me
-	panic("implement me")
 }

@@ -20,15 +20,20 @@ func New(
 	cfg *config.Config,
 ) *App {
 
-	storage, err := postgres.New(cfg.StoragePath)
+	userStorage, err := postgres.NewUserStorage(cfg.StoragePath)
+	if err != nil {
+		panic(err)
+	}
+
+	vaultStorage, err := postgres.NewVaultStorage(cfg.StoragePath)
 	if err != nil {
 		panic(err)
 	}
 
 	jwtManager := jwt.NewJWTManager(log, cfg.Token.TokenSecret, cfg.Token.TokenTTL)
 
-	serviceAuth := auth.New(log, storage, storage, jwtManager)
-	serviceKeeper := keeper.New(log, storage, storage)
+	serviceAuth := auth.New(log, userStorage, userStorage, jwtManager)
+	serviceKeeper := keeper.New(log, vaultStorage, vaultStorage)
 
 	grpcApp := grpcapp.New(
 		log,

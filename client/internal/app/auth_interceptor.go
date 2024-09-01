@@ -22,7 +22,7 @@ func NewAuthInterceptor(
 		authMethods: authMethods,
 	}
 
-	interceptor.accessToken = ""
+	interceptor.accessToken = token
 
 	return interceptor, nil
 }
@@ -37,6 +37,8 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryClientInterceptor {
 		opts ...grpc.CallOption,
 	) error {
 		log.Printf("--> unary interceptor: %s", method)
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+interceptor.accessToken)
 
 		if interceptor.authMethods[method] {
 			return invoker(interceptor.attachToken(ctx), method, req, reply, cc, opts...)
@@ -57,6 +59,8 @@ func (interceptor *AuthInterceptor) Stream() grpc.StreamClientInterceptor {
 		opts ...grpc.CallOption,
 	) (grpc.ClientStream, error) {
 		log.Printf("--> stream interceptor: %s", method)
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+interceptor.accessToken)
 
 		if interceptor.authMethods[method] {
 			return streamer(interceptor.attachToken(ctx), desc, cc, method, opts...)

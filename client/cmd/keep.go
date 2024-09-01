@@ -23,7 +23,7 @@ func init() {
 }
 
 type Data struct {
-	data []byte
+	Context []byte
 }
 
 func encryptVault(s vaulttypes.Vault) ([]byte, error) {
@@ -56,5 +56,5 @@ func decryptVault(b []byte) (vaulttypes.Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	return vaulttypes.DecodeVault(data.data)
+	return vaulttypes.DecodeVault(data.Context)
 }

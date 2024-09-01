@@ -12,6 +12,13 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
 )
 
+type key int
+
+const (
+	// ContextKeyUserID ключ для добавления UserID в контекст при аутентификации
+	ContextKeyUserID key = iota
+)
+
 type AuthInterceptor struct {
 	log               *slog.Logger
 	jwtManager        *jwt.JWTManager

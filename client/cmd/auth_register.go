@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
@@ -30,7 +31,9 @@ var registerCmd = &cobra.Command{
 			log.Error("Error getting password", "error", err)
 		}
 
-		err = AuthClient.Register(context.Background(), email, password)
+		authClient := app.NewAuthClient(app.GetAuthConnection())
+
+		err = authClient.Register(context.Background(), email, password)
 		if err != nil {
 			log.Error("Error registering user", "error", err)
 		}
