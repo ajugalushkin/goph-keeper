@@ -1,12 +1,9 @@
 package config
 
 import (
-	"flag"
-	"os"
+	"github.com/spf13/viper"
 	"sync"
 	"time"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Client struct {
@@ -33,32 +30,15 @@ var (
 func GetInstance() *CfgInstance {
 	once.Do(
 		func() {
-			configPath := fetchConfig()
-			if configPath == "" {
-				panic("config path is empty")
-			}
-
-			var newConfig Config
-			if err := cleanenv.ReadConfig(configPath, &newConfig); err != nil {
-				panic("error reading config: " + err.Error())
-			}
-
-			singleton = &CfgInstance{newConfig}
+			singleton = &CfgInstance{Config{
+				Env: viper.GetString("env"),
+				Client: Client{
+					Address:      viper.GetString("address"),
+					Timeout:      viper.GetDuration("timeout"),
+					RetriesCount: viper.GetInt("retriesCount"),
+				},
+			}}
 		})
 
 	return singleton
-}
-
-// fetchConfig функция для чтения флага config или переменнной окружения CONFIG.
-// приоритет flag
-func fetchConfig() string {
-	var result string
-
-	flag.StringVar(&result, "config", "", "config file path")
-	flag.Parse()
-
-	if result == "" {
-		result = os.Getenv("CONFIG")
-	}
-	return result
 }

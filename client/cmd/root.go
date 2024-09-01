@@ -21,6 +21,9 @@ var rootCmd = &cobra.Command{
 	Use:   "gophkeeper_client",
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+	Run: func(cmd *cobra.Command, args []string) {
+
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -52,10 +55,8 @@ func initConfig() {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
 			slog.Error("Error reading config file: ", err)
-			panic(err)
 		}
 		slog.Debug("Config file not found in ", cfgFile)
-		panic("Config file not found")
 	} else {
 		slog.Debug("Using config file:", viper.ConfigFileUsed())
 	}

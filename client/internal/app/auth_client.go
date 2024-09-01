@@ -20,7 +20,7 @@ type Client struct {
 	api authv1.AuthServiceV1Client
 }
 
-func New(
+func NewAuthClient(
 	ctx context.Context,
 	log *slog.Logger,
 	addr string,
