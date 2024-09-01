@@ -4,25 +4,19 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"context"
 	"errors"
 	"log/slog"
 	"os"
 	"strings"
 
-	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
-
-	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	grpcretry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/token"
 
 	"github.com/ajugalushkin/goph-keeper/client/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
@@ -32,53 +26,55 @@ var AuthClientConnection *grpc.ClientConn
 
 var ValtClientConnection *grpc.ClientConn
 
+var tokenStorage token.Storage
+
 // RootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gophkeeper_client",
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		const op = "rootCmd.PersistentPreRun"
-		log := logger.GetInstance().Log.With("op", op)
+		//const op = "rootCmd.PersistentPreRun"
+		//log := logger.GetInstance().Log.With("op", op)
+		//
+		//cfg := config.GetInstance().Config
+		//retryOpts := []grpcretry.CallOption{
+		//	grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
+		//	grpcretry.WithMax(uint(cfg.Client.Retries)),
+		//	grpcretry.WithPerRetryTimeout(cfg.Client.Timeout),
+		//}
+		//
+		//logOpts := []grpclog.Option{
+		//	grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
+		//}
+		//
+		//var err error
+		//AuthClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
+		//	grpc.WithTransportCredentials(insecure.NewCredentials()),
+		//	grpc.WithChainUnaryInterceptor(
+		//		grpclog.UnaryClientInterceptor(app.InterceptorLogger(log), logOpts...),
+		//		grpcretry.UnaryClientInterceptor(retryOpts...),
+		//	),
+		//)
+		//if err != nil {
+		//	log.Error("Unable to connect to server", "error", err)
+		//}
 
-		cfg := config.GetInstance().Config
-		retryOpts := []grpcretry.CallOption{
-			grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
-			grpcretry.WithMax(uint(cfg.Client.Retries)),
-			grpcretry.WithPerRetryTimeout(cfg.Client.Timeout),
-		}
+		//interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods())
+		//if err != nil {
+		//	log.Error("Unable to create interceptor", "error", err)
+		//}
 
-		logOpts := []grpclog.Option{
-			grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
-		}
-
-		var err error
-		AuthClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithChainUnaryInterceptor(
-				grpclog.UnaryClientInterceptor(app.InterceptorLogger(log), logOpts...),
-				grpcretry.UnaryClientInterceptor(retryOpts...),
-			),
-		)
-		if err != nil {
-			log.Error("Unable to connect to server", "error", err)
-		}
-
-		interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods())
-		if err != nil {
-			log.Error("Unable to create interceptor", "error", err)
-		}
-
-		ValtClientConnection, err = grpc.DialContext(
-			context.Background(),
-			cfg.Client.Address,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithUnaryInterceptor(interceptor.Unary()),
-			grpc.WithStreamInterceptor(interceptor.Stream()),
-		)
-		if err != nil {
-			log.Error("Unable to connect to server", "error", err)
-		}
+		//ValtClientConnection, err = grpc.DialContext(
+		//	context.Background(),
+		//	cfg.Client.Address,
+		//	grpc.WithTransportCredentials(insecure.NewCredentials()),
+		//	grpc.WithUnaryInterceptor(interceptor.Unary()),
+		//	grpc.WithStreamInterceptor(interceptor.Stream()),
+		//)
+		//if err != nil {
+		//	log.Error("Unable to connect to server", "error", err)
+		//}
 
 	},
 }
@@ -93,6 +89,8 @@ func Execute() {
 }
 
 func init() {
+	tokenStorage = token.NewFileStorage("token.txt")
+
 	rootCmd.PersistentFlags().StringVarP(
 		&cfgFile, "config", "c", "", "Client config filepath")
 
@@ -136,11 +134,4 @@ func initConfig() {
 
 	config.GetInstance()
 	logger.GetInstance()
-}
-
-func authMethods() map[string]bool {
-	return map[string]bool{
-		keeperv1.KeeperServiceV1_ListItemV1_FullMethodName: true,
-		keeperv1.KeeperServiceV1_SetItemV1_FullMethodName:  true,
-	}
 }

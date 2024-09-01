@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 
@@ -37,17 +38,14 @@ var registerCmd = &cobra.Command{
 }
 
 func init() {
-	const op = "client.auth.register.init"
-	log := logger.GetInstance().Log.With("op", op)
-
 	authCmd.AddCommand(registerCmd)
 
 	registerCmd.Flags().StringP("email", "e", "", "User Email")
 	if err := registerCmd.MarkFlagRequired("email"); err != nil {
-		log.Error("Error setting email flag", "error", err)
+		slog.Error("Error setting email flag", "error", err)
 	}
 	registerCmd.Flags().StringP("password", "p", "", "User password")
 	if err := registerCmd.MarkFlagRequired("password"); err != nil {
-		log.Error("Error setting password flag", "error", err)
+		slog.Error("Error setting password flag", "error", err)
 	}
 }

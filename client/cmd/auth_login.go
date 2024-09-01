@@ -5,9 +5,11 @@ package cmd
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
@@ -30,9 +32,15 @@ var loginCmd = &cobra.Command{
 			log.Error("Error while getting password")
 		}
 
-		_, err = AuthClient.Login(context.Background(), email, password)
+		authClient := app.NewAuthClient(app.GetAuthConnection())
+
+		token, err := authClient.Login(context.Background(), email, password)
 		if err != nil {
 			log.Error("Error while login", "error", err)
+		}
+
+		if err := tokenStorage.Save(token); err != nil {
+			log.Error("Failed to store access token")
 		}
 
 		log.Info("Login success")
@@ -40,17 +48,14 @@ var loginCmd = &cobra.Command{
 }
 
 func init() {
-	const op = "client.auth.login.init"
-	log := logger.GetInstance().Log.With("op", op)
-
 	authCmd.AddCommand(loginCmd)
 
 	loginCmd.Flags().StringP("email", "e", "", "User Email")
 	if err := loginCmd.MarkFlagRequired("email"); err != nil {
-		log.Error("Error marking email as required")
+		slog.Error("Error marking email as required")
 	}
 	loginCmd.Flags().StringP("password", "p", "", "User password")
 	if err := loginCmd.MarkFlagRequired("password"); err != nil {
-		log.Error("Error marking password as required")
+		slog.Error("Error marking password as required")
 	}
 }

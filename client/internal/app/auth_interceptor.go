@@ -3,9 +3,7 @@ package app
 import (
 	"context"
 	"log"
-	"log/slog"
 
-	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -17,19 +15,14 @@ type AuthInterceptor struct {
 }
 
 func NewAuthInterceptor(
-	authClient *AuthClient,
+	token string,
 	authMethods map[string]bool,
-	// refreshDuration time.Duration,
 ) (*AuthInterceptor, error) {
 	interceptor := &AuthInterceptor{
-		authClient:  authClient,
 		authMethods: authMethods,
 	}
 
-	//err := interceptor.scheduleRefreshToken(refreshDuration)
-	//if err != nil {
-	//	return nil, err
-	//}
+	interceptor.accessToken = ""
 
 	return interceptor, nil
 }
@@ -75,44 +68,4 @@ func (interceptor *AuthInterceptor) Stream() grpc.StreamClientInterceptor {
 
 func (interceptor *AuthInterceptor) attachToken(ctx context.Context) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, "authorization", interceptor.accessToken)
-}
-
-//func (interceptor *AuthInterceptor) scheduleRefreshToken(refreshDuration time.Duration) error {
-//	err := interceptor.refreshToken()
-//	if err != nil {
-//		return err
-//	}
-//
-//	go func() {
-//		wait := refreshDuration
-//		for {
-//			time.Sleep(wait)
-//			err := interceptor.refreshToken()
-//			if err != nil {
-//				wait = time.Second
-//			} else {
-//				wait = refreshDuration
-//			}
-//		}
-//	}()
-//
-//	return nil
-//}
-
-//func (interceptor *AuthInterceptor) refreshToken() error {
-//	//accessToken, err := interceptor.authClient.Login()
-//	//if err != nil {
-//	//	return err
-//	//}
-//	//
-//	//interceptor.accessToken = accessToken
-//	//log.Printf("token refreshed: %v", accessToken)
-//
-//	return nil
-//}
-
-func InterceptorLogger(l *slog.Logger) grpclog.Logger {
-	return grpclog.LoggerFunc(func(ctx context.Context, lvl grpclog.Level, msg string, fields ...any) {
-		l.Log(ctx, slog.Level(lvl), msg, fields...)
-	})
 }

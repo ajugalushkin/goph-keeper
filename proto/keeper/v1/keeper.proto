@@ -5,8 +5,19 @@ option go_package = "/keeper/v1";
 package keeper.v1;
 
 service KeeperServiceV1{
+  rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
   rpc ListItemV1(ListItemRequestV1) returns (ListItemResponseV1);
   rpc SetItemV1(SetItemRequestV1) returns (SetItemResponseV1);
+}
+
+message CreateItemRequestV1 {
+  string name = 1;
+  bytes content = 2;
+}
+
+message CreateItemResponseV1 {
+  string name = 1;
+  string version = 2;
 }
 
 message ListItemRequestV1 {

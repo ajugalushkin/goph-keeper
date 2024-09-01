@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KeeperServiceV1_ListItemV1_FullMethodName = "/keeper.v1.KeeperServiceV1/ListItemV1"
-	KeeperServiceV1_SetItemV1_FullMethodName  = "/keeper.v1.KeeperServiceV1/SetItemV1"
+	KeeperServiceV1_CreateItemV1_FullMethodName = "/keeper.v1.KeeperServiceV1/CreateItemV1"
+	KeeperServiceV1_ListItemV1_FullMethodName   = "/keeper.v1.KeeperServiceV1/ListItemV1"
+	KeeperServiceV1_SetItemV1_FullMethodName    = "/keeper.v1.KeeperServiceV1/SetItemV1"
 )
 
 // KeeperServiceV1Client is the client API for KeeperServiceV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KeeperServiceV1Client interface {
+	CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error)
 	ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error)
 	SetItemV1(ctx context.Context, in *SetItemRequestV1, opts ...grpc.CallOption) (*SetItemResponseV1, error)
 }
@@ -37,6 +39,16 @@ type keeperServiceV1Client struct {
 
 func NewKeeperServiceV1Client(cc grpc.ClientConnInterface) KeeperServiceV1Client {
 	return &keeperServiceV1Client{cc}
+}
+
+func (c *keeperServiceV1Client) CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateItemResponseV1)
+	err := c.cc.Invoke(ctx, KeeperServiceV1_CreateItemV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *keeperServiceV1Client) ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error) {
@@ -63,6 +75,7 @@ func (c *keeperServiceV1Client) SetItemV1(ctx context.Context, in *SetItemReques
 // All implementations must embed UnimplementedKeeperServiceV1Server
 // for forward compatibility.
 type KeeperServiceV1Server interface {
+	CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error)
 	ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error)
 	SetItemV1(context.Context, *SetItemRequestV1) (*SetItemResponseV1, error)
 	mustEmbedUnimplementedKeeperServiceV1Server()
@@ -75,6 +88,9 @@ type KeeperServiceV1Server interface {
 // pointer dereference when methods are called.
 type UnimplementedKeeperServiceV1Server struct{}
 
+func (UnimplementedKeeperServiceV1Server) CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateItemV1 not implemented")
+}
 func (UnimplementedKeeperServiceV1Server) ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListItemV1 not implemented")
 }
@@ -100,6 +116,24 @@ func RegisterKeeperServiceV1Server(s grpc.ServiceRegistrar, srv KeeperServiceV1S
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&KeeperServiceV1_ServiceDesc, srv)
+}
+
+func _KeeperServiceV1_CreateItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateItemRequestV1)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServiceV1Server).CreateItemV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeeperServiceV1_CreateItemV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServiceV1Server).CreateItemV1(ctx, req.(*CreateItemRequestV1))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _KeeperServiceV1_ListItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -145,6 +179,10 @@ var KeeperServiceV1_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "keeper.v1.KeeperServiceV1",
 	HandlerType: (*KeeperServiceV1Server)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateItemV1",
+			Handler:    _KeeperServiceV1_CreateItemV1_Handler,
+		},
 		{
 			MethodName: "ListItemV1",
 			Handler:    _KeeperServiceV1_ListItemV1_Handler,
