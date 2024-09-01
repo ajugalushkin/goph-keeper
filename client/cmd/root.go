@@ -64,7 +64,7 @@ var rootCmd = &cobra.Command{
 			log.Error("Unable to connect to server", "error", err)
 		}
 
-		interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods(), cfg.Client.Timeout)
+		interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods())
 		if err != nil {
 			log.Error("Unable to create interceptor", "error", err)
 		}

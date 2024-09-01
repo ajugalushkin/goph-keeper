@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"time"
 
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
@@ -20,17 +19,17 @@ type AuthInterceptor struct {
 func NewAuthInterceptor(
 	authClient *AuthClient,
 	authMethods map[string]bool,
-	refreshDuration time.Duration,
+	// refreshDuration time.Duration,
 ) (*AuthInterceptor, error) {
 	interceptor := &AuthInterceptor{
 		authClient:  authClient,
 		authMethods: authMethods,
 	}
 
-	err := interceptor.scheduleRefreshToken(refreshDuration)
-	if err != nil {
-		return nil, err
-	}
+	//err := interceptor.scheduleRefreshToken(refreshDuration)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return interceptor, nil
 }
@@ -78,39 +77,39 @@ func (interceptor *AuthInterceptor) attachToken(ctx context.Context) context.Con
 	return metadata.AppendToOutgoingContext(ctx, "authorization", interceptor.accessToken)
 }
 
-func (interceptor *AuthInterceptor) scheduleRefreshToken(refreshDuration time.Duration) error {
-	err := interceptor.refreshToken()
-	if err != nil {
-		return err
-	}
+//func (interceptor *AuthInterceptor) scheduleRefreshToken(refreshDuration time.Duration) error {
+//	err := interceptor.refreshToken()
+//	if err != nil {
+//		return err
+//	}
+//
+//	go func() {
+//		wait := refreshDuration
+//		for {
+//			time.Sleep(wait)
+//			err := interceptor.refreshToken()
+//			if err != nil {
+//				wait = time.Second
+//			} else {
+//				wait = refreshDuration
+//			}
+//		}
+//	}()
+//
+//	return nil
+//}
 
-	go func() {
-		wait := refreshDuration
-		for {
-			time.Sleep(wait)
-			err := interceptor.refreshToken()
-			if err != nil {
-				wait = time.Second
-			} else {
-				wait = refreshDuration
-			}
-		}
-	}()
-
-	return nil
-}
-
-func (interceptor *AuthInterceptor) refreshToken() error {
-	//accessToken, err := interceptor.authClient.Login()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//interceptor.accessToken = accessToken
-	//log.Printf("token refreshed: %v", accessToken)
-
-	return nil
-}
+//func (interceptor *AuthInterceptor) refreshToken() error {
+//	//accessToken, err := interceptor.authClient.Login()
+//	//if err != nil {
+//	//	return err
+//	//}
+//	//
+//	//interceptor.accessToken = accessToken
+//	//log.Printf("token refreshed: %v", accessToken)
+//
+//	return nil
+//}
 
 func InterceptorLogger(l *slog.Logger) grpclog.Logger {
 	return grpclog.LoggerFunc(func(ctx context.Context, lvl grpclog.Level, msg string, fields ...any) {
