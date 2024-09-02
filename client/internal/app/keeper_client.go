@@ -1,8 +1,13 @@
 package app
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,6 +36,72 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 	}
 
 	return resp, nil
+}
+
+func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, fileName string, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Error("cannot open file: ", err)
+		return err
+	}
+	defer file.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	stream, err := k.api.CreateItemStreamV1(ctx)
+	if err != nil {
+		log.Error("cannot upload file: ", err)
+		return err
+	}
+
+	req := &keeperv1.CreateItemStreamRequestV1{
+		Data: &keeperv1.CreateItemStreamRequestV1_Info{
+			Info: &keeperv1.CreateItemStreamRequestV1_FileInfo{
+				Name: fileName,
+				Type: "",
+			},
+		},
+	}
+
+	err = stream.Send(req)
+	if err != nil {
+		log.Error("cannot send file info to server: ", err, stream.RecvMsg(nil))
+		return err
+	}
+
+	reader := bufio.NewReader(file)
+	buffer := make([]byte, 1024)
+
+	for {
+		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Error("cannot read chunk to buffer: ", err)
+		}
+
+		req := &keeperv1.CreateItemStreamRequestV1{
+			Data: &keeperv1.CreateItemStreamRequestV1_ChunkData{
+				ChunkData: buffer[:n],
+			},
+		}
+
+		err = stream.Send(req)
+		if err != nil {
+			log.Error("cannot send chunk to server: ", err, stream.RecvMsg(nil))
+		}
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Error("cannot receive response: ", err)
+		return err
+	}
+
+	log.Info("image uploaded with id: %s, size: %d", res.GetName(), res.GetSize())
+	return nil
 }
 
 func (k *KeeperClient) ListItem(ctx context.Context, since int64) (error, *keeperv1.ListItemResponseV1) {

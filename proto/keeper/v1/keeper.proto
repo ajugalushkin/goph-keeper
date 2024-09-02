@@ -24,13 +24,19 @@ message CreateItemResponseV1 {
 }
 
 message CreateItemStreamRequestV1 {
-  string name = 1 [(buf.validate.field).required = true];
-  bytes content = 2 [(buf.validate.field).required = true];
+  message FileInfo {
+    string name = 1;
+    string type = 2;
+  }
+  oneof data {
+    FileInfo info = 1;
+    bytes chunk_data = 2;
+  };
 }
 
 message CreateItemStreamResponseV1 {
   string name = 1;
-  string version = 2;
+  uint32 size = 2;
 }
 
 message ListItemRequestV1 {

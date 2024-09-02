@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - goph-keeper-network
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Please configure MINIO_ROOT_USER in the .env file}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Please configure MINIO_ROOT_PASSWORD in the .env file}
+      MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS:?Please configure MINIO_DEFAULT_BUCKETS in the .env file}
+
+volumes:
+  minio_data:
+    driver: local
