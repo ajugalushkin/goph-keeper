@@ -8,6 +8,7 @@ import "buf/validate/validate.proto";
 
 service KeeperServiceV1{
   rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
+  rpc CreateItemStreamV1(stream CreateItemStreamRequestV1) returns(CreateItemStreamResponseV1);
   rpc ListItemV1(ListItemRequestV1) returns (ListItemResponseV1);
   rpc SetItemV1(SetItemRequestV1) returns (SetItemResponseV1);
 }
@@ -18,6 +19,16 @@ message CreateItemRequestV1 {
 }
 
 message CreateItemResponseV1 {
+  string name = 1;
+  string version = 2;
+}
+
+message CreateItemStreamRequestV1 {
+  string name = 1 [(buf.validate.field).required = true];
+  bytes content = 2 [(buf.validate.field).required = true];
+}
+
+message CreateItemStreamResponseV1 {
   string name = 1;
   string version = 2;
 }

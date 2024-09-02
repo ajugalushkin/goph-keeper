@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KeeperServiceV1_CreateItemV1_FullMethodName = "/keeper.v1.KeeperServiceV1/CreateItemV1"
-	KeeperServiceV1_ListItemV1_FullMethodName   = "/keeper.v1.KeeperServiceV1/ListItemV1"
-	KeeperServiceV1_SetItemV1_FullMethodName    = "/keeper.v1.KeeperServiceV1/SetItemV1"
+	KeeperServiceV1_CreateItemV1_FullMethodName       = "/keeper.v1.KeeperServiceV1/CreateItemV1"
+	KeeperServiceV1_CreateItemStreamV1_FullMethodName = "/keeper.v1.KeeperServiceV1/CreateItemStreamV1"
+	KeeperServiceV1_ListItemV1_FullMethodName         = "/keeper.v1.KeeperServiceV1/ListItemV1"
+	KeeperServiceV1_SetItemV1_FullMethodName          = "/keeper.v1.KeeperServiceV1/SetItemV1"
 )
 
 // KeeperServiceV1Client is the client API for KeeperServiceV1 service.
@@ -29,6 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KeeperServiceV1Client interface {
 	CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error)
+	CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1], error)
 	ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error)
 	SetItemV1(ctx context.Context, in *SetItemRequestV1, opts ...grpc.CallOption) (*SetItemResponseV1, error)
 }
@@ -50,6 +52,19 @@ func (c *keeperServiceV1Client) CreateItemV1(ctx context.Context, in *CreateItem
 	}
 	return out, nil
 }
+
+func (c *keeperServiceV1Client) CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &KeeperServiceV1_ServiceDesc.Streams[0], KeeperServiceV1_CreateItemStreamV1_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[CreateItemStreamRequestV1, CreateItemStreamResponseV1]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KeeperServiceV1_CreateItemStreamV1Client = grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1]
 
 func (c *keeperServiceV1Client) ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -76,6 +91,7 @@ func (c *keeperServiceV1Client) SetItemV1(ctx context.Context, in *SetItemReques
 // for forward compatibility.
 type KeeperServiceV1Server interface {
 	CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error)
+	CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]) error
 	ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error)
 	SetItemV1(context.Context, *SetItemRequestV1) (*SetItemResponseV1, error)
 	mustEmbedUnimplementedKeeperServiceV1Server()
@@ -90,6 +106,9 @@ type UnimplementedKeeperServiceV1Server struct{}
 
 func (UnimplementedKeeperServiceV1Server) CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateItemV1 not implemented")
+}
+func (UnimplementedKeeperServiceV1Server) CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]) error {
+	return status.Errorf(codes.Unimplemented, "method CreateItemStreamV1 not implemented")
 }
 func (UnimplementedKeeperServiceV1Server) ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListItemV1 not implemented")
@@ -135,6 +154,13 @@ func _KeeperServiceV1_CreateItemV1_Handler(srv interface{}, ctx context.Context,
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _KeeperServiceV1_CreateItemStreamV1_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeeperServiceV1Server).CreateItemStreamV1(&grpc.GenericServerStream[CreateItemStreamRequestV1, CreateItemStreamResponseV1]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KeeperServiceV1_CreateItemStreamV1Server = grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]
 
 func _KeeperServiceV1_ListItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListItemRequestV1)
@@ -192,6 +218,12 @@ var KeeperServiceV1_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KeeperServiceV1_SetItemV1_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "CreateItemStreamV1",
+			Handler:       _KeeperServiceV1_CreateItemStreamV1_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "keeper/v1/keeper.proto",
 }

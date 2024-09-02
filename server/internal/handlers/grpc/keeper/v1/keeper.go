@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"io"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/google/uuid"
@@ -36,7 +37,7 @@ func Register(gRPC *grpc.Server, keeper Keeper) {
 	})
 }
 
-func (s *serverAPI) CreateSecret(
+func (s *serverAPI) CreateSecretV1(
 	ctx context.Context,
 	req *keeperv1.CreateItemRequestV1,
 ) (*keeperv1.CreateItemResponseV1, error) {
@@ -70,6 +71,44 @@ func (s *serverAPI) CreateSecret(
 		Name:    req.GetName(),
 		Version: item.Version.String(),
 	}, nil
+}
+
+func (s *serverAPI) CreateSecretStreamV1(
+	stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
+) error {
+	////file := NewFile()
+	//var fileSize uint32
+	//fileSize = 0
+	//defer func() {
+	//	if err := file.OutputFile.Close(); err != nil {
+	//		g.l.Error(err)
+	//	}
+	//}()
+	for {
+		req, err := stream.Recv()
+		//if file.FilePath == "" {
+		//	file.SetFile(req.GetFileName(), g.cfg.FilesStorage.Location)
+		//}
+		if err == io.EOF {
+			break
+		}
+		//if err != nil {
+		//	return g.logError(status.Error(codes.Internal, err.Error()))
+		//}
+		chunk := req.GetContent()
+		if chunk == nil {
+
+		}
+
+		//fileSize += uint32(len(chunk))
+		//g.l.Debug("received a chunk with size: %d", fileSize)
+		//if err := file.Write(chunk); err != nil {
+		//	return g.logError(status.Error(codes.Internal, err.Error()))
+		//}
+	}
+	//fileName := filepath.Base(file.FilePath)
+	//g.l.Debug("saved file: %s, size: %d", fileName, fileSize)
+	return stream.SendAndClose(&keeperv1.CreateItemStreamResponseV1{})
 }
 
 func (s *serverAPI) ListItemsV1(
