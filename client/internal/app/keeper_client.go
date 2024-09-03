@@ -21,6 +21,8 @@ type KeeperClient struct {
 	api keeperv1.KeeperServiceV1Client
 }
 
+const defaultChunkSize = 1024 * 1024
+
 // NewKeeperClient returns a new keeper client
 func NewKeeperClient(cc *grpc.ClientConn) *KeeperClient {
 	service := keeperv1.NewKeeperServiceV1Client(cc)
@@ -71,14 +73,14 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 	}
 
 	reader := bufio.NewReader(file)
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, defaultChunkSize)
 
 	for {
 		n, err := reader.Read(buffer)
-		if err == io.EOF {
-			break
-		}
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			log.Error("cannot read chunk to buffer: ", err)
 		}
 

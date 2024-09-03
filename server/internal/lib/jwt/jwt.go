@@ -3,6 +3,7 @@ package jwt
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -45,7 +46,7 @@ func (manager *JWTManager) NewToken(user models.User) (string, error) {
 	return tokenString, nil
 }
 
-func (manager *JWTManager) Verify(accessToken string) (bool, error) {
+func (manager *JWTManager) Verify(accessToken string) (bool, int64, error) {
 	const op = "JWTManager.Verify"
 	log := manager.log.With("op", op)
 
@@ -63,9 +64,20 @@ func (manager *JWTManager) Verify(accessToken string) (bool, error) {
 	)
 
 	if err != nil || !token.Valid {
-		log.Debug("Failed to verify token", "error", err)
-		return false, fmt.Errorf("invalid token: %w", err)
+		log.Debug("Failed to verify token",
+			"error", err,
+			"key", manager.secretKey,
+			"valid", token.Valid)
+		return false, 0, fmt.Errorf("invalid token: %w", err)
 	}
 
-	return false, nil
+	var userID int64
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		userID, err = strconv.ParseInt(fmt.Sprint(claims["uid"]), 10, 64)
+		if err != nil {
+			return false, 0, fmt.Errorf("invalid user ID: %w", err)
+		}
+	}
+
+	return true, userID, nil
 }

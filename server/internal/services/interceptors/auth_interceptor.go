@@ -3,6 +3,7 @@ package interceptors
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -43,19 +44,19 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		const op = "interceptors.AuthInterceptor.Unary"
 		log := interceptor.log.With("op", op)
 
-		log.Info("--> unary interceptor: ", info.FullMethod)
+		log.Info("--> unary interceptor: ", "method", info.FullMethod)
 
-		err := interceptor.authorize(ctx, info.FullMethod)
+		newCtx, err := interceptor.authorize(ctx, info.FullMethod)
 		if err != nil {
-			log.Debug("unauthorized access method: ", info.FullMethod)
+			log.Debug("unauthorized access method: ", "method", info.FullMethod)
 			return nil, err
 		}
 
-		return handler(ctx, req)
+		return handler(newCtx, req)
 	}
 }
 
-func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string) error {
+func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string) (context.Context, error) {
 	const op = "interceptors.AuthInterceptor.authorize"
 	log := interceptor.log.With("op", op)
 
@@ -69,33 +70,35 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	}
 
 	if ok := isMethodExistsFnc(method); ok {
-		log.Debug("authorized access method: ", method)
-		return nil
+		log.Debug("authorized access method: ", "method", method)
+		return ctx, nil
 	}
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		log.Debug("metadata is empty")
-		return status.Errorf(codes.Unauthenticated, "metadata is not provided")
+		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
 	}
 
 	values := md["authorization"]
 	if len(values) == 0 {
 		log.Debug("token is empty")
-		return status.Errorf(codes.Unauthenticated, "authorization token is not provided")
+		return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")
 	}
 
-	accessToken := values[0]
-	ok, err := interceptor.jwtManager.Verify(accessToken)
+	accessToken := strings.TrimPrefix(values[0], "Bearer ")
+	ok, userID, err := interceptor.jwtManager.Verify(accessToken)
 	if err != nil {
-		log.Debug("invalid access token: ", accessToken)
-		return status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
+		log.Debug("invalid access token: ",
+			"token", accessToken,
+			"values", values)
+		return nil, status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
 	}
 
 	if ok {
-		log.Debug("authorized access token: ", accessToken)
-		return nil
+		log.Debug("authorized access token: ", "token", accessToken)
+		return context.WithValue(ctx, ContextKeyUserID, userID), nil
 	}
 
-	return status.Error(codes.PermissionDenied, "no permission to access this RPC")
+	return nil, status.Error(codes.PermissionDenied, "no permission to access this RPC")
 }

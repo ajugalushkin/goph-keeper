@@ -103,23 +103,21 @@ func initConfig() {
 	} else {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
-		viper.AddConfigPath("./client/config")
-		viper.AddConfigPath("/etc/goph-keeper/")
-		viper.AddConfigPath("$HOME/.goph-keeper")
+		viper.AddConfigPath("./config")
 		viper.AddConfigPath(".")
 	}
 
 	usedFile := viper.ConfigFileUsed()
-	slog.Debug("load config file:", usedFile)
+	slog.Info("load config file:", usedFile)
 
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
 			slog.Error("Error reading config file: ", err)
 		}
-		slog.Debug("Config file not found in ", cfgFile)
+		slog.Info("Config file not found in ", cfgFile)
 	} else {
-		slog.Debug("Using config file:", viper.ConfigFileUsed())
+		slog.Info("Using config file:", viper.ConfigFileUsed())
 	}
 
 	viper.AutomaticEnv()
