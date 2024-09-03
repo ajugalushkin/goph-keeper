@@ -1,8 +1,10 @@
 package v1
 
 import (
+	"bytes"
 	"context"
 	"io"
+	"log"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/google/uuid"
@@ -16,6 +18,9 @@ import (
 )
 
 type Keeper interface {
+	//CreateItemStream(
+	//	ctx context.Context,
+	//	stream  )
 	CreateItem(
 		ctx context.Context,
 		item *models.Item,
@@ -26,14 +31,24 @@ type Keeper interface {
 	) (list *models.ListItem, err error)
 }
 
-type serverAPI struct {
-	keeperv1.UnimplementedKeeperServiceV1Server
-	keeper Keeper
+type FileServer interface {
+	Save()
 }
 
-func Register(gRPC *grpc.Server, keeper Keeper) {
+type serverAPI struct {
+	keeperv1.UnimplementedKeeperServiceV1Server
+	keeper     Keeper
+	fileServer FileServer
+}
+
+func Register(
+	gRPC *grpc.Server,
+	keeper Keeper,
+	fileServer FileServer,
+) {
 	keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{
-		keeper: keeper,
+		keeper:     keeper,
+		fileServer: fileServer,
 	})
 }
 
@@ -76,39 +91,79 @@ func (s *serverAPI) CreateSecretV1(
 func (s *serverAPI) CreateSecretStreamV1(
 	stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
 ) error {
-	////file := NewFile()
-	//var fileSize uint32
-	//fileSize = 0
-	//defer func() {
-	//	if err := file.OutputFile.Close(); err != nil {
-	//		g.l.Error(err)
-	//	}
-	//}()
+	req, err := stream.Recv()
+	if err != nil {
+		return logError(status.Errorf(codes.Unknown, "cannot receive image info"))
+	}
+
+	laptopID := req.GetInfo().GetLaptopId()
+	imageType := req.GetInfo().GetImageType()
+	log.Printf("receive an upload-image request for laptop %s with image type %s", laptopID, imageType)
+
+	laptop, err := server.laptopStore.Find(laptopID)
+	if err != nil {
+		return logError(status.Errorf(codes.Internal, "cannot find laptop: %v", err))
+	}
+	if laptop == nil {
+		return logError(status.Errorf(codes.InvalidArgument, "laptop id %s doesn't exist", laptopID))
+	}
+
+	imageData := bytes.Buffer{}
+	imageSize := 0
+
 	for {
+		err := contextError(stream.Context())
+		if err != nil {
+			return err
+		}
+
+		log.Print("waiting to receive more data")
+
 		req, err := stream.Recv()
-		//if file.FilePath == "" {
-		//	file.SetFile(req.GetFileName(), g.cfg.FilesStorage.Location)
-		//}
 		if err == io.EOF {
+			log.Print("no more data")
 			break
 		}
-		//if err != nil {
-		//	return g.logError(status.Error(codes.Internal, err.Error()))
-		//}
-		chunk := req.GetContent()
-		if chunk == nil {
-
+		if err != nil {
+			return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
 		}
 
-		//fileSize += uint32(len(chunk))
-		//g.l.Debug("received a chunk with size: %d", fileSize)
-		//if err := file.Write(chunk); err != nil {
-		//	return g.logError(status.Error(codes.Internal, err.Error()))
-		//}
+		chunk := req.GetChunkData()
+		size := len(chunk)
+
+		log.Printf("received a chunk with size: %d", size)
+
+		imageSize += size
+		if imageSize > maxImageSize {
+			return logError(status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxImageSize))
+		}
+
+		// write slowly
+		// time.Sleep(time.Second)
+
+		_, err = imageData.Write(chunk)
+		if err != nil {
+			return logError(status.Errorf(codes.Internal, "cannot write chunk data: %v", err))
+		}
 	}
-	//fileName := filepath.Base(file.FilePath)
-	//g.l.Debug("saved file: %s, size: %d", fileName, fileSize)
-	return stream.SendAndClose(&keeperv1.CreateItemStreamResponseV1{})
+
+	imageID, err := server.imageStore.Save(laptopID, imageType, imageData)
+	if err != nil {
+		return logError(status.Errorf(codes.Internal, "cannot save image to the store: %v", err))
+	}
+
+	res := &pb.UploadImageResponse{
+		Id:   imageID,
+		Size: uint32(imageSize),
+	}
+
+	err = stream.SendAndClose(res)
+	if err != nil {
+		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
+	}
+
+	log.Printf("saved image with id: %s, size: %d", imageID, imageSize)
+	return nil
 }
 
 func (s *serverAPI) ListItemsV1(
