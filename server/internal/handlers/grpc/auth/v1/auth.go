@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
 type Auth interface {
@@ -51,7 +51,7 @@ func (s *serverAPI) RegisterV1(
 
 	user, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
-		if errors.Is(err, auth.ErrUserExists) {
+		if errors.Is(err, services.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
 		}
 		return nil, status.Error(codes.Internal, "failed to register new user")
@@ -74,11 +74,11 @@ func (s *serverAPI) LoginV1(
 
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
-		if errors.Is(err, auth.ErrInvalidCredentials) {
+		if errors.Is(err, services.ErrInvalidCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
 		}
 
-		if errors.Is(err, auth.ErrUserNotFound) {
+		if errors.Is(err, services.ErrUserNotFound) {
 			return nil, status.Error(codes.InvalidArgument, "invalid email or password")
 
 		}

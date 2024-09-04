@@ -1,4 +1,4 @@
-package auth
+package services
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
-	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
@@ -17,7 +16,7 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	jwtManager  *jwt.JWTManager
+	jwtManager  *JWTManager
 }
 
 type UserSaver interface {
@@ -38,8 +37,8 @@ var (
 	ErrUserNotFound       = errors.New("user not found")
 )
 
-// New returns a new instance of the Auth service.
-func New(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, jwtManager *jwt.JWTManager) *Auth {
+// NewAuthService returns a new instance of the Auth service.
+func NewAuthService(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, jwtManager *JWTManager) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,

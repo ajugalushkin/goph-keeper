@@ -1,4 +1,4 @@
-package keeper
+package services
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type ItemSaver interface {
 	Create(ctx context.Context, item *models.Item) (*models.Item, error)
 }
 
-func New(log *slog.Logger, provider ItemProvider, saver ItemSaver) *Keeper {
+func NewKeeperService(log *slog.Logger, provider ItemProvider, saver ItemSaver) *Keeper {
 	return &Keeper{
 		log:         log,
 		itmSaver:    saver,

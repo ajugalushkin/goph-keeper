@@ -1,54 +1,71 @@
 package config
 
 import (
+	"errors"
 	"flag"
+	"log/slog"
 	"os"
 	"time"
 
-	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/spf13/viper"
 )
 
-type Token struct {
-	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
-	TokenSecret string        `yaml:"token_secret"`
+type Storage struct {
+	Path string `yaml:"path" env-required:"true"`
 }
 
 type GRPC struct {
-	ServerAddress string        `yaml:"server_address" env-required:"true"`
-	Timeout       time.Duration `yaml:"timeout" env-default:"1h"`
+	Address string        `yaml:"address" env-required:"true"`
+	Timeout time.Duration `yaml:"timeout" env-default:"1h"`
+}
+
+type Token struct {
+	TTL    time.Duration `yaml:"ttl" env-required:"true"`
+	Secret string        `yaml:"secret"`
 }
 
 // Config структура параметров заауска.
 type Config struct {
-	Env         string `yaml:"env" env-required:"true"`
-	StoragePath string `yaml:"storage_path" env-required:"true"`
-	GRPC        GRPC
-	Token       Token
+	Env     string `yaml:"env" env-required:"true"`
+	Storage Storage
+	GRPC    GRPC
+	Token   Token
 }
 
 // MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
 func MustLoad() *Config {
-	configPath := fetchConfig()
-	if configPath == "" {
-		panic("config path is empty")
-	}
-
-	return MustLoadByPath(configPath)
+	return MustLoadByPath(fetchConfig())
 }
 
 func MustLoadByPath(configPath string) *Config {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		panic("config path does not exist" + configPath)
+	if configPath != "" {
+		viper.SetConfigFile(configPath)
+	} else {
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath("./server/config")
+		viper.AddConfigPath(".")
+	}
+
+	if err := viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
+			slog.Error("Error reading config file: ", slog.String("error", err.Error()))
+		}
+		slog.Info("Config file not found in ", slog.String("file", configPath))
+	} else {
+		slog.Info("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
 	}
 
 	var newConfig Config
-	if err := cleanenv.ReadConfig(configPath, &newConfig); err != nil {
-		panic("error reading config: " + err.Error())
+	if err := viper.Unmarshal(&newConfig); err != nil {
+		slog.Error("Unable to unmarshal config file: ", slog.String("error", err.Error()))
+		panic(err)
 	}
 
 	tokenSecret := os.Getenv("TOKEN_SECRET")
 	if tokenSecret != "" {
-		newConfig.Token.TokenSecret = tokenSecret
+		newConfig.Token.Secret = tokenSecret
 	}
 
 	return &newConfig

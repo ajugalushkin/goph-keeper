@@ -70,7 +70,7 @@ func GetAuthConnection() *grpc.ClientConn {
 	}
 
 	var err error
-	connection, err := grpc.DialContext(context.Background(), cfg.Client.Address,
+	connection, err := grpc.NewClient(cfg.Client.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
 			grpclog.UnaryClientInterceptor(interceptorLogger(log), logOpts...),

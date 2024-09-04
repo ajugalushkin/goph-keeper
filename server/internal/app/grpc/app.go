@@ -11,8 +11,7 @@ import (
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 	authhandlerv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/auth/v1"
 	keeperhandlerv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/keeper/v1"
-	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
-	"github.com/ajugalushkin/goph-keeper/server/internal/services/interceptors"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
 type App struct {
@@ -26,11 +25,11 @@ func New(
 	log *slog.Logger,
 	authService authhandlerv1.Auth,
 	keeperService keeperhandlerv1.Keeper,
-	jwtManager *jwt.JWTManager,
+	jwtManager *services.JWTManager,
 	Address string,
 ) *App {
 
-	interceptor := interceptors.NewAuthInterceptor(log, jwtManager, accessibleMethods())
+	interceptor := services.NewAuthInterceptor(log, jwtManager, accessibleMethods())
 
 	gRPCServer := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptor.Unary()))

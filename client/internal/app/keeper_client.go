@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 
 	"google.golang.org/grpc"
@@ -43,7 +44,7 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, fileName string, filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Error("cannot open file: ", err)
+		log.Error("cannot open file: ", slog.String("error", err.Error()))
 		return err
 	}
 	defer file.Close()
@@ -53,7 +54,7 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 	stream, err := k.api.CreateItemStreamV1(ctx)
 	if err != nil {
-		log.Error("cannot upload file: ", err)
+		log.Error("cannot upload file: ", slog.String("error", err.Error()))
 		return err
 	}
 
@@ -68,7 +69,9 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 	err = stream.Send(req)
 	if err != nil {
-		log.Error("cannot send file info to server: ", err, stream.RecvMsg(nil))
+		log.Error("cannot send file info to server: ",
+			slog.String("error", err.Error()),
+			slog.String("stream msg", stream.RecvMsg(nil).Error()))
 		return err
 	}
 
@@ -81,7 +84,7 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 			if err == io.EOF {
 				break
 			}
-			log.Error("cannot read chunk to buffer: ", err)
+			log.Error("cannot read chunk to buffer: ", slog.String("error", err.Error()))
 		}
 
 		req := &keeperv1.CreateItemStreamRequestV1{
@@ -92,17 +95,23 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 		err = stream.Send(req)
 		if err != nil {
-			log.Error("cannot send chunk to server: ", err, stream.RecvMsg(nil))
+			log.Error("cannot send chunk to server:",
+				slog.String("error", err.Error()),
+				slog.String("stream msg", stream.RecvMsg(nil).Error()))
 		}
 	}
 
 	res, err := stream.CloseAndRecv()
 	if err != nil {
-		log.Error("cannot receive response: ", err)
+		log.Error("cannot receive response: ", slog.String("error", err.Error()))
 		return err
 	}
 
-	log.Info("image uploaded with id: %s, size: %d", res.GetName(), res.GetSize())
+	log.Info(
+		"image uploaded with id: ",
+		slog.String("name", res.GetName()),
+		slog.String("size", strconv.Itoa(int(res.GetSize()))),
+	)
 	return nil
 }
 
@@ -138,19 +147,18 @@ func GetKeeperConnection(token string) *grpc.ClientConn {
 
 	interceptor, err := NewAuthInterceptor(token, authMethods())
 	if err != nil {
-		log.Error("Unable to create interceptor", "error", err)
+		log.Error("Unable to create interceptor: ", slog.String("error", err.Error()))
 	}
 
 	cfg := config.GetInstance().Config
-	keeperClientConnection, err := grpc.DialContext(
-		context.Background(),
+	keeperClientConnection, err := grpc.NewClient(
 		cfg.Client.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(interceptor.Unary()),
 		grpc.WithStreamInterceptor(interceptor.Stream()),
 	)
 	if err != nil {
-		log.Error("Unable to connect to server", "error", err)
+		log.Error("Unable to connect to server: ", slog.String("error", err.Error()))
 	}
 
 	return keeperClientConnection

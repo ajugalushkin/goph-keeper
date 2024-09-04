@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -45,16 +42,16 @@ func encryptVault(s vaulttypes.Vault) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func decryptVault(b []byte) (vaulttypes.Vault, error) {
-	var buff bytes.Buffer
-	buff.Write(b)
-
-	dec := gob.NewDecoder(&buff)
-
-	var data Data
-	err := dec.Decode(&data)
-	if err != nil {
-		return nil, err
-	}
-	return vaulttypes.DecodeVault(data.Context)
-}
+//func decryptVault(b []byte) (vaulttypes.Vault, error) {
+//	var buff bytes.Buffer
+//	buff.Write(b)
+//
+//	dec := gob.NewDecoder(&buff)
+//
+//	var data Data
+//	err := dec.Decode(&data)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return vaulttypes.DecodeVault(data.Context)
+//}

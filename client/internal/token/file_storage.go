@@ -29,7 +29,7 @@ func (s *FileStorage) Save(accessToken string) error {
 
 	defer func() {
 		if err = file.Close(); err != nil {
-			slog.Error("Error closing file: %v", err)
+			slog.Error("Error closing file: ", slog.String("error", err.Error()))
 		}
 	}()
 
@@ -45,7 +45,7 @@ func (s *FileStorage) Load() (string, error) {
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			slog.Error("Error closing file: %v", err)
+			slog.Error("Error closing file: ", slog.String("error", err.Error()))
 		}
 	}()
 

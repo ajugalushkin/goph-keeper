@@ -5,9 +5,7 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/server/config"
 	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
-	"github.com/ajugalushkin/goph-keeper/server/internal/lib/jwt"
-	"github.com/ajugalushkin/goph-keeper/server/internal/services/auth"
-	"github.com/ajugalushkin/goph-keeper/server/internal/services/keeper"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
 )
 
@@ -20,27 +18,27 @@ func New(
 	cfg *config.Config,
 ) *App {
 
-	userStorage, err := postgres.NewUserStorage(cfg.StoragePath)
+	userStorage, err := postgres.NewUserStorage(cfg.Storage.Path)
 	if err != nil {
 		panic(err)
 	}
 
-	vaultStorage, err := postgres.NewVaultStorage(cfg.StoragePath)
+	vaultStorage, err := postgres.NewVaultStorage(cfg.Storage.Path)
 	if err != nil {
 		panic(err)
 	}
 
-	jwtManager := jwt.NewJWTManager(log, cfg.Token.TokenSecret, cfg.Token.TokenTTL)
+	jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
 
-	serviceAuth := auth.New(log, userStorage, userStorage, jwtManager)
-	serviceKeeper := keeper.New(log, vaultStorage, vaultStorage)
+	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
+	serviceKeeper := services.NewKeeperService(log, vaultStorage, vaultStorage)
 
 	grpcApp := grpcapp.New(
 		log,
 		serviceAuth,
 		serviceKeeper,
 		jwtManager,
-		cfg.GRPC.ServerAddress,
+		cfg.GRPC.Address,
 	)
 
 	return &App{

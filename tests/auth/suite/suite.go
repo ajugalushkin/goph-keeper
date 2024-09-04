@@ -29,7 +29,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 		cancelCtx()
 	})
 
-	cc, err := grpc.NewClient(cfg.GRPC.ServerAddress,
+	cc, err := grpc.NewClient(cfg.GRPC.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("grpc server connection failed: %v", err)

@@ -1,0 +1,9 @@
+env: "dev"  #dev, prod
+grpc:
+  address: ":8080"
+  timeout: 1h
+token:
+  ttl: 10h
+  secret: secret_key
+storage:
+  path: postgres://praktikum:pass@postgres:5432/goph_keeper

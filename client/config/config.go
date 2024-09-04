@@ -34,7 +34,7 @@ func GetInstance() *CfgInstance {
 		func() {
 			var config Config
 			if err := viper.Unmarshal(&config); err != nil {
-				slog.Error("Unable to unmarshal config file: ", err)
+				slog.Error("Unable to unmarshal config file: ", slog.String("error", err.Error()))
 				panic(err)
 			}
 

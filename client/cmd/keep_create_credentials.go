@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -25,19 +22,19 @@ var keepCreateCredentialsCmd = &cobra.Command{
 
 		name, err := cmd.Flags().GetString("name")
 		if err != nil {
-			log.Error("Unable to get `name` arg")
+			log.Error("Unable to get `name` arg: ", slog.String("error", err.Error()))
 			return
 		}
 
 		login, err := cmd.Flags().GetString("login")
 		if err != nil {
-			log.Error("Unable to get `login` arg")
+			log.Error("Unable to get `login` arg: ", slog.String("error", err.Error()))
 			return
 		}
 
 		password, err := cmd.Flags().GetString("password")
 		if err != nil {
-			log.Error("Unable to get `password` arg")
+			log.Error("Unable to get `password` arg: ", slog.String("error", err.Error()))
 			return
 		}
 
@@ -48,7 +45,7 @@ var keepCreateCredentialsCmd = &cobra.Command{
 
 		content, err := encryptVault(credentials)
 		if err != nil {
-			log.Error("Failed to encrypt secret: %v", err)
+			log.Error("Failed to encrypt secret: ", slog.String("error", err.Error()))
 			return
 		}
 
@@ -63,7 +60,7 @@ var keepCreateCredentialsCmd = &cobra.Command{
 			Content: content,
 		})
 		if err != nil {
-			log.Error("Error while login", "error", err)
+			log.Error("Error while login: ", slog.String("error", err.Error()))
 		}
 
 		log.Info("Successfully created credentials")

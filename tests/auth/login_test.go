@@ -42,7 +42,7 @@ func TestLogin_Login_HappyPath(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	tokenParsed, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return []byte(st.Cfg.Token.TokenSecret), nil
+		return []byte(st.Cfg.Token.Secret), nil
 	})
 	require.NoError(t, err)
 
@@ -53,7 +53,7 @@ func TestLogin_Login_HappyPath(t *testing.T) {
 	assert.Equal(t, email, claims["email"].(string))
 
 	const deltaSeconds = 1
-	assert.InDelta(t, loginTime.Add(st.Cfg.Token.TokenTTL).Unix(), claims["exp"].(float64), deltaSeconds)
+	assert.InDelta(t, loginTime.Add(st.Cfg.Token.TTL).Unix(), claims["exp"].(float64), deltaSeconds)
 }
 
 func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {

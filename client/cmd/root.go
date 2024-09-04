@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -12,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/token"
 
@@ -21,10 +17,6 @@ import (
 )
 
 var cfgFile string
-
-var AuthClientConnection *grpc.ClientConn
-
-var ValtClientConnection *grpc.ClientConn
 
 var tokenStorage token.Storage
 
@@ -107,17 +99,14 @@ func initConfig() {
 		viper.AddConfigPath(".")
 	}
 
-	usedFile := viper.ConfigFileUsed()
-	slog.Info("load config file:", usedFile)
-
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
-			slog.Error("Error reading config file: ", err)
+			slog.Error("Error reading config file: ", slog.String("error", err.Error()))
 		}
-		slog.Info("Config file not found in ", cfgFile)
+		slog.Info("Config file not found in ", slog.String("file", cfgFile))
 	} else {
-		slog.Info("Using config file:", viper.ConfigFileUsed())
+		slog.Info("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
 	}
 
 	viper.AutomaticEnv()
@@ -126,7 +115,7 @@ func initConfig() {
 	rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
 		key := strings.ReplaceAll(flag.Name, "-", ".")
 		if err := viper.BindPFlag(key, flag); err != nil {
-			slog.Error("Error parsing flag: ", err)
+			slog.Error("Error parsing flag: ", slog.String("error", err.Error()))
 		}
 	})
 

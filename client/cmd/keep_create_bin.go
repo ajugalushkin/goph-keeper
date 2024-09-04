@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -14,7 +11,7 @@ var keepCreateBinCmd = &cobra.Command{
 	Use:   "bin",
 	Short: "A brief description of your command",
 	Run: func(cmd *cobra.Command, args []string) {
-		const op = "keep.create.bin"
+		//const op = "keep.create.bin"
 
 		//log := logger.GetInstance().Log.With("op", op)
 		//
@@ -49,11 +46,11 @@ func init() {
 
 	keepCreateBinCmd.Flags().String("name", "", "Secret name")
 	if err := keepCreateBinCmd.MarkFlagRequired("name"); err != nil {
-		slog.Error("Error setting flag: ", err)
+		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
 	}
 
 	keepCreateBinCmd.Flags().StringP("file", "f", "", "Binary file path")
 	if err := keepCreateBinCmd.MarkFlagRequired("file"); err != nil {
-		slog.Error("Error setting flag: ", err)
+		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
 	}
 }

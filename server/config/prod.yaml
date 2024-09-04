@@ -1,7 +1,0 @@
-env: "dev"  #dev, prod
-grpc:
-  server_address: ":8080"
-  timeout: 1h
-token:
-  token_ttl: 10h
-storage_path: postgres://praktikum:pass@postgres:5432/goph_keeper
