@@ -44,7 +44,7 @@ var keepCreateCredentialsCmd = &cobra.Command{
 			Password: password,
 		}
 
-		content, err := encryptVault(credentials)
+		content, err := encryptSecret(credentials)
 		if err != nil {
 			log.Error("Failed to encrypt secret: ", slog.String("error", err.Error()))
 			return

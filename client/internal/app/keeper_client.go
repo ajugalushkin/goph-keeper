@@ -126,30 +126,15 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 	return nil
 }
 
-func (k *KeeperClient) ListItem(ctx context.Context, since int64) (error, *keeperv1.ListItemResponseV1) {
+func (k *KeeperClient) ListItems(ctx context.Context, item *keeperv1.ListItemsRequestV1) (*keeperv1.ListItemsResponseV1, error) {
 	const op = "client.keeper.Register"
 
-	list, err := k.api.ListItemV1(ctx, &keeperv1.ListItemRequestV1{
-		Since: since,
-	})
+	list, err := k.api.ListItemsV1(ctx, item)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err), nil
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return nil, list
-}
-
-func (k *KeeperClient) SetItem(ctx context.Context, item *keeperv1.Item) (int64, error) {
-	const op = "client.keeper.Login"
-
-	resp, err := k.api.SetItemV1(ctx, &keeperv1.SetItemRequestV1{
-		Item: item,
-	})
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return resp.GetServerUpdatedAt(), nil
+	return list, nil
 }
 
 func GetKeeperConnection(token string) *grpc.ClientConn {
@@ -176,7 +161,9 @@ func GetKeeperConnection(token string) *grpc.ClientConn {
 }
 func authMethods() map[string]bool {
 	return map[string]bool{
-		keeperv1.KeeperServiceV1_ListItemV1_FullMethodName: true,
-		keeperv1.KeeperServiceV1_SetItemV1_FullMethodName:  true,
+		keeperv1.KeeperServiceV1_ListItemsV1_FullMethodName:        true,
+		keeperv1.KeeperServiceV1_GetItemV1_FullMethodName:          true,
+		keeperv1.KeeperServiceV1_CreateItemV1_FullMethodName:       true,
+		keeperv1.KeeperServiceV1_CreateItemStreamV1_FullMethodName: true,
 	}
 }

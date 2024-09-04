@@ -39,7 +39,7 @@ var keepCreateTextCmd = &cobra.Command{
 			Data: data,
 		}
 
-		content, err := encryptVault(text)
+		content, err := encryptSecret(text)
 		if err != nil {
 			log.Error("Failed to encrypt secret: ",
 				slog.String("error", err.Error()))

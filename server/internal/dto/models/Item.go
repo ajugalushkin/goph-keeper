@@ -8,5 +8,3 @@ type Item struct {
 	Version uuid.UUID
 	OwnerID int64
 }
-
-type ListItem []Item

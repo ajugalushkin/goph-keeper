@@ -10,8 +10,7 @@ service KeeperServiceV1{
   rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
   rpc CreateItemStreamV1(stream CreateItemStreamRequestV1) returns(CreateItemStreamResponseV1);
   rpc GetItemV1(GetItemRequestV1) returns(GetItemResponseV1);
-  rpc ListItemV1(ListItemRequestV1) returns (ListItemResponseV1);
-  rpc SetItemV1(SetItemRequestV1) returns (SetItemResponseV1);
+  rpc ListItemsV1(ListItemsRequestV1) returns (ListItemsResponseV1);
 }
 
 message CreateItemRequestV1 {
@@ -50,34 +49,15 @@ message GetItemResponseV1 {
   string version = 3;
 }
 
-message ListItemRequestV1 {
-  int64 since = 1;
+message ListItemsRequestV1 {
 }
 
-message Item {
-  enum Type {
-    PASSWORD = 0;
-    TEXT = 1;
-    BINARY = 2;
-    CARD = 3;
-  }
-
-  string id   = 1;
-  string name = 2;
-  Type type = 3;
-  bytes value = 4;
-  int64 server_updated_at = 5;
-  bool is_deleted = 6;
+message SecretInfo {
+  string name = 1;
+  bytes content = 2;
+  string version = 3;
 }
 
-message ListItemResponseV1 {
-  repeated Item items = 1;
-}
-
-message SetItemRequestV1 {
-  Item item = 1;
-}
-
-message SetItemResponseV1 {
-  int64 server_updated_at = 1;
+message ListItemsResponseV1 {
+  repeated SecretInfo secrets = 1;
 }

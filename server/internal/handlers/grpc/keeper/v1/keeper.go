@@ -22,9 +22,6 @@ import (
 )
 
 type Keeper interface {
-	//CreateItemStream(
-	//	ctx context.Context,
-	//	stream  )
 	CreateItem(
 		ctx context.Context,
 		item *models.Item,
@@ -34,12 +31,10 @@ type Keeper interface {
 		name string,
 		userID int64,
 	) (*models.Item, error)
-	//ListItem(
-	//	ctx context.Context,
-	//	since int64,
-	//) (list *models.ListItem, err error)
-	//Save(ctx context.Context)
-	//SaveStream(ctx context.Context)
+	ListItems(
+		ctx context.Context,
+		userID int64,
+	) (list []*models.Item, err error)
 }
 
 type serverAPI struct {
@@ -204,36 +199,29 @@ func (s *serverAPI) GetItemV1(
 	}, nil
 }
 
-//func (s *serverAPI) ListItemsV1(
-//	ctx context.Context,
-//	req *keeperv1.ListItemRequestV1,
-//) (*keeperv1.ListItemResponseV1, error) {
-//	_, err := s.keeper.ListItem(ctx, req.GetSince())
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return &keeperv1.ListItemResponseV1{}, nil
-//}
-//
-//func (s *serverAPI) SetItemV1(
-//	ctx context.Context,
-//	req *keeperv1.SetItemRequestV1,
-//) (*keeperv1.SetItemResponseV1, error) {
-//	//_, err := s.keeper.SaveItem(ctx, &models.Item{
-//	//	ID:              req.GetItem().GetId(),
-//	//	Name:            req.GetItem().GetName(),
-//	//	Type:            req.GetItem().GetType().String(),
-//	//	Value:           req.GetItem().GetValue(),
-//	//	ServerUpdatedAt: strconv.FormatInt(req.GetItem().ServerUpdatedAt, 10),
-//	//	IsDeleted:       req.GetItem().IsDeleted,
-//	//})
-//	//if err != nil {
-//	//	return nil, err
-//	//}
-//	//
-//	//return &keeperv1.SetItemResponseV1{
-//	//	//ServerUpdatedAt: updatedAt,
-//	//}, nil
-//	return nil, nil
-//}
+func (s *serverAPI) ListItemsV1(
+	ctx context.Context,
+	req *keeperv1.ListItemsRequestV1,
+) (*keeperv1.ListItemsResponseV1, error) {
+	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "empty user id")
+	}
+
+	secrets, err := s.keeper.ListItems(ctx, userID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to list secrets")
+	}
+
+	keeperSecrets := make([]*keeperv1.SecretInfo, 0, len(secrets))
+	for _, secret := range secrets {
+		keeperSecrets = append(keeperSecrets, &keeperv1.SecretInfo{
+			Name:    secret.Name,
+			Content: secret.Content,
+			Version: secret.Version.String(),
+		})
+	}
+	return &keeperv1.ListItemsResponseV1{
+		Secrets: keeperSecrets,
+	}, nil
+}

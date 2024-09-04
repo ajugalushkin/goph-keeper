@@ -22,8 +22,7 @@ const (
 	KeeperServiceV1_CreateItemV1_FullMethodName       = "/keeper.v1.KeeperServiceV1/CreateItemV1"
 	KeeperServiceV1_CreateItemStreamV1_FullMethodName = "/keeper.v1.KeeperServiceV1/CreateItemStreamV1"
 	KeeperServiceV1_GetItemV1_FullMethodName          = "/keeper.v1.KeeperServiceV1/GetItemV1"
-	KeeperServiceV1_ListItemV1_FullMethodName         = "/keeper.v1.KeeperServiceV1/ListItemV1"
-	KeeperServiceV1_SetItemV1_FullMethodName          = "/keeper.v1.KeeperServiceV1/SetItemV1"
+	KeeperServiceV1_ListItemsV1_FullMethodName        = "/keeper.v1.KeeperServiceV1/ListItemsV1"
 )
 
 // KeeperServiceV1Client is the client API for KeeperServiceV1 service.
@@ -33,8 +32,7 @@ type KeeperServiceV1Client interface {
 	CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1], error)
 	GetItemV1(ctx context.Context, in *GetItemRequestV1, opts ...grpc.CallOption) (*GetItemResponseV1, error)
-	ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error)
-	SetItemV1(ctx context.Context, in *SetItemRequestV1, opts ...grpc.CallOption) (*SetItemResponseV1, error)
+	ListItemsV1(ctx context.Context, in *ListItemsRequestV1, opts ...grpc.CallOption) (*ListItemsResponseV1, error)
 }
 
 type keeperServiceV1Client struct {
@@ -78,20 +76,10 @@ func (c *keeperServiceV1Client) GetItemV1(ctx context.Context, in *GetItemReques
 	return out, nil
 }
 
-func (c *keeperServiceV1Client) ListItemV1(ctx context.Context, in *ListItemRequestV1, opts ...grpc.CallOption) (*ListItemResponseV1, error) {
+func (c *keeperServiceV1Client) ListItemsV1(ctx context.Context, in *ListItemsRequestV1, opts ...grpc.CallOption) (*ListItemsResponseV1, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListItemResponseV1)
-	err := c.cc.Invoke(ctx, KeeperServiceV1_ListItemV1_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *keeperServiceV1Client) SetItemV1(ctx context.Context, in *SetItemRequestV1, opts ...grpc.CallOption) (*SetItemResponseV1, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetItemResponseV1)
-	err := c.cc.Invoke(ctx, KeeperServiceV1_SetItemV1_FullMethodName, in, out, cOpts...)
+	out := new(ListItemsResponseV1)
+	err := c.cc.Invoke(ctx, KeeperServiceV1_ListItemsV1_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +93,7 @@ type KeeperServiceV1Server interface {
 	CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]) error
 	GetItemV1(context.Context, *GetItemRequestV1) (*GetItemResponseV1, error)
-	ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error)
-	SetItemV1(context.Context, *SetItemRequestV1) (*SetItemResponseV1, error)
+	ListItemsV1(context.Context, *ListItemsRequestV1) (*ListItemsResponseV1, error)
 	mustEmbedUnimplementedKeeperServiceV1Server()
 }
 
@@ -126,11 +113,8 @@ func (UnimplementedKeeperServiceV1Server) CreateItemStreamV1(grpc.ClientStreamin
 func (UnimplementedKeeperServiceV1Server) GetItemV1(context.Context, *GetItemRequestV1) (*GetItemResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetItemV1 not implemented")
 }
-func (UnimplementedKeeperServiceV1Server) ListItemV1(context.Context, *ListItemRequestV1) (*ListItemResponseV1, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListItemV1 not implemented")
-}
-func (UnimplementedKeeperServiceV1Server) SetItemV1(context.Context, *SetItemRequestV1) (*SetItemResponseV1, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetItemV1 not implemented")
+func (UnimplementedKeeperServiceV1Server) ListItemsV1(context.Context, *ListItemsRequestV1) (*ListItemsResponseV1, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListItemsV1 not implemented")
 }
 func (UnimplementedKeeperServiceV1Server) mustEmbedUnimplementedKeeperServiceV1Server() {}
 func (UnimplementedKeeperServiceV1Server) testEmbeddedByValue()                         {}
@@ -196,38 +180,20 @@ func _KeeperServiceV1_GetItemV1_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _KeeperServiceV1_ListItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListItemRequestV1)
+func _KeeperServiceV1_ListItemsV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListItemsRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeeperServiceV1Server).ListItemV1(ctx, in)
+		return srv.(KeeperServiceV1Server).ListItemsV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: KeeperServiceV1_ListItemV1_FullMethodName,
+		FullMethod: KeeperServiceV1_ListItemsV1_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeeperServiceV1Server).ListItemV1(ctx, req.(*ListItemRequestV1))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KeeperServiceV1_SetItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetItemRequestV1)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KeeperServiceV1Server).SetItemV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KeeperServiceV1_SetItemV1_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeeperServiceV1Server).SetItemV1(ctx, req.(*SetItemRequestV1))
+		return srv.(KeeperServiceV1Server).ListItemsV1(ctx, req.(*ListItemsRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -248,12 +214,8 @@ var KeeperServiceV1_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KeeperServiceV1_GetItemV1_Handler,
 		},
 		{
-			MethodName: "ListItemV1",
-			Handler:    _KeeperServiceV1_ListItemV1_Handler,
-		},
-		{
-			MethodName: "SetItemV1",
-			Handler:    _KeeperServiceV1_SetItemV1_Handler,
+			MethodName: "ListItemsV1",
+			Handler:    _KeeperServiceV1_ListItemsV1_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

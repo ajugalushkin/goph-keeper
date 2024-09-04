@@ -63,7 +63,7 @@ var keepCreateCardCmd = &cobra.Command{
 			Holder:       holder,
 		}
 
-		content, err := encryptVault(card)
+		content, err := encryptSecret(card)
 		if err != nil {
 			log.Error("Failed to encrypt secret: ",
 				slog.String("error", err.Error()))

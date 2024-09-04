@@ -23,7 +23,7 @@ type Data struct {
 	Context []byte
 }
 
-func encryptVault(s vaulttypes.Vault) ([]byte, error) {
+func encryptSecret(s vaulttypes.Vault) ([]byte, error) {
 	var buff bytes.Buffer
 	enc := gob.NewEncoder(&buff)
 
@@ -42,7 +42,7 @@ func encryptVault(s vaulttypes.Vault) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func decryptVault(b []byte) (vaulttypes.Vault, error) {
+func decryptSecret(b []byte) (vaulttypes.Vault, error) {
 	var buff bytes.Buffer
 	buff.Write(b)
 

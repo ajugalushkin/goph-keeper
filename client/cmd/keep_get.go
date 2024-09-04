@@ -29,8 +29,8 @@ var keepGetCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
 
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
 		resp, err := keeperClient.GetItem(context.Background(), &v1.GetItemRequestV1{
 			Name: name,
 		})
@@ -38,7 +38,7 @@ var keepGetCmd = &cobra.Command{
 			log.Error("Failed to create secret: ", slog.String("error", err.Error()))
 		}
 
-		secret, err := decryptVault(resp.GetContent())
+		secret, err := decryptSecret(resp.GetContent())
 		if err != nil {
 			log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
 		}

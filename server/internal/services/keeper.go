@@ -15,7 +15,7 @@ type Keeper struct {
 
 type ItemProvider interface {
 	Get(ctx context.Context, name string, userID int64) (*models.Item, error)
-	List(ctx context.Context) []models.Item
+	List(ctx context.Context, userID int64) ([]*models.Item, error)
 }
 
 type ItemSaver interface {
@@ -62,7 +62,16 @@ func (k Keeper) GetItem(ctx context.Context, name string, userID int64) (*models
 	return item, nil
 }
 
-func (k Keeper) ListItem(ctx context.Context, since int64) (list *models.ListItem, err error) {
-	k.itmProvider.List(ctx)
-	return nil, nil
+func (k Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {
+	const op = "services.keeper.listItem"
+	k.log.With("op", op)
+
+	list, err = k.itmProvider.List(ctx, userID)
+	if err != nil {
+		k.log.Debug("Failed to list items", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	k.log.Debug("Successfully get list")
+	return list, nil
 }

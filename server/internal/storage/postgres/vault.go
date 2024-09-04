@@ -56,7 +56,22 @@ func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*mod
 	return secret, err
 }
 
-func (v *VaultStorage) List(ctx context.Context) []models.Item {
-	//TODO implement me
-	panic("implement me")
+func (v *VaultStorage) List(ctx context.Context, userID int64) ([]*models.Item, error) {
+	rows, err := v.db.QueryContext(
+		ctx, `SELECT name, version, content FROM valts WHERE owner_id = ($1)`, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	secrets := make([]*models.Item, 0)
+	for rows.Next() {
+		secret := &models.Item{
+			OwnerID: userID,
+		}
+		if err = rows.Scan(&secret.Name, &secret.Version, &secret.Content); err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, secret)
+	}
+	return secrets, nil
 }
