@@ -12,10 +12,10 @@ import (
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-// credentialsCmd represents the credentials command
+// keepCreateCredentialsCmd represents the credentials command
 var keepCreateCredentialsCmd = &cobra.Command{
 	Use:   "credentials",
-	Short: "A brief description of your command",
+	Short: "Create credentials secret",
 	Run: func(cmd *cobra.Command, args []string) {
 		const op = "keep create credentials"
 		log := logger.GetInstance().Log.With("op", op)
@@ -55,15 +55,15 @@ var keepCreateCredentialsCmd = &cobra.Command{
 		}
 		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
 
-		_, err = keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
+		resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
 			Name:    name,
 			Content: content,
 		})
 		if err != nil {
-			log.Error("Error while login: ", slog.String("error", err.Error()))
+			log.Error("Failed to create secret: ", slog.String("error", err.Error()))
 		}
 
-		log.Info("Successfully created credentials")
+		log.Info("Secret version created successfully", resp.GetName(), resp.GetVersion())
 	},
 }
 

@@ -9,7 +9,7 @@ import (
 // binCmd represents the bin command
 var keepCreateBinCmd = &cobra.Command{
 	Use:   "bin",
-	Short: "A brief description of your command",
+	Short: "Create bin secret",
 	Run: func(cmd *cobra.Command, args []string) {
 		//const op = "keep.create.bin"
 

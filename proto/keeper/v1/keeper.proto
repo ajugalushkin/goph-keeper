@@ -9,6 +9,7 @@ import "buf/validate/validate.proto";
 service KeeperServiceV1{
   rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
   rpc CreateItemStreamV1(stream CreateItemStreamRequestV1) returns(CreateItemStreamResponseV1);
+  rpc GetItemV1(GetItemRequestV1) returns(GetItemResponseV1);
   rpc ListItemV1(ListItemRequestV1) returns (ListItemResponseV1);
   rpc SetItemV1(SetItemRequestV1) returns (SetItemResponseV1);
 }
@@ -37,6 +38,16 @@ message CreateItemStreamRequestV1 {
 message CreateItemStreamResponseV1 {
   string name = 1;
   uint32 size = 2;
+}
+
+message GetItemRequestV1{
+  string name = 1;
+}
+
+message GetItemResponseV1 {
+  string name = 1;
+  bytes content = 2;
+  string version = 3;
 }
 
 message ListItemRequestV1 {
