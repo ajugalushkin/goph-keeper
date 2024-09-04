@@ -1,15 +1,11 @@
 package minio
 
-import (
-	"github.com/minio/minio-go/v7"
-)
-
 type MinioStorage struct {
-	mc *minio.Client
+	//mc *minio.Client
 }
 
 func NewMinioClient(storagePath string) (*MinioStorage, error) {
-	const op = "storage.minio.NewMinioClient"
+	//const op = "storage.minio.NewMinioClient"
 
 	//// Создание контекста с возможностью отмены операции
 	//ctx := context.Background()

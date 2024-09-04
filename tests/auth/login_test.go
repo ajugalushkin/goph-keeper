@@ -1,8 +1,8 @@
 package auth
 
-const (
-	passDefaultLen = 10
-)
+//const (
+//	passDefaultLen = 10
+//)
 
 //func TestLogin_Login_HappyPath(t *testing.T) {
 //	ctx, st := suite.New(t)

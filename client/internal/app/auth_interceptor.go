@@ -9,7 +9,6 @@ import (
 )
 
 type AuthInterceptor struct {
-	authClient  *AuthClient
 	authMethods map[string]bool
 	accessToken string
 }
