@@ -39,6 +39,23 @@ func (v *VaultStorage) Create(ctx context.Context, item *models.Item) (*models.I
 	return item, err
 }
 
+func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*models.Item, error) {
+	row := v.db.QueryRowContext(
+		ctx,
+		`SELECT content, version FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
+		name, userID,
+	)
+	secret := &models.Item{
+		Name:    name,
+		OwnerID: userID,
+	}
+	err := row.Scan(&secret.Content, &secret.Version)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, storage.ErrItemNotFound
+	}
+	return secret, err
+}
+
 func (v *VaultStorage) List(ctx context.Context) []models.Item {
 	//TODO implement me
 	panic("implement me")

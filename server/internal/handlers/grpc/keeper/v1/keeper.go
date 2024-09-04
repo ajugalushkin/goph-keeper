@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
 	//"io"
@@ -27,6 +28,11 @@ type Keeper interface {
 	CreateItem(
 		ctx context.Context,
 		item *models.Item,
+	) (*models.Item, error)
+	GetItem(
+		ctx context.Context,
+		name string,
+		userID int64,
 	) (*models.Item, error)
 	//ListItem(
 	//	ctx context.Context,
@@ -166,6 +172,34 @@ func (s *serverAPI) CreateItemV1(
 
 	return &keeperv1.CreateItemResponseV1{
 		Name:    req.GetName(),
+		Version: item.Version.String(),
+	}, nil
+}
+
+func (s *serverAPI) GetItemV1(
+	ctx context.Context,
+	request *keeperv1.GetItemRequestV1,
+) (*keeperv1.GetItemResponseV1, error) {
+	if request.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "secret name is empty")
+	}
+
+	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "empty user id")
+	}
+
+	item, err := s.keeper.GetItem(ctx, request.GetName(), userID)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "item not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to get item")
+	}
+
+	return &keeperv1.GetItemResponseV1{
+		Name:    item.Name,
+		Content: item.Content,
 		Version: item.Version.String(),
 	}, nil
 }

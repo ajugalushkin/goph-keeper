@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
@@ -63,7 +64,7 @@ var keepCreateCredentialsCmd = &cobra.Command{
 			log.Error("Failed to create secret: ", slog.String("error", err.Error()))
 		}
 
-		log.Info("Secret version created successfully", resp.GetName(), resp.GetVersion())
+		fmt.Printf("Secret %s version %v created successfully\n", resp.GetName(), resp.GetVersion())
 	},
 }
 

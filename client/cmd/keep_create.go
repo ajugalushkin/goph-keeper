@@ -7,7 +7,7 @@ import (
 // keepCreateCmd represents the create command
 var keepCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "A brief description of your command",
+	Short: "Create secret",
 }
 
 func init() {

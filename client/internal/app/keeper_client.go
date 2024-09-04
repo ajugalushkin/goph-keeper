@@ -31,9 +31,20 @@ func NewKeeperClient(cc *grpc.ClientConn) *KeeperClient {
 }
 
 func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItemRequestV1) (*keeperv1.CreateItemResponseV1, error) {
-	const op = "client.keeper.Register"
+	const op = "client.keeper.CreateItem"
 
 	resp, err := k.api.CreateItemV1(ctx, item)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp, nil
+}
+
+func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemRequestV1) (*keeperv1.GetItemResponseV1, error) {
+	const op = "client.keeper.GetItem"
+
+	resp, err := k.api.GetItemV1(ctx, item)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
