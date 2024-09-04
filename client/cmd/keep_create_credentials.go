@@ -72,14 +72,14 @@ func init() {
 
 	keepCreateCredentialsCmd.Flags().String("name", "", "Secret name")
 	if err := keepCreateCredentialsCmd.MarkFlagRequired("name"); err != nil {
-		slog.Error("Unable to mark 'name' flag as required %s", err.Error())
+		slog.Error("Unable to mark 'name' flag as required %s", slog.String("error", err.Error()))
 	}
 	keepCreateCredentialsCmd.Flags().String("login", "", "Login")
 	if err := keepCreateCredentialsCmd.MarkFlagRequired("login"); err != nil {
-		slog.Error("Unable to mark 'login' flag as required %s", err.Error())
+		slog.Error("Unable to mark 'login' flag as required %s", slog.String("error", err.Error()))
 	}
 	keepCreateCredentialsCmd.Flags().String("password", "", "Password")
 	if err := keepCreateCredentialsCmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Unable to mark 'password' flag as required %s", err.Error())
+		slog.Error("Unable to mark 'password' flag as required %s", slog.String("error", err.Error()))
 	}
 }
