@@ -79,5 +79,6 @@ func (manager *JWTManager) Verify(accessToken string) (bool, int64, error) {
 		}
 	}
 
+	log.Info("User ID", "uid", userID)
 	return true, userID, nil
 }

@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
 	//"io"
 	//"log"
@@ -145,16 +146,16 @@ func (s *serverAPI) CreateItemV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	//userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int)
-	//if !ok {
-	//	return nil, status.Error(codes.Unauthenticated, "empty user id")
-	//}
+	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "empty user id")
+	}
 
 	item, err := s.keeper.CreateItem(ctx, &models.Item{
 		Name:    req.GetName(),
 		Content: req.GetContent(),
 		Version: uuid.UUID{},
-		//OwnerID: userID,
+		OwnerID: userID,
 	})
 	if err != nil {
 		if errors.Is(err, storage.ErrItemConflict) {

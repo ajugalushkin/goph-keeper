@@ -94,7 +94,7 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 	}
 
 	if ok {
-		log.Debug("authorized access token: ", "token", accessToken)
+		log.Debug("authorized access token: ", slog.String("token", accessToken))
 		return context.WithValue(ctx, ContextKeyUserID, userID), nil
 	}
 

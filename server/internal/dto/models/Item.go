@@ -6,7 +6,7 @@ type Item struct {
 	Name    string
 	Content []byte
 	Version uuid.UUID
-	OwnerID int
+	OwnerID int64
 }
 
 type ListItem []Item
