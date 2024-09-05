@@ -41,17 +41,6 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 	return resp, nil
 }
 
-func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemRequestV1) (*keeperv1.GetItemResponseV1, error) {
-	const op = "client.keeper.GetItem"
-
-	resp, err := k.api.GetItemV1(ctx, item)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return resp, nil
-}
-
 func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, fileName string, filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -124,6 +113,28 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 		slog.String("size", strconv.Itoa(int(res.GetSize()))),
 	)
 	return nil
+}
+
+func (k *KeeperClient) DeleteItem(ctx context.Context, item *keeperv1.DeleteItemRequestV1) (*keeperv1.DeleteItemResponseV1, error) {
+	const op = "keeper.DeleteItem"
+
+	resp, err := k.api.DeleteItemV1(ctx, item)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp, nil
+}
+
+func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemRequestV1) (*keeperv1.GetItemResponseV1, error) {
+	const op = "client.keeper.GetItem"
+
+	resp, err := k.api.GetItemV1(ctx, item)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp, nil
 }
 
 func (k *KeeperClient) ListItems(ctx context.Context, item *keeperv1.ListItemsRequestV1) (*keeperv1.ListItemsResponseV1, error) {
