@@ -39,6 +39,16 @@ func (v *VaultStorage) Create(ctx context.Context, item *models.Item) (*models.I
 	return item, err
 }
 
+func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
+	_, err := v.db.ExecContext(
+		ctx,
+		`DELETE FROM valts WHERE name = ($1) AND owner_id = ($2)`,
+		item.Name,
+		item.OwnerID,
+	)
+	return err
+}
+
 func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*models.Item, error) {
 	row := v.db.QueryRowContext(
 		ctx,

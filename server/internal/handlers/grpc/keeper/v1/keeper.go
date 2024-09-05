@@ -26,6 +26,10 @@ type Keeper interface {
 		ctx context.Context,
 		item *models.Item,
 	) (*models.Item, error)
+	DeleteItem(
+		ctx context.Context,
+		item *models.Item,
+	) error
 	GetItem(
 		ctx context.Context,
 		name string,
@@ -168,6 +172,37 @@ func (s *serverAPI) CreateItemV1(
 	return &keeperv1.CreateItemResponseV1{
 		Name:    req.GetName(),
 		Version: item.Version.String(),
+	}, nil
+}
+
+func (s *serverAPI) DeleteItem(
+	ctx context.Context,
+	request *keeperv1.DeleteItemRequestV1,
+) (*keeperv1.DeleteItemResponseV1, error) {
+	if request.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "empty secret name")
+	}
+
+	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "empty user id")
+	}
+
+	item := &models.Item{
+		Name:    request.GetName(),
+		OwnerID: userID,
+	}
+
+	err := s.keeper.DeleteItem(ctx, item)
+	if err != nil {
+		if errors.Is(err, storage.ErrItemNotFound) {
+			return nil, status.Error(codes.NotFound, "secret not found")
+		}
+		return nil, status.Error(codes.Internal, "failed to create secret")
+	}
+
+	return &keeperv1.DeleteItemResponseV1{
+		Name: request.GetName(),
 	}, nil
 }
 
