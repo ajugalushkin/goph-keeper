@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	KeeperServiceV1_CreateItemV1_FullMethodName       = "/keeper.v1.KeeperServiceV1/CreateItemV1"
 	KeeperServiceV1_CreateItemStreamV1_FullMethodName = "/keeper.v1.KeeperServiceV1/CreateItemStreamV1"
+	KeeperServiceV1_DeleteItemV1_FullMethodName       = "/keeper.v1.KeeperServiceV1/DeleteItemV1"
 	KeeperServiceV1_GetItemV1_FullMethodName          = "/keeper.v1.KeeperServiceV1/GetItemV1"
 	KeeperServiceV1_ListItemsV1_FullMethodName        = "/keeper.v1.KeeperServiceV1/ListItemsV1"
 )
@@ -31,6 +32,7 @@ const (
 type KeeperServiceV1Client interface {
 	CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1], error)
+	DeleteItemV1(ctx context.Context, in *DeleteItemRequestV1, opts ...grpc.CallOption) (*DeleteItemResponseV1, error)
 	GetItemV1(ctx context.Context, in *GetItemRequestV1, opts ...grpc.CallOption) (*GetItemResponseV1, error)
 	ListItemsV1(ctx context.Context, in *ListItemsRequestV1, opts ...grpc.CallOption) (*ListItemsResponseV1, error)
 }
@@ -66,6 +68,16 @@ func (c *keeperServiceV1Client) CreateItemStreamV1(ctx context.Context, opts ...
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type KeeperServiceV1_CreateItemStreamV1Client = grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemStreamResponseV1]
 
+func (c *keeperServiceV1Client) DeleteItemV1(ctx context.Context, in *DeleteItemRequestV1, opts ...grpc.CallOption) (*DeleteItemResponseV1, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteItemResponseV1)
+	err := c.cc.Invoke(ctx, KeeperServiceV1_DeleteItemV1_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keeperServiceV1Client) GetItemV1(ctx context.Context, in *GetItemRequestV1, opts ...grpc.CallOption) (*GetItemResponseV1, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetItemResponseV1)
@@ -92,6 +104,7 @@ func (c *keeperServiceV1Client) ListItemsV1(ctx context.Context, in *ListItemsRe
 type KeeperServiceV1Server interface {
 	CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]) error
+	DeleteItemV1(context.Context, *DeleteItemRequestV1) (*DeleteItemResponseV1, error)
 	GetItemV1(context.Context, *GetItemRequestV1) (*GetItemResponseV1, error)
 	ListItemsV1(context.Context, *ListItemsRequestV1) (*ListItemsResponseV1, error)
 	mustEmbedUnimplementedKeeperServiceV1Server()
@@ -109,6 +122,9 @@ func (UnimplementedKeeperServiceV1Server) CreateItemV1(context.Context, *CreateI
 }
 func (UnimplementedKeeperServiceV1Server) CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]) error {
 	return status.Errorf(codes.Unimplemented, "method CreateItemStreamV1 not implemented")
+}
+func (UnimplementedKeeperServiceV1Server) DeleteItemV1(context.Context, *DeleteItemRequestV1) (*DeleteItemResponseV1, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteItemV1 not implemented")
 }
 func (UnimplementedKeeperServiceV1Server) GetItemV1(context.Context, *GetItemRequestV1) (*GetItemResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetItemV1 not implemented")
@@ -162,6 +178,24 @@ func _KeeperServiceV1_CreateItemStreamV1_Handler(srv interface{}, stream grpc.Se
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type KeeperServiceV1_CreateItemStreamV1Server = grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemStreamResponseV1]
 
+func _KeeperServiceV1_DeleteItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteItemRequestV1)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServiceV1Server).DeleteItemV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KeeperServiceV1_DeleteItemV1_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServiceV1Server).DeleteItemV1(ctx, req.(*DeleteItemRequestV1))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KeeperServiceV1_GetItemV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetItemRequestV1)
 	if err := dec(in); err != nil {
@@ -208,6 +242,10 @@ var KeeperServiceV1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateItemV1",
 			Handler:    _KeeperServiceV1_CreateItemV1_Handler,
+		},
+		{
+			MethodName: "DeleteItemV1",
+			Handler:    _KeeperServiceV1_DeleteItemV1_Handler,
 		},
 		{
 			MethodName: "GetItemV1",
