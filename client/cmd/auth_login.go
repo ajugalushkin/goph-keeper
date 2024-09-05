@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
@@ -13,34 +14,33 @@ import (
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "A brief description of your command",
-	Long:  `A longer description that spans multiple lines and likely contains examples`,
+	Short: "Logins a user in the gophkeeper service",
 	Run: func(cmd *cobra.Command, args []string) {
 		const op = "client.auth.login.run"
 		log := logger.GetInstance().Log.With("op", op)
 
 		email, err := cmd.Flags().GetString("email")
 		if err != nil {
-			log.Error("Error while getting email", "error", err)
+			log.Error("Error while getting email", slog.String("error", err.Error()))
 		}
 
 		password, err := cmd.Flags().GetString("password")
 		if err != nil {
-			log.Error("Error while getting password")
+			log.Error("Error while getting password", slog.String("error", err.Error()))
 		}
 
 		authClient := app.NewAuthClient(app.GetAuthConnection())
 
 		token, err := authClient.Login(context.Background(), email, password)
 		if err != nil {
-			log.Error("Error while login", "error", err)
+			log.Error("Error while login", slog.String("error", err.Error()))
 		}
 
 		if err := tokenStorage.Save(token); err != nil {
-			log.Error("Failed to store access token")
+			log.Error("Failed to store access token", slog.String("error", err.Error()))
 		}
 
-		log.Info("Login success")
+		fmt.Printf("Access Token: %s\n", token)
 	},
 }
 
@@ -49,10 +49,10 @@ func init() {
 
 	loginCmd.Flags().StringP("email", "e", "", "User Email")
 	if err := loginCmd.MarkFlagRequired("email"); err != nil {
-		slog.Error("Error marking email as required")
+		slog.Error("Error marking email as required", slog.String("error", err.Error()))
 	}
 	loginCmd.Flags().StringP("password", "p", "", "User password")
 	if err := loginCmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error marking password as required")
+		slog.Error("Error marking password as required", slog.String("error", err.Error()))d
 	}
 }

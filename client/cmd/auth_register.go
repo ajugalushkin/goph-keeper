@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
@@ -20,20 +21,22 @@ var registerCmd = &cobra.Command{
 
 		email, err := cmd.Flags().GetString("email")
 		if err != nil {
-			log.Error("Error getting email", "error", err)
+			log.Error("Error getting email", slog.String("error", err.Error()))
 		}
 
 		password, err := cmd.Flags().GetString("password")
 		if err != nil {
-			log.Error("Error getting password", "error", err)
+			log.Error("Error getting password", slog.String("error", err.Error()))
 		}
 
 		authClient := app.NewAuthClient(app.GetAuthConnection())
 
 		err = authClient.Register(context.Background(), email, password)
 		if err != nil {
-			log.Error("Error registering user", "error", err)
+			log.Error("Error registering user", slog.String("error", err.Error()))
 		}
+
+		fmt.Println("User registered successfully")
 	},
 }
 
@@ -42,10 +45,10 @@ func init() {
 
 	registerCmd.Flags().StringP("email", "e", "", "User Email")
 	if err := registerCmd.MarkFlagRequired("email"); err != nil {
-		slog.Error("Error setting email flag", "error", err)
+		slog.Error("Error setting email flag", slog.String("error", err.Error()))
 	}
 	registerCmd.Flags().StringP("password", "p", "", "User password")
 	if err := registerCmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error setting password flag", "error", err)
+		slog.Error("Error setting password flag", slog.String("error", err.Error()))
 	}
 }
