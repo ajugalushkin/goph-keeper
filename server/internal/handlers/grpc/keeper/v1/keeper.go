@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
-	"io"
-	"log"
-
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
+	"io"
 
 	//"io"
 	//"log"
@@ -108,7 +105,6 @@ func (s *serverAPI) CreateItemStreamV1(
 	}
 
 	fileName := req.GetInfo().GetName()
-	fileType := req.GetInfo().GetType()
 
 	//log.Printf("receive an upload-image request for laptop %s with image type %s", laptopID, imageType)
 
@@ -137,32 +133,32 @@ func (s *serverAPI) CreateItemStreamV1(
 	imageData := bytes.Buffer{}
 	imageSize := 0
 
-	storage, err := minio.NewMinioClient()
-	if err != nil {
-		return err
-	}
+	//storage, err := minio.NewMinioClient()
+	//if err != nil {
+	//	return status.Error(codes.Internal, err.Error())
+	//}
 
 	for {
-		//err := contextError(stream.Context())
-		//if err != nil {
-		//	return err
-		//}
+		err := stream.Context()
+		if err != nil {
+			return status.Error(codes.Internal, err.Err().Error())
+		}
 		//
 		//log.Print("waiting to receive more data")
 
-		req, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
+		req, errRec := stream.Recv()
+		if errRec != nil {
+			if errRec == io.EOF {
 				//log.Print("no more data")
 				break
 			}
-			//return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
+			return status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err)
 		}
 
 		chunk := req.GetChunkData()
-		size := len(chunk)
+		//size := len(chunk)
 
-		log.Printf("received a chunk with size: %d", size)
+		//log.Printf("received a chunk with size: %d", size)
 
 		//imageSize += size
 		//if imageSize > maxImageSize {
@@ -178,22 +174,22 @@ func (s *serverAPI) CreateItemStreamV1(
 		//}
 	}
 
-	imageID, err := server.imageStore.Save(laptopID, imageType, imageData)
-	if err != nil {
-		return logError(status.Errorf(codes.Internal, "cannot save image to the store: %v", err))
-	}
-
-	res := &pb.UploadImageResponse{
-		Id:   imageID,
-		Size: uint32(imageSize),
-	}
-
-	err = stream.SendAndClose(res)
-	if err != nil {
-		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
-	}
-
-	log.Printf("saved image with id: %s, size: %d", imageID, imageSize)
+	//imageID, err := server.imageStore.Save(laptopID, imageType, imageData)
+	//if err != nil {
+	//	return logError(status.Errorf(codes.Internal, "cannot save image to the store: %v", err))
+	//}
+	//
+	//res := &pb.UploadImageResponse{
+	//	Id:   imageID,
+	//	Size: uint32(imageSize),
+	//}
+	//
+	//err = stream.SendAndClose(res)
+	//if err != nil {
+	//	return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
+	//}
+	//
+	//log.Printf("saved image with id: %s, size: %d", imageID, imageSize)
 	return nil
 }
 
