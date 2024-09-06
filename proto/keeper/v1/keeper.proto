@@ -28,7 +28,6 @@ message CreateItemResponseV1 {
 message CreateItemStreamRequestV1 {
   message FileInfo {
     string name = 1;
-    string type = 2;
   }
   oneof data {
     FileInfo info = 1;

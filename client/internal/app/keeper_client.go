@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"log/slog"
 	"os"
@@ -58,11 +59,18 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 		return err
 	}
 
+	reader := bufio.NewReader(file)
+	buffer := make([]byte, defaultChunkSize)
+
+	detectReader, err := mimetype.DetectReader(reader)
+	if err != nil {
+		log.Error("cannot detect reader: ", slog.String("error", err.Error()))
+	}
+
 	req := &keeperv1.CreateItemStreamRequestV1{
 		Data: &keeperv1.CreateItemStreamRequestV1_Info{
 			Info: &keeperv1.CreateItemStreamRequestV1_FileInfo{
 				Name: fileName,
-				Type: "",
 			},
 		},
 	}
@@ -74,9 +82,6 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 			slog.String("stream msg", stream.RecvMsg(nil).Error()))
 		return err
 	}
-
-	reader := bufio.NewReader(file)
-	buffer := make([]byte, defaultChunkSize)
 
 	for {
 		n, err := reader.Read(buffer)
