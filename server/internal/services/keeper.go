@@ -20,6 +20,7 @@ type ItemProvider interface {
 
 type ItemSaver interface {
 	Create(ctx context.Context, item *models.Item) (*models.Item, error)
+	Update(ctx context.Context, item *models.Item) (*models.Item, error)
 	Delete(ctx context.Context, item *models.Item) error
 }
 
@@ -47,6 +48,20 @@ func (k Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item
 
 	k.log.Debug("Successfully created item")
 	return newItem, nil
+}
+
+func (k Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
+	const op = "services.keeper.updateItem"
+	k.log.With("op", op)
+
+	item, err := k.itmSaver.Update(ctx, item)
+	if err != nil {
+		k.log.Debug("Failed to update item", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	k.log.Debug("Successfully update item")
+	return item, nil
 }
 
 func (k Keeper) DeleteItem(ctx context.Context, item *models.Item) error {

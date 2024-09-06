@@ -115,6 +115,17 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 	return nil
 }
 
+func (k *KeeperClient) UpdateItem(ctx context.Context, item *keeperv1.UpdateItemRequestV1) (*keeperv1.UpdateItemResponseV1, error) {
+	const op = "keeper.UpdateItem"
+
+	resp, err := k.api.UpdateItemV1(ctx, item)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp, nil
+}
+
 func (k *KeeperClient) DeleteItem(ctx context.Context, item *keeperv1.DeleteItemRequestV1) (*keeperv1.DeleteItemResponseV1, error) {
 	const op = "keeper.DeleteItem"
 

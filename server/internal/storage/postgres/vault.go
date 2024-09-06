@@ -39,6 +39,25 @@ func (v *VaultStorage) Create(ctx context.Context, item *models.Item) (*models.I
 	return item, err
 }
 
+func (v *VaultStorage) Update(ctx context.Context, item *models.Item) (*models.Item, error) {
+	SQLQuery := `
+        UPDATE secrets
+        SET version = uuid_generate_v4(), content = ($1)
+        WHERE owner_id = ($2) AND name = ($3)
+        RETURNING version`
+
+	row := v.db.QueryRowContext(ctx, SQLQuery, item.Content, item.OwnerID, item.Name)
+	err := row.Scan(&item.Version)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrItemNotFound
+		}
+		return nil, err
+	}
+
+	return item, nil
+}
+
 func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
 	_, err := v.db.ExecContext(
 		ctx,

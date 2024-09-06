@@ -76,24 +76,52 @@ var keepUpdateCardCmd = &cobra.Command{
 		}
 		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
 
-		resp, err := keeperClient.(context.Background(), &v1.CreateItemRequestV1{
+		resp, err := keeperClient.UpdateItem(context.Background(), &v1.UpdateItemRequestV1{
 			Name:    name,
 			Content: content,
 		})
-
-		//resp, err := secretClient.UpdateSecret(context.Background(), &pb.UpdateSecretRequest{
-		//	Name:    name,
-		//	Content: content,
-		//})
-		//if err != nil {
-		//	log.Fatal().Msgf("Failed to update secret: %v", err)
-		//	return
-		//}
+		if err != nil {
+			log.Error("Failed to update secret: ",
+				slog.String("error", err.Error()))
+			return
+		}
 
 		fmt.Printf("Secret %s version %v updated successfully\n", resp.GetName(), resp.GetVersion())
 	},
 }
 
 func init() {
+	const op = "keep update card"
 	keepUpdateCmd.AddCommand(keepUpdateCardCmd)
+
+	keepUpdateCardCmd.Flags().String("name", "", "Secret name")
+	if err := keepUpdateCardCmd.MarkFlagRequired("name"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
+	keepUpdateCardCmd.Flags().String("number", "", "Card number")
+	if err := keepUpdateCardCmd.MarkFlagRequired("number"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
+	keepUpdateCardCmd.Flags().String("date", "", "Card expiry date")
+	if err := keepUpdateCardCmd.MarkFlagRequired("date"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
+	keepUpdateCardCmd.Flags().String("code", "", "Card security code")
+	if err := keepUpdateCardCmd.MarkFlagRequired("code"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
+	keepUpdateCardCmd.Flags().String("holder", "", "Card holder")
+	if err := keepUpdateCardCmd.MarkFlagRequired("holder"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
 }
