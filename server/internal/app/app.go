@@ -32,11 +32,13 @@ func New(
 
 	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
 	serviceKeeper := services.NewKeeperService(log, vaultStorage, vaultStorage)
+	serviceMinio := services.NewMinioService(log, cfg.Minio)
 
 	grpcApp := grpcapp.New(
 		log,
 		serviceAuth,
 		serviceKeeper,
+		serviceMinio,
 		jwtManager,
 		cfg.GRPC.Address,
 	)

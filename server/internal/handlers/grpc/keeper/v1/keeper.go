@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"io"
+	"log"
 
-	//"io"
-	//"log"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/google/uuid"
@@ -19,7 +18,6 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
-	//"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
 )
 
 type Keeper interface {
@@ -46,17 +44,25 @@ type Keeper interface {
 	) (list []*models.Item, err error)
 }
 
+type Minio interface {
+	Create(file models.FileData) error
+	Get()
+}
+
 type serverAPI struct {
 	keeperv1.UnimplementedKeeperServiceV1Server
 	keeper Keeper
+	minio  Minio
 }
 
 func Register(
 	gRPC *grpc.Server,
 	keeper Keeper,
+	minio Minio,
 ) {
 	keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{
 		keeper: keeper,
+		minio:  minio,
 	})
 }
 
@@ -101,95 +107,79 @@ func (s *serverAPI) CreateItemStreamV1(
 ) error {
 	req, err := stream.Recv()
 	if err != nil {
-		return status.Errorf(codes.Unknown, "cannot receive file info")
+		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
 	}
 
 	fileName := req.GetInfo().GetName()
+	log.Printf("receive an upload-file request for %s", fileName)
 
-	//log.Printf("receive an upload-image request for laptop %s with image type %s", laptopID, imageType)
-
-	//laptop, err := server.laptopStore.Find(laptopID)
-	//if err != nil {
-	//	return logError(status.Errorf(codes.Internal, "cannot find laptop: %v", err))
-	//}
-	//if laptop == nil {
-	//	return logError(status.Errorf(codes.InvalidArgument, "laptop id %s doesn't exist", laptopID))
-	//}
-
-	ctx := context.Background()
+	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
 	if !ok {
-		return status.Error(codes.Unauthenticated, "empty user id")
+		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
 	}
 
-	_, err = s.keeper.CreateItem(context.Background(), &models.Item{
+	fileData := bytes.Buffer{}
+	fileSize := 0
+
+	for {
+		err := contextError(stream.Context())
+		if err != nil {
+			return err
+		}
+
+		log.Print("waiting to receive more data")
+
+		req, err := stream.Recv()
+		if err == io.EOF {
+			log.Print("no more data")
+			break
+		}
+		if err != nil {
+			return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
+		}
+
+		chunk := req.GetChunkData()
+		size := len(chunk)
+
+		log.Printf("received a chunk with size: %d", size)
+
+		fileSize += size
+
+		_, err = fileData.Write(chunk)
+		if err != nil {
+			return logError(status.Errorf(codes.Internal, "cannot write chunk data: %v", err))
+		}
+	}
+
+	err = s.minio.Create(models.FileData{
+		FileName: fileName,
+		Data:     fileData.Bytes(),
+	})
+	if err != nil {
+		return logError(status.Errorf(codes.Unknown, "cannot save in bucket: %v", err))
+	}
+
+	_, err = s.keeper.CreateItem(ctx, &models.Item{
 		Name:    fileName,
 		Version: uuid.UUID{},
 		OwnerID: userID})
 	if err != nil {
-		return err
+		return logError(status.Errorf(codes.Internal, "failed to create item"))
 	}
 
-	imageData := bytes.Buffer{}
-	imageSize := 0
-
-	//storage, err := minio.NewMinioClient()
-	//if err != nil {
-	//	return status.Error(codes.Internal, err.Error())
-	//}
-
-	for {
-		err := stream.Context()
-		if err != nil {
-			return status.Error(codes.Internal, err.Err().Error())
-		}
-		//
-		//log.Print("waiting to receive more data")
-
-		req, errRec := stream.Recv()
-		if errRec != nil {
-			if errRec == io.EOF {
-				//log.Print("no more data")
-				break
-			}
-			return status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err)
-		}
-
-		chunk := req.GetChunkData()
-		//size := len(chunk)
-
-		//log.Printf("received a chunk with size: %d", size)
-
-		//imageSize += size
-		//if imageSize > maxImageSize {
-		//	return logError(status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxImageSize))
-		//}
-
-		////write slowly
-		////time.Sleep(time.Second)
-
-		//_, err = imageData.Write(chunk)
-		//if err != nil {
-		//	return logError(status.Errorf(codes.Internal, "cannot write chunk data: %v", err))
-		//}
+	res := &keeperv1.CreateItemStreamResponseV1{
+		Name: fileName,
+		Size: uint32(fileSize),
 	}
 
-	//imageID, err := server.imageStore.Save(laptopID, imageType, imageData)
-	//if err != nil {
-	//	return logError(status.Errorf(codes.Internal, "cannot save image to the store: %v", err))
-	//}
-	//
-	//res := &pb.UploadImageResponse{
-	//	Id:   imageID,
-	//	Size: uint32(imageSize),
-	//}
-	//
-	//err = stream.SendAndClose(res)
-	//if err != nil {
-	//	return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
-	//}
-	//
-	//log.Printf("saved image with id: %s, size: %d", imageID, imageSize)
+	err = stream.SendAndClose(res)
+	if err != nil {
+		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
+	}
+
+	log.Printf("saved file with id: %s, size: %d", fileName, fileSize)
+
 	return nil
 }
 
@@ -310,4 +300,22 @@ func (s *serverAPI) ListItemsV1(
 	return &keeperv1.ListItemsResponseV1{
 		Secrets: keeperSecrets,
 	}, nil
+}
+
+func contextError(ctx context.Context) error {
+	switch ctx.Err() {
+	case context.Canceled:
+		return logError(status.Error(codes.Canceled, "request is canceled"))
+	case context.DeadlineExceeded:
+		return logError(status.Error(codes.DeadlineExceeded, "deadline is exceeded"))
+	default:
+		return nil
+	}
+}
+
+func logError(err error) error {
+	if err != nil {
+		log.Print(err)
+	}
+	return err
 }

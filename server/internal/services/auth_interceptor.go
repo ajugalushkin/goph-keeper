@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"strings"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -51,6 +53,27 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		}
 
 		return handler(newCtx, req)
+	}
+}
+
+func (interceptor *AuthInterceptor) Stream() grpc.StreamServerInterceptor {
+	return func(
+		srv interface{},
+		stream grpc.ServerStream,
+		info *grpc.StreamServerInfo,
+		handler grpc.StreamHandler,
+	) error {
+		log.Println("--> stream interceptor: ", info.FullMethod)
+
+		newCtx, err := interceptor.authorize(stream.Context(), info.FullMethod)
+		if err != nil {
+			return err
+		}
+
+		return handler(srv, &grpc_middleware.WrappedServerStream{
+			ServerStream:   stream,
+			WrappedContext: newCtx,
+		})
 	}
 }
 

@@ -1,9 +1,14 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
 // binCmd represents the bin command
@@ -11,33 +16,33 @@ var keepCreateBinCmd = &cobra.Command{
 	Use:   "bin",
 	Short: "Create bin secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		//const op = "keep.create.bin"
+		const op = "keep.create.bin"
+		log := logger.GetInstance().Log.With("op", op)
 
-		//log := logger.GetInstance().Log.With("op", op)
-		//
-		//name, err := cmd.Flags().GetString("name")
-		//if err != nil {
-		//	log.Error("Error reading secret name ", err)
-		//	return
-		//}
-		//
-		//filePath, err := cmd.Flags().GetString("file_path")
-		//if err != nil {
-		//	log.Error("Error reading file path ", err)
-		//	return
-		//}
-		//
-		//token, err := tokenStorage.Load()
-		//if err != nil {
-		//	return
-		//}
-		//
-		//keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
-		//err = keeperClient.CreateItemStream(context.Background(), name, filePath)
-		//if err != nil {
-		//	log.Error("Error creating bin", err)
-		//}
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			log.Error("Error reading secret name ", err)
+			return
+		}
 
+		filePath, err := cmd.Flags().GetString("file_path")
+		if err != nil {
+			log.Error("Error reading file path ", err)
+			return
+		}
+
+		token, err := tokenStorage.Load()
+		if err != nil {
+			return
+		}
+
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath)
+		if err != nil {
+			log.Error("Error creating bin", err)
+		}
+
+		fmt.Printf("Secret %s version %v created successfully\n", resp.GetName())
 	},
 }
 
@@ -49,8 +54,8 @@ func init() {
 		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
 	}
 
-	keepCreateBinCmd.Flags().StringP("file", "f", "", "Binary file path")
-	if err := keepCreateBinCmd.MarkFlagRequired("file"); err != nil {
+	keepCreateBinCmd.Flags().StringP("file_path", "f", "", "Binary file path")
+	if err := keepCreateBinCmd.MarkFlagRequired("file_path"); err != nil {
 		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
 	}
 }

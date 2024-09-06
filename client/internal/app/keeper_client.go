@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"log/slog"
 	"os"
@@ -42,11 +41,11 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 	return resp, nil
 }
 
-func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, fileName string, filePath string) error {
+func (k *KeeperClient) CreateItemStream(ctx context.Context, fileName string, filePath string) (*keeperv1.CreateItemStreamResponseV1, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Error("cannot open file: ", slog.String("error", err.Error()))
-		return err
+		slog.Error("cannot open file: ", slog.String("error", err.Error()))
+		return nil, err
 	}
 	defer file.Close()
 
@@ -55,17 +54,12 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 	stream, err := k.api.CreateItemStreamV1(ctx)
 	if err != nil {
-		log.Error("cannot upload file: ", slog.String("error", err.Error()))
-		return err
+		slog.Error("cannot upload file: ", slog.String("error", err.Error()))
+		return nil, err
 	}
 
 	reader := bufio.NewReader(file)
 	buffer := make([]byte, defaultChunkSize)
-
-	detectReader, err := mimetype.DetectReader(reader)
-	if err != nil {
-		log.Error("cannot detect reader: ", slog.String("error", err.Error()))
-	}
 
 	req := &keeperv1.CreateItemStreamRequestV1{
 		Data: &keeperv1.CreateItemStreamRequestV1_Info{
@@ -77,10 +71,10 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 	err = stream.Send(req)
 	if err != nil {
-		log.Error("cannot send file info to server: ",
+		slog.Error("cannot send file info to server: ",
 			slog.String("error", err.Error()),
 			slog.String("stream msg", stream.RecvMsg(nil).Error()))
-		return err
+		return nil, err
 	}
 
 	for {
@@ -89,7 +83,7 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 			if err == io.EOF {
 				break
 			}
-			log.Error("cannot read chunk to buffer: ", slog.String("error", err.Error()))
+			slog.Error("cannot read chunk to buffer: ", slog.String("error", err.Error()))
 		}
 
 		req := &keeperv1.CreateItemStreamRequestV1{
@@ -100,7 +94,7 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 		err = stream.Send(req)
 		if err != nil {
-			log.Error("cannot send chunk to server:",
+			slog.Error("cannot send chunk to server:",
 				slog.String("error", err.Error()),
 				slog.String("stream msg", stream.RecvMsg(nil).Error()))
 		}
@@ -108,16 +102,16 @@ func (k *KeeperClient) CreateItemStream(log *slog.Logger, ctx context.Context, f
 
 	res, err := stream.CloseAndRecv()
 	if err != nil {
-		log.Error("cannot receive response: ", slog.String("error", err.Error()))
-		return err
+		slog.Error("cannot receive response: ", slog.String("error", err.Error()))
+		return nil, err
 	}
 
-	log.Info(
+	slog.Info(
 		"image uploaded with id: ",
 		slog.String("name", res.GetName()),
 		slog.String("size", strconv.Itoa(int(res.GetSize()))),
 	)
-	return nil
+	return res, nil
 }
 
 func (k *KeeperClient) UpdateItem(ctx context.Context, item *keeperv1.UpdateItemRequestV1) (*keeperv1.UpdateItemResponseV1, error) {
@@ -192,5 +186,7 @@ func authMethods() map[string]bool {
 		keeperv1.KeeperServiceV1_GetItemV1_FullMethodName:          true,
 		keeperv1.KeeperServiceV1_CreateItemV1_FullMethodName:       true,
 		keeperv1.KeeperServiceV1_CreateItemStreamV1_FullMethodName: true,
+		keeperv1.KeeperServiceV1_DeleteItemV1_FullMethodName:       true,
+		keeperv1.KeeperServiceV1_UpdateItemV1_FullMethodName:       true,
 	}
 }

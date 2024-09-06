@@ -7,3 +7,9 @@ token:
   secret: secret_key
 storage:
   path: postgres://praktikum:pass@postgres:5432/goph_keeper
+minio:
+  endpoint:
+  username: praktikum
+  password: pass1234567
+  ssl: false
+  bucket: vault

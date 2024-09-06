@@ -24,12 +24,21 @@ type Token struct {
 	Secret string        `yaml:"secret"`
 }
 
+type Minio struct {
+	Endpoint string `yaml:"endpoint" env-required:"true"`
+	Username string `yaml:"username" env-required:"true"`
+	Password string `yaml:"password" env-required:"true"`
+	SSL      bool   `yaml:"ssl" env-required:"true"`
+	Buket    string `yaml:"buket" env-required:"true"`
+}
+
 // Config структура параметров заауска.
 type Config struct {
 	Env     string `yaml:"env" env-required:"true"`
 	Storage Storage
 	GRPC    GRPC
 	Token   Token
+	Minio   Minio
 }
 
 // MustLoad функция заполнения структуры Config, в случае ошибки паникуем.
