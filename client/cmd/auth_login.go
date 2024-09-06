@@ -53,6 +53,6 @@ func init() {
 	}
 	loginCmd.Flags().StringP("password", "p", "", "User password")
 	if err := loginCmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error marking password as required", slog.String("error", err.Error()))d
+		slog.Error("Error marking password as required", slog.String("error", err.Error()))
 	}
 }
