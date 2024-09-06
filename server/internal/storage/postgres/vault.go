@@ -61,7 +61,7 @@ func (v *VaultStorage) Update(ctx context.Context, item *models.Item) (*models.I
 func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
 	_, err := v.db.ExecContext(
 		ctx,
-		`DELETE FROM valts WHERE name = ($1) AND owner_id = ($2)`,
+		`DELETE FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
 		item.Name,
 		item.OwnerID,
 	)
@@ -87,7 +87,7 @@ func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*mod
 
 func (v *VaultStorage) List(ctx context.Context, userID int64) ([]*models.Item, error) {
 	rows, err := v.db.QueryContext(
-		ctx, `SELECT name, version, content FROM valts WHERE owner_id = ($1)`, userID)
+		ctx, `SELECT name, version, content FROM vaults WHERE owner_id = ($1)`, userID)
 	if err != nil {
 		return nil, err
 	}
