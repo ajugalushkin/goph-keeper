@@ -12,7 +12,7 @@ service KeeperServiceV1{
   rpc UpdateItemV1(UpdateItemRequestV1) returns(UpdateItemResponseV1);
   rpc DeleteItemV1(DeleteItemRequestV1) returns(DeleteItemResponseV1);
   rpc GetItemV1(GetItemRequestV1) returns(GetItemResponseV1);
-  rpc GetItemStreamV1(GetItemStreamRequestV1) returns(stream GetItemStreamResponseV1);
+  rpc GetItemStreamV1(GetItemRequestV1) returns(stream GetItemStreamResponseV1);
   rpc ListItemsV1(ListItemsRequestV1) returns (ListItemsResponseV1);
 }
 
@@ -69,12 +69,8 @@ message GetItemResponseV1 {
   string version = 3;
 }
 
-message GetItemStreamRequestV1{
-
-}
-
 message GetItemStreamResponseV1{
-
+  bytes chunk_data = 1;
 }
 
 message ListItemsRequestV1 {

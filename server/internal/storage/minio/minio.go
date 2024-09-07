@@ -61,7 +61,8 @@ func (m *MinioStorage) Create(ctx context.Context, bucketName string, chunkNumbe
 	if err != nil || !isExists {
 		err := m.mc.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
+			slog.Error("Minio New Error", slog.String("op", op), slog.String("error", err.Error()))
+			return err
 		}
 	}
 
@@ -77,7 +78,7 @@ func (m *MinioStorage) Create(ctx context.Context, bucketName string, chunkNumbe
 
 	_, err = m.mc.PutObject(ctx, bucketName, objectID, reader, int64(len(chunkData)), opts)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("error uploading file: %v", err)
 	}
 
 	return nil

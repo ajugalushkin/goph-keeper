@@ -40,6 +40,7 @@ var keepCreateBinCmd = &cobra.Command{
 		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath)
 		if err != nil {
 			log.Error("Error creating bin", err)
+			return
 		}
 
 		fmt.Printf("Secret %s version %v created successfully\n", resp.GetName())

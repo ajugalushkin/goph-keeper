@@ -119,7 +119,7 @@ func (s *serverAPI) CreateItemStreamV1(
 
 	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
-	if !ok {
+	if !ok || userID == 0 {
 		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
 	}
 
@@ -127,6 +127,8 @@ func (s *serverAPI) CreateItemStreamV1(
 	chunkSize := 0
 	fileSize := 0
 	count := 0
+
+	ctx = context.Background()
 
 	for {
 		err := contextError(stream.Context())
@@ -174,12 +176,30 @@ func (s *serverAPI) CreateItemStreamV1(
 		}
 	}
 
-	_, err = s.keeper.CreateItem(ctx, &models.Item{
-		Name:    fileName,
-		Version: uuid.UUID{},
-		OwnerID: userID,
-		FileID:  fileName,
-	})
+	if fileData.Bytes() != nil {
+		count++
+		err = s.keeper.CreateObject(
+			ctx,
+			fileName,
+			count,
+			fileData.Bytes(),
+		)
+		if err != nil {
+			return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
+		}
+
+		chunkSize = 0
+		fileData.Reset()
+	}
+
+	_, err = s.keeper.CreateItem(ctx,
+		&models.Item{
+			Name:    fileName,
+			Version: uuid.UUID{},
+			OwnerID: userID,
+			FileID:  fileName,
+		},
+	)
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot create item: %v", err))
 	}
