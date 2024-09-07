@@ -7,4 +7,5 @@ type Item struct {
 	Content []byte
 	Version uuid.UUID
 	OwnerID int64
+	FileID  string
 }

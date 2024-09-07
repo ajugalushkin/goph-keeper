@@ -6,6 +6,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/config"
 	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
 )
 
@@ -28,17 +29,20 @@ func New(
 		panic(err)
 	}
 
+	minioStorage, err := minio.NewMinioStorage(cfg.Minio)
+	if err != nil {
+		panic(err)
+	}
+
 	jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
 
 	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
-	serviceKeeper := services.NewKeeperService(log, vaultStorage, vaultStorage)
-	serviceMinio := services.NewMinioService(log, cfg.Minio)
+	serviceKeeper := services.NewKeeperService(log, vaultStorage, vaultStorage, minioStorage, minioStorage)
 
 	grpcApp := grpcapp.New(
 		log,
 		serviceAuth,
 		serviceKeeper,
-		serviceMinio,
 		jwtManager,
 		cfg.GRPC.Address,
 	)

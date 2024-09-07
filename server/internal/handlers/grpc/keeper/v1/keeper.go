@@ -25,6 +25,12 @@ type Keeper interface {
 		ctx context.Context,
 		item *models.Item,
 	) (*models.Item, error)
+	CreateObject(
+		ctx context.Context,
+		fileName string,
+		chunkNumber int,
+		chunkData []byte,
+	) error
 	UpdateItem(
 		ctx context.Context,
 		item *models.Item,
@@ -38,31 +44,27 @@ type Keeper interface {
 		name string,
 		userID int64,
 	) (*models.Item, error)
+	GetObject(
+		ctx context.Context,
+		objectID string,
+	) (bytes.Buffer, error)
 	ListItems(
 		ctx context.Context,
 		userID int64,
 	) (list []*models.Item, err error)
 }
 
-type Minio interface {
-	Create(file models.FileData) error
-	Get()
-}
-
 type serverAPI struct {
 	keeperv1.UnimplementedKeeperServiceV1Server
 	keeper Keeper
-	minio  Minio
 }
 
 func Register(
 	gRPC *grpc.Server,
 	keeper Keeper,
-	minio Minio,
 ) {
 	keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{
 		keeper: keeper,
-		minio:  minio,
 	})
 }
 
@@ -105,6 +107,8 @@ func (s *serverAPI) CreateItemV1(
 func (s *serverAPI) CreateItemStreamV1(
 	stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
 ) error {
+	const maxSizeChunk = 1 << 20 * 100
+
 	req, err := stream.Recv()
 	if err != nil {
 		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
@@ -120,7 +124,9 @@ func (s *serverAPI) CreateItemStreamV1(
 	}
 
 	fileData := bytes.Buffer{}
+	chunkSize := 0
 	fileSize := 0
+	count := 0
 
 	for {
 		err := contextError(stream.Context())
@@ -131,11 +137,11 @@ func (s *serverAPI) CreateItemStreamV1(
 		log.Print("waiting to receive more data")
 
 		req, err := stream.Recv()
-		if err == io.EOF {
-			log.Print("no more data")
-			break
-		}
 		if err != nil {
+			if err == io.EOF {
+				log.Print("no more data")
+				break
+			}
 			return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
 		}
 
@@ -144,28 +150,38 @@ func (s *serverAPI) CreateItemStreamV1(
 
 		log.Printf("received a chunk with size: %d", size)
 
-		fileSize += size
-
 		_, err = fileData.Write(chunk)
 		if err != nil {
-			return logError(status.Errorf(codes.Internal, "cannot write chunk data: %v", err))
+			return logError(status.Errorf(codes.Internal, "cannot write chunk into memory: %v", err))
 		}
-	}
 
-	err = s.minio.Create(models.FileData{
-		FileName: fileName,
-		Data:     fileData.Bytes(),
-	})
-	if err != nil {
-		return logError(status.Errorf(codes.Unknown, "cannot save in bucket: %v", err))
+		chunkSize += size
+		fileSize += size
+		if chunkSize > maxSizeChunk {
+			count++
+			err = s.keeper.CreateObject(
+				ctx,
+				fileName,
+				count,
+				fileData.Bytes(),
+			)
+			if err != nil {
+				return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
+			}
+
+			chunkSize = 0
+			fileData.Reset()
+		}
 	}
 
 	_, err = s.keeper.CreateItem(ctx, &models.Item{
 		Name:    fileName,
 		Version: uuid.UUID{},
-		OwnerID: userID})
+		OwnerID: userID,
+		FileID:  fileName,
+	})
 	if err != nil {
-		return logError(status.Errorf(codes.Internal, "failed to create item"))
+		return logError(status.Errorf(codes.Internal, "cannot create item: %v", err))
 	}
 
 	res := &keeperv1.CreateItemStreamResponseV1{

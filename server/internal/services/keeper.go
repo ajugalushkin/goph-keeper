@@ -1,7 +1,9 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
@@ -11,6 +13,8 @@ type Keeper struct {
 	log         *slog.Logger
 	itmSaver    ItemSaver
 	itmProvider ItemProvider
+	ObjSaver    ObjectSaver
+	objProvider ObjectProvider
 }
 
 type ItemProvider interface {
@@ -24,19 +28,31 @@ type ItemSaver interface {
 	Delete(ctx context.Context, item *models.Item) error
 }
 
+type ObjectSaver interface {
+	Create(ctx context.Context, bucketName string, chunkNumber int, chunkData []byte) error
+}
+
+type ObjectProvider interface {
+	Get(ctx context.Context, fileID string) (bytes.Buffer, error)
+}
+
 func NewKeeperService(
 	log *slog.Logger,
 	provider ItemProvider,
 	saver ItemSaver,
+	objectSaver ObjectSaver,
+	objectProvider ObjectProvider,
 ) *Keeper {
 	return &Keeper{
 		log:         log,
 		itmSaver:    saver,
 		itmProvider: provider,
+		ObjSaver:    objectSaver,
+		objProvider: objectProvider,
 	}
 }
 
-func (k Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
+func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
 	const op = "services.keeper.createItem"
 	k.log.With("op", op)
 
@@ -50,7 +66,16 @@ func (k Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item
 	return newItem, nil
 }
 
-func (k Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
+func (k *Keeper) CreateObject(ctx context.Context, bucketName string, chunkNumber int, chunkData []byte) error {
+	const op = "services.keeper.createObject"
+	err := k.ObjSaver.Create(ctx, bucketName, chunkNumber, chunkData)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
 	const op = "services.keeper.updateItem"
 	k.log.With("op", op)
 
@@ -64,7 +89,7 @@ func (k Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item
 	return item, nil
 }
 
-func (k Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
+func (k *Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
 	const op = "services.keeper.deleteItem"
 	k.log.With("op", op)
 
@@ -78,7 +103,7 @@ func (k Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
 	return nil
 }
 
-func (k Keeper) GetItem(ctx context.Context, name string, userID int64) (*models.Item, error) {
+func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*models.Item, error) {
 	const op = "services.keeper.getItem"
 	k.log.With("op", op)
 
@@ -92,7 +117,11 @@ func (k Keeper) GetItem(ctx context.Context, name string, userID int64) (*models
 	return item, nil
 }
 
-func (k Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {
+func (k *Keeper) GetObject(ctx context.Context, objectID string) (bytes.Buffer, error) {
+	return k.objProvider.Get(ctx, objectID)
+}
+
+func (k *Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {
 	const op = "services.keeper.listItem"
 	k.log.With("op", op)
 

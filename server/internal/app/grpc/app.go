@@ -25,7 +25,6 @@ func New(
 	log *slog.Logger,
 	authService authhandlerv1.Auth,
 	keeperService keeperhandlerv1.Keeper,
-	minioService keeperhandlerv1.Minio,
 	jwtManager *services.JWTManager,
 	Address string,
 ) *App {
@@ -36,7 +35,7 @@ func New(
 		grpc.UnaryInterceptor(interceptor.Unary()),
 		grpc.StreamInterceptor(interceptor.Stream()))
 
-	keeperhandlerv1.Register(gRPCServer, keeperService, minioService)
+	keeperhandlerv1.Register(gRPCServer, keeperService)
 	authhandlerv1.Register(gRPCServer, authService)
 
 	// Register reflection service on gRPC server.

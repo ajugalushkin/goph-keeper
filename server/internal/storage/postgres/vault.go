@@ -27,10 +27,10 @@ func NewVaultStorage(storagePath string) (*VaultStorage, error) {
 func (v *VaultStorage) Create(ctx context.Context, item *models.Item) (*models.Item, error) {
 	row := v.db.QueryRowContext(
 		ctx,
-		`INSERT INTO vaults (name, content, owner_id)
-                   VALUES($1, $2, $3)
+		`INSERT INTO vaults (name, content, owner_id, file_id)
+                   VALUES($1, $2, $3, $4)
                    ON CONFLICT DO NOTHING RETURNING version`,
-		item.Name, item.Content, item.OwnerID,
+		item.Name, item.Content, item.OwnerID, item.FileID,
 	)
 	err := row.Scan(&item.Version)
 	if errors.Is(err, sql.ErrNoRows) {

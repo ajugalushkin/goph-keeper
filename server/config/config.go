@@ -29,7 +29,7 @@ type Minio struct {
 	Username string `yaml:"username" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
 	SSL      bool   `yaml:"ssl" env-required:"true"`
-	Buket    string `yaml:"buket" env-required:"true"`
+	Bucket   string `yaml:"bucket" env-required:"true"`
 }
 
 // Config структура параметров заауска.
