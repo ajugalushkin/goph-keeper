@@ -16,7 +16,7 @@ var keepGetBinCmd = &cobra.Command{
 	Use:   "bin",
 	Short: "Get secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		const op = "keep_get"
+		const op = "keep_get_bin"
 		log := logger.GetInstance().Log.With("op", op)
 
 		name, err := cmd.Flags().GetString("name")
@@ -38,6 +38,7 @@ var keepGetBinCmd = &cobra.Command{
 		err = keeperClient.GetFile(context.Background(), name, path)
 		if err != nil {
 			log.Error("Failed to get secret: ", slog.String("error", err.Error()))
+			return
 		}
 
 		fmt.Printf("file downloaded: %s\n", path)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -67,7 +68,10 @@ func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, e
 	}
 
 	opts := minio.PutObjectOptions{
-		ContentType: file.Type,
+		UserMetadata: map[string]string{
+			"name": file.NameWithExt,
+			"size": strconv.FormatInt(file.Size, 10),
+		},
 	}
 
 	fileInfo, err := m.mc.PutObject(ctx, bucketName, file.Name, file.Data, file.Size, opts)
@@ -78,14 +82,28 @@ func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, e
 	return fileInfo.VersionID, nil
 }
 
-func (m *MinioStorage) Get(ctx context.Context, userID int64, fileName string) (*minio.Object, error) {
+func (m *MinioStorage) Get(ctx context.Context, userID int64, name string) (*models.File, error) {
+	const op = "minio.storage.Minio.Get"
+
 	opts := minio.GetObjectOptions{}
 
 	bucketName := fmt.Sprintf(bucketNameTemplate, userID)
-	object, err := m.mc.GetObject(ctx, bucketName, fileName, opts)
+	object, err := m.mc.GetObject(ctx, bucketName, name, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error uploading file: %v", err)
 	}
 
-	return object, nil
+	stat, err := object.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("error get stat file: %v", err)
+	}
+
+	fileName := stat.UserMetadata["name"]
+
+	return &models.File{
+		Name:        name,
+		NameWithExt: fileName,
+		UserID:      userID,
+		Data:        object,
+	}, nil
 }

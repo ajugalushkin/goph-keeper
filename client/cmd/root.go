@@ -25,50 +25,6 @@ var rootCmd = &cobra.Command{
 	Use:   "gophkeeper_client",
 	Short: "GophKeeper cli client",
 	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		//const op = "rootCmd.PersistentPreRun"
-		//log := logger.GetInstance().Log.With("op", op)
-		//
-		//cfg := config.GetInstance().Config
-		//retryOpts := []grpcretry.CallOption{
-		//	grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
-		//	grpcretry.WithMax(uint(cfg.Client.Retries)),
-		//	grpcretry.WithPerRetryTimeout(cfg.Client.Timeout),
-		//}
-		//
-		//logOpts := []grpclog.Option{
-		//	grpclog.WithLogOnEvents(grpclog.PayloadReceived, grpclog.PayloadSent),
-		//}
-		//
-		//var err error
-		//AuthClientConnection, err = grpc.DialContext(context.Background(), cfg.Client.Address,
-		//	grpc.WithTransportCredentials(insecure.NewCredentials()),
-		//	grpc.WithChainUnaryInterceptor(
-		//		grpclog.UnaryClientInterceptor(app.InterceptorLogger(log), logOpts...),
-		//		grpcretry.UnaryClientInterceptor(retryOpts...),
-		//	),
-		//)
-		//if err != nil {
-		//	log.Error("Unable to connect to server", "error", err)
-		//}
-
-		//interceptor, err := app.NewAuthInterceptor(AuthClient, authMethods())
-		//if err != nil {
-		//	log.Error("Unable to create interceptor", "error", err)
-		//}
-
-		//ValtClientConnection, err = grpc.DialContext(
-		//	context.Background(),
-		//	cfg.Client.Address,
-		//	grpc.WithTransportCredentials(insecure.NewCredentials()),
-		//	grpc.WithUnaryInterceptor(interceptor.Unary()),
-		//	grpc.WithStreamInterceptor(interceptor.Stream()),
-		//)
-		//if err != nil {
-		//	log.Error("Unable to connect to server", "error", err)
-		//}
-
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -96,6 +52,7 @@ func initConfig() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("./config")
+		viper.AddConfigPath("./client/config")
 		viper.AddConfigPath(".")
 	}
 

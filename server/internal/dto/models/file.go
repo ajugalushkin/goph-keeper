@@ -1,12 +1,18 @@
 package models
 
-import "io"
+import (
+	"io"
+)
+
+type Data interface {
+	io.Reader
+	io.Closer
+}
 
 type File struct {
 	Name        string
 	NameWithExt string
-	Type        string
 	Size        int64
 	UserID      int64
-	Data        io.Reader
+	Data        Data
 }

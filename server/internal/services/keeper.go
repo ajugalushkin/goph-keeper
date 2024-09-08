@@ -4,8 +4,6 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/minio/minio-go/v7"
-
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
@@ -33,7 +31,7 @@ type ObjectSaver interface {
 }
 
 type ObjectProvider interface {
-	Get(ctx context.Context, userID int64, fileName string) (*minio.Object, error)
+	Get(ctx context.Context, userID int64, fileName string) (*models.File, error)
 }
 
 func NewKeeperService(
@@ -112,7 +110,7 @@ func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*model
 	return item, nil
 }
 
-func (k *Keeper) GetFile(ctx context.Context, userID int64, fileName string) (*minio.Object, error) {
+func (k *Keeper) GetFile(ctx context.Context, userID int64, fileName string) (*models.File, error) {
 	return k.objProvider.Get(ctx, userID, fileName)
 }
 

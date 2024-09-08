@@ -5,10 +5,7 @@ import (
 	"errors"
 	"io"
 	"log"
-	"log/slog"
 	"os"
-
-	"github.com/minio/minio-go/v7"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
@@ -49,7 +46,7 @@ type Keeper interface {
 		ctx context.Context,
 		userID int64,
 		fileName string,
-	) (*minio.Object, error)
+	) (*models.File, error)
 	ListItems(
 		ctx context.Context,
 		userID int64,
@@ -114,9 +111,9 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
 	}
 
-	fileName := req.GetInfo().GetName()
-	fileType := req.GetInfo().GetType()
-	log.Printf("receive an upload-file request for %s type %s", fileName, fileType)
+	Name := req.GetInfo().GetName()
+	fileName := req.GetInfo().GetFullName()
+	log.Printf("receive an upload-file request for %s", fileName)
 
 	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
@@ -164,10 +161,11 @@ func (s *serverAPI) CreateItemStreamV1(
 
 	version, err := s.keeper.CreateFile(context.Background(),
 		&models.File{
-			Name:   fileName,
-			Size:   int64(fileSize),
-			UserID: userID,
-			Data:   tempFile,
+			Name:        Name,
+			NameWithExt: fileName,
+			Size:        int64(fileSize),
+			UserID:      userID,
+			Data:        tempFile,
 		})
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot write file data: %v", err))
@@ -284,36 +282,45 @@ func (s *serverAPI) GetItemStreamV1(
 	req *keeperv1.GetItemRequestV1,
 	stream keeperv1.KeeperServiceV1_GetItemStreamV1Server,
 ) error {
-	fileName := req.GetName()
+	const op = "keeperv1.GetItemStreamV1"
+
+	name := req.GetName()
 
 	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
 	if !ok || userID == 0 {
-		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
+		return logError(status.Errorf(codes.Unauthenticated, "op: %s, empty user id", op))
 	}
 
-	file, err := s.keeper.GetFile(context.Background(), userID, fileName)
+	file, err := s.keeper.GetFile(context.Background(), userID, name)
 	if err != nil {
-		return err
+		return logError(status.Errorf(codes.Internal, "op: %s, file not found: %v", op, err))
 	}
-	defer file.Close()
+	defer file.Data.Close()
+
+	err = stream.Send(&keeperv1.GetItemStreamResponseV1{
+		Name: file.NameWithExt,
+	})
+	if err != nil {
+		return logError(status.Errorf(codes.Internal, "op: %s, cannot send info response: %v", op, err))
+	}
 
 	buff := make([]byte, 1024)
 	for {
-		bytesRead, err := file.Read(buff)
+		bytesRead, err := file.Data.Read(buff)
 		if err != nil {
 			if err == io.EOF {
-				slog.Info("return file: %s", fileName)
+				log.Printf("return file: %s", name)
 				break
 			}
-			return err
+			return logError(status.Errorf(codes.Internal, "op: %s, cannot read file: %v", op, err))
 		}
 
 		err = stream.Send(&keeperv1.GetItemStreamResponseV1{
 			ChunkData: buff[:bytesRead],
 		})
 		if err != nil {
-			return err
+			return logError(status.Errorf(codes.Internal, "op: %s, cannot send chunk data: %v", op, err))
 		}
 	}
 

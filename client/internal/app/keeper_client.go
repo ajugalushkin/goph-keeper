@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gabriel-vasile/mimetype"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -39,7 +38,7 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 	return resp, nil
 }
 
-func (k *KeeperClient) CreateItemStream(ctx context.Context, fileName string, filePath string) (*keeperv1.CreateItemResponseV1, error) {
+func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePath string) (*keeperv1.CreateItemResponseV1, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("cannot open file: ", slog.String("error", err.Error()))
@@ -58,16 +57,11 @@ func (k *KeeperClient) CreateItemStream(ctx context.Context, fileName string, fi
 
 	buffer := make([]byte, 1024)
 
-	mType, err := mimetype.DetectReader(file)
-	if err != nil {
-		slog.Error("cannot detect mimetype: ", slog.String("error", err.Error()))
-	}
-
 	req := &keeperv1.CreateItemStreamRequestV1{
 		Data: &keeperv1.CreateItemStreamRequestV1_Info{
 			Info: &keeperv1.CreateItemStreamRequestV1_FileInfo{
-				Name: fileName,
-				Type: mType.String(),
+				Name:     name,
+				FullName: filepath.Base(filePath),
 			},
 		},
 	}
@@ -150,21 +144,23 @@ func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemReques
 	return resp, nil
 }
 
-func (k *KeeperClient) GetFile(ctx context.Context, fileName string, filePath string) error {
+func (k *KeeperClient) GetFile(ctx context.Context, name string, filePath string) error {
 	const op = "client.keeper.GetItem"
 
 	stream, err := k.api.GetItemStreamV1(
 		ctx,
-		&keeperv1.GetItemRequestV1{Name: fileName},
+		&keeperv1.GetItemRequestV1{Name: name},
 	)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = os.MkdirAll(filePath, os.ModePerm)
+	req, err := stream.Recv()
 	if err != nil {
-		slog.Debug("cannot create directory: ", slog.String("error", err.Error()))
+		return err
 	}
+
+	fileName := req.GetName()
 
 	newFile, err := os.Create(filepath.Join(filePath, fileName))
 	if err != nil {
@@ -188,6 +184,17 @@ func (k *KeeperClient) GetFile(ctx context.Context, fileName string, filePath st
 		}
 	}
 	return nil
+}
+
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
 
 func (k *KeeperClient) ListItems(ctx context.Context, item *keeperv1.ListItemsRequestV1) (*keeperv1.ListItemsResponseV1, error) {
