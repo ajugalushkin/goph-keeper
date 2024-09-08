@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net/http"
-	"strconv"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/ajugalushkin/goph-keeper/server/config"
+	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
 type MinioStorage struct {
@@ -54,29 +53,23 @@ func NewMinioStorage(
 	}, nil
 }
 
-func (m *MinioStorage) Create(ctx context.Context, bucketName string, chunkNumber int, chunkData []byte) error {
+func (m *MinioStorage) Create(ctx context.Context, file *models.File) error {
 	const op = "minio.storage.Minio.Create"
 
-	isExists, err := m.mc.BucketExists(ctx, bucketName)
+	isExists, err := m.mc.BucketExists(ctx, file.Bucket)
 	if err != nil || !isExists {
-		err := m.mc.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		err := m.mc.MakeBucket(ctx, file.Bucket, minio.MakeBucketOptions{})
 		if err != nil {
 			slog.Error("Minio New Error", slog.String("op", op), slog.String("error", err.Error()))
 			return err
 		}
 	}
 
-	objectID := "Chunk-" + strconv.Itoa(chunkNumber)
-
-	reader := bytes.NewReader(chunkData)
-
-	contentType := http.DetectContentType(chunkData)
-
 	opts := minio.PutObjectOptions{
-		ContentType: contentType,
+		ContentType: file.Type,
 	}
 
-	_, err = m.mc.PutObject(ctx, bucketName, objectID, reader, int64(len(chunkData)), opts)
+	_, err = m.mc.PutObject(ctx, file.Bucket, file.Name, file.Data, file.Size, opts)
 	if err != nil {
 		return fmt.Errorf("error uploading file: %v", err)
 	}

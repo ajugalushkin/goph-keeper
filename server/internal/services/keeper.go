@@ -29,7 +29,7 @@ type ItemSaver interface {
 }
 
 type ObjectSaver interface {
-	Create(ctx context.Context, bucketName string, chunkNumber int, chunkData []byte) error
+	Create(ctx context.Context, file *models.File) error
 }
 
 type ObjectProvider interface {
@@ -66,9 +66,9 @@ func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Ite
 	return newItem, nil
 }
 
-func (k *Keeper) CreateObject(ctx context.Context, bucketName string, chunkNumber int, chunkData []byte) error {
+func (k *Keeper) CreateFile(ctx context.Context, file *models.File) error {
 	const op = "services.keeper.createObject"
-	err := k.ObjSaver.Create(ctx, bucketName, chunkNumber, chunkData)
+	err := k.ObjSaver.Create(ctx, file)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
@@ -25,11 +27,9 @@ type Keeper interface {
 		ctx context.Context,
 		item *models.Item,
 	) (*models.Item, error)
-	CreateObject(
+	CreateFile(
 		ctx context.Context,
-		fileName string,
-		chunkNumber int,
-		chunkData []byte,
+		file *models.File,
 	) error
 	UpdateItem(
 		ctx context.Context,
@@ -107,8 +107,6 @@ func (s *serverAPI) CreateItemV1(
 func (s *serverAPI) CreateItemStreamV1(
 	stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
 ) error {
-	const maxSizeChunk = 1 << 20 * 100
-
 	req, err := stream.Recv()
 	if err != nil {
 		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
@@ -123,12 +121,14 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
 	}
 
-	fileData := bytes.Buffer{}
-	chunkSize := 0
+	//fileData := bytes.Buffer{}
+	//chunkSize := 0
 	fileSize := 0
-	count := 0
-
-	ctx = context.Background()
+	//count := 0
+	tempFile, err := os.CreateTemp("", fileName)
+	if err != nil {
+		return err
+	}
 
 	for {
 		err := contextError(stream.Context())
@@ -152,57 +152,74 @@ func (s *serverAPI) CreateItemStreamV1(
 
 		log.Printf("received a chunk with size: %d", size)
 
-		_, err = fileData.Write(chunk)
-		if err != nil {
-			return logError(status.Errorf(codes.Internal, "cannot write chunk into memory: %v", err))
-		}
+		//_, err = fileData.Write(chunk)
+		//if err != nil {
+		//	return logError(status.Errorf(codes.Internal, "cannot write chunk into memory: %v", err))
+		//}
 
-		chunkSize += size
 		fileSize += size
-		if chunkSize > maxSizeChunk {
-			count++
-			err = s.keeper.CreateObject(
-				ctx,
-				fileName,
-				count,
-				fileData.Bytes(),
-			)
-			if err != nil {
-				return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
-			}
 
-			chunkSize = 0
-			fileData.Reset()
-		}
-	}
-
-	if fileData.Bytes() != nil {
-		count++
-		err = s.keeper.CreateObject(
-			ctx,
-			fileName,
-			count,
-			fileData.Bytes(),
-		)
+		_, err = tempFile.Write(chunk)
 		if err != nil {
-			return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
+			return err
 		}
 
-		chunkSize = 0
-		fileData.Reset()
+		//chunkSize += size
+		//if chunkSize > maxSizeChunk {
+		//	count++
+		//	err = s.keeper.CreateFile(
+		//		ctx,
+		//		fileName,
+		//		count,
+		//		fileData.Bytes(),
+		//	)
+		//	if err != nil {
+		//		return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
+		//	}
+		//
+		//	chunkSize = 0
+		//	fileData.Reset()
+		//}
 	}
 
-	_, err = s.keeper.CreateItem(ctx,
-		&models.Item{
-			Name:    fileName,
-			Version: uuid.UUID{},
-			OwnerID: userID,
-			FileID:  fileName,
-		},
-	)
+	err = s.keeper.CreateFile(context.Background(),
+		&models.File{
+			Name:   fileName,
+			Size:   int64(fileSize),
+			Bucket: strconv.FormatInt(userID, 10),
+			Data:   tempFile,
+		})
 	if err != nil {
-		return logError(status.Errorf(codes.Internal, "cannot create item: %v", err))
+		return logError(status.Errorf(codes.Internal, "cannot write file data into bucket: %v", err))
 	}
+
+	//if fileData.Bytes() != nil {
+	//	count++
+	//	err = s.keeper.CreateFile(
+	//		ctx,
+	//		fileName,
+	//		count,
+	//		fileData.Bytes(),
+	//	)
+	//	if err != nil {
+	//		return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
+	//	}
+	//
+	//	chunkSize = 0
+	//	fileData.Reset()
+	//}
+
+	//_, err = s.keeper.CreateItem(ctx,
+	//	&models.Item{
+	//		Name:    fileName,
+	//		Version: uuid.UUID{},
+	//		OwnerID: userID,
+	//		FileID:  fileName,
+	//	},
+	//)
+	//if err != nil {
+	//	return logError(status.Errorf(codes.Internal, "cannot create item: %v", err))
+	//}
 
 	res := &keeperv1.CreateItemStreamResponseV1{
 		Name: fileName,
