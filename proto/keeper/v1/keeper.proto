@@ -4,7 +4,7 @@ option go_package = "/keeper/v1";
 
 package keeper.v1;
 
-import "buf/validate/validate.proto";
+//import "buf/validate/validate.proto";
 
 service KeeperServiceV1{
   rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
@@ -17,8 +17,10 @@ service KeeperServiceV1{
 }
 
 message CreateItemRequestV1 {
-  string name = 1 [(buf.validate.field).required = true];
-  bytes content = 2 [(buf.validate.field).required = true];
+//  string name = 1 [(buf.validate.field).required = true];
+//  bytes content = 2 [(buf.validate.field).required = true];
+  string name = 1;
+  bytes content = 2;
 }
 
 message CreateItemResponseV1 {

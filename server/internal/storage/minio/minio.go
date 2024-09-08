@@ -1,10 +1,8 @@
 package minio
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 
 	"github.com/minio/minio-go/v7"
@@ -18,6 +16,8 @@ type MinioStorage struct {
 	mc  *minio.Client
 	cfg *config.Minio
 }
+
+const bucketNameTemplate = "bucket-%d"
 
 func NewMinioStorage(
 	cfg config.Minio,
@@ -53,15 +53,16 @@ func NewMinioStorage(
 	}, nil
 }
 
-func (m *MinioStorage) Create(ctx context.Context, file *models.File) error {
+func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, error) {
 	const op = "minio.storage.Minio.Create"
 
-	isExists, err := m.mc.BucketExists(ctx, file.Bucket)
+	bucketName := fmt.Sprintf(bucketNameTemplate, file.UserID)
+	isExists, err := m.mc.BucketExists(ctx, bucketName)
 	if err != nil || !isExists {
-		err := m.mc.MakeBucket(ctx, file.Bucket, minio.MakeBucketOptions{})
+		err := m.mc.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 		if err != nil {
 			slog.Error("Minio New Error", slog.String("op", op), slog.String("error", err.Error()))
-			return err
+			return "", err
 		}
 	}
 
@@ -69,35 +70,22 @@ func (m *MinioStorage) Create(ctx context.Context, file *models.File) error {
 		ContentType: file.Type,
 	}
 
-	_, err = m.mc.PutObject(ctx, file.Bucket, file.Name, file.Data, file.Size, opts)
+	fileInfo, err := m.mc.PutObject(ctx, bucketName, file.Name, file.Data, file.Size, opts)
 	if err != nil {
-		return fmt.Errorf("error uploading file: %v", err)
+		return "", fmt.Errorf("error uploading file: %v", err)
 	}
 
-	return nil
+	return fileInfo.VersionID, nil
 }
 
-func (m *MinioStorage) Get(ctx context.Context, fileID string) (bytes.Buffer, error) {
+func (m *MinioStorage) Get(ctx context.Context, userID int64, fileName string) (*minio.Object, error) {
 	opts := minio.GetObjectOptions{}
 
-	object, err := m.mc.GetObject(ctx, m.cfg.Bucket, fileID, opts)
+	bucketName := fmt.Sprintf(bucketNameTemplate, userID)
+	object, err := m.mc.GetObject(ctx, bucketName, fileName, opts)
 	if err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error uploading file: %v", err)
+		return nil, fmt.Errorf("error uploading file: %v", err)
 	}
-	defer object.Close()
 
-	fileData := bytes.Buffer{}
-	buff := make([]byte, 1024)
-	for {
-		n, err := object.Read(buff)
-		if err != nil && err != io.EOF {
-			break
-		}
-
-		_, err = fileData.Write(buff[:n])
-		if err != nil {
-			return bytes.Buffer{}, fmt.Errorf("error uploading file: %v", err)
-		}
-	}
-	return fileData, nil
+	return object, nil
 }

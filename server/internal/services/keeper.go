@@ -1,10 +1,10 @@
 package services
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"log/slog"
+
+	"github.com/minio/minio-go/v7"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
@@ -29,11 +29,11 @@ type ItemSaver interface {
 }
 
 type ObjectSaver interface {
-	Create(ctx context.Context, file *models.File) error
+	Create(ctx context.Context, file *models.File) (string, error)
 }
 
 type ObjectProvider interface {
-	Get(ctx context.Context, fileID string) (bytes.Buffer, error)
+	Get(ctx context.Context, userID int64, fileName string) (*minio.Object, error)
 }
 
 func NewKeeperService(
@@ -66,13 +66,8 @@ func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Ite
 	return newItem, nil
 }
 
-func (k *Keeper) CreateFile(ctx context.Context, file *models.File) error {
-	const op = "services.keeper.createObject"
-	err := k.ObjSaver.Create(ctx, file)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	return nil
+func (k *Keeper) CreateFile(ctx context.Context, file *models.File) (string, error) {
+	return k.ObjSaver.Create(ctx, file)
 }
 
 func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
@@ -117,8 +112,8 @@ func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*model
 	return item, nil
 }
 
-func (k *Keeper) GetObject(ctx context.Context, objectID string) (bytes.Buffer, error) {
-	return k.objProvider.Get(ctx, objectID)
+func (k *Keeper) GetFile(ctx context.Context, userID int64, fileName string) (*minio.Object, error) {
+	return k.objProvider.Get(ctx, userID, fileName)
 }
 
 func (k *Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {

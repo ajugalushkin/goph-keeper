@@ -1,13 +1,14 @@
 package v1
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
 	"log"
+	"log/slog"
 	"os"
-	"strconv"
+
+	"github.com/minio/minio-go/v7"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 
@@ -30,7 +31,7 @@ type Keeper interface {
 	CreateFile(
 		ctx context.Context,
 		file *models.File,
-	) error
+	) (string, error)
 	UpdateItem(
 		ctx context.Context,
 		item *models.Item,
@@ -44,10 +45,11 @@ type Keeper interface {
 		name string,
 		userID int64,
 	) (*models.Item, error)
-	GetObject(
+	GetFile(
 		ctx context.Context,
-		objectID string,
-	) (bytes.Buffer, error)
+		userID int64,
+		fileName string,
+	) (*minio.Object, error)
 	ListItems(
 		ctx context.Context,
 		userID int64,
@@ -113,7 +115,8 @@ func (s *serverAPI) CreateItemStreamV1(
 	}
 
 	fileName := req.GetInfo().GetName()
-	log.Printf("receive an upload-file request for %s", fileName)
+	fileType := req.GetInfo().GetType()
+	log.Printf("receive an upload-file request for %s type %s", fileName, fileType)
 
 	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
@@ -121,10 +124,8 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
 	}
 
-	//fileData := bytes.Buffer{}
-	//chunkSize := 0
 	fileSize := 0
-	//count := 0
+
 	tempFile, err := os.CreateTemp("", fileName)
 	if err != nil {
 		return err
@@ -153,78 +154,28 @@ func (s *serverAPI) CreateItemStreamV1(
 
 		log.Printf("received a chunk with size: %d", size)
 
-		//_, err = fileData.Write(chunk)
-		//if err != nil {
-		//	return logError(status.Errorf(codes.Internal, "cannot write chunk into memory: %v", err))
-		//}
-
 		fileSize += size
 
 		_, err = tempFile.Write(chunk)
 		if err != nil {
 			return err
 		}
-
-		//chunkSize += size
-		//if chunkSize > maxSizeChunk {
-		//	count++
-		//	err = s.keeper.CreateFile(
-		//		ctx,
-		//		fileName,
-		//		count,
-		//		fileData.Bytes(),
-		//	)
-		//	if err != nil {
-		//		return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
-		//	}
-		//
-		//	chunkSize = 0
-		//	fileData.Reset()
-		//}
 	}
 
-	err = s.keeper.CreateFile(context.Background(),
+	version, err := s.keeper.CreateFile(context.Background(),
 		&models.File{
 			Name:   fileName,
 			Size:   int64(fileSize),
-			Bucket: strconv.FormatInt(userID, 10),
+			UserID: userID,
 			Data:   tempFile,
 		})
 	if err != nil {
-		return logError(status.Errorf(codes.Internal, "cannot write file data into bucket: %v", err))
+		return logError(status.Errorf(codes.Internal, "cannot write file data: %v", err))
 	}
 
-	//if fileData.Bytes() != nil {
-	//	count++
-	//	err = s.keeper.CreateFile(
-	//		ctx,
-	//		fileName,
-	//		count,
-	//		fileData.Bytes(),
-	//	)
-	//	if err != nil {
-	//		return logError(status.Errorf(codes.Internal, "cannot write chunk data into bucket: %v", err))
-	//	}
-	//
-	//	chunkSize = 0
-	//	fileData.Reset()
-	//}
-
-	//_, err = s.keeper.CreateItem(ctx,
-	//	&models.Item{
-	//		Name:    fileName,
-	//		Version: uuid.UUID{},
-	//		OwnerID: userID,
-	//		FileID:  fileName,
-	//	},
-	//)
-	//if err != nil {
-	//	return logError(status.Errorf(codes.Internal, "cannot create item: %v", err))
-	//}
-
-	res := &keeperv1.CreateItemStreamResponseV1{
-		Name: fileName,
-		Size: uint32(fileSize),
+	res := &keeperv1.CreateItemResponseV1{
+		Name:    fileName,
+		Version: version,
 	}
 
 	err = stream.SendAndClose(res)
@@ -232,7 +183,7 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
 	}
 
-	log.Printf("saved file with id: %s, size: %d", fileName, fileSize)
+	log.Printf("saved file with id: %s, file size: %d, version: %s", fileName, fileSize, version)
 
 	return nil
 }
@@ -327,6 +278,46 @@ func (s *serverAPI) GetItemV1(
 		Content: item.Content,
 		Version: item.Version.String(),
 	}, nil
+}
+
+func (s *serverAPI) GetItemStreamV1(
+	req *keeperv1.GetItemRequestV1,
+	stream keeperv1.KeeperServiceV1_GetItemStreamV1Server,
+) error {
+	fileName := req.GetName()
+
+	ctx := stream.Context()
+	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	if !ok || userID == 0 {
+		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
+	}
+
+	file, err := s.keeper.GetFile(context.Background(), userID, fileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	buff := make([]byte, 1024)
+	for {
+		bytesRead, err := file.Read(buff)
+		if err != nil {
+			if err == io.EOF {
+				slog.Info("return file: %s", fileName)
+				break
+			}
+			return err
+		}
+
+		err = stream.Send(&keeperv1.GetItemStreamResponseV1{
+			ChunkData: buff[:bytesRead],
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *serverAPI) ListItemsV1(
