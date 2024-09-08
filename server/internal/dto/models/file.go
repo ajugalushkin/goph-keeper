@@ -3,9 +3,10 @@ package models
 import "io"
 
 type File struct {
-	Name   string
-	Size   int64
-	Type   string
-	UserID int64
-	Data   io.Reader
+	Name        string
+	NameWithExt string
+	Type        string
+	Size        int64
+	UserID      int64
+	Data        io.Reader
 }
