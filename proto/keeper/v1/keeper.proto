@@ -64,10 +64,8 @@ message GetItemResponseV1 {
 }
 
 message GetItemStreamResponseV1{
-  oneof data {
-    bytes chunk_data = 1;
-    string name = 2;
-  }
+  bytes chunk_data = 1;
+  string name = 2;
 }
 
 message ListItemsRequestV1 {
