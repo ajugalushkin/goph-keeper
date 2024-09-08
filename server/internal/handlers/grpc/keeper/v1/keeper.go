@@ -129,6 +129,7 @@ func (s *serverAPI) CreateItemStreamV1(
 	if err != nil {
 		return err
 	}
+	defer os.Remove(tempFile.Name())
 
 	for {
 		err := contextError(stream.Context())
