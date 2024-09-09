@@ -72,15 +72,15 @@ connect:		## Connect to the database
 
 .PHONY: goose-status
 goose-status:		## Dump the migration status for the current DB
-	goose -dir migrations postgres ${DATABASE_URL} status
+	goose -dir ./server/migrations postgres ${DATABASE_URL} status
 
 PHONY: goose-up
 goose-up:		## Migrate the DB to the most recent version available
-	goose -dir migrations postgres ${DATABASE_URL} up
+	goose -dir ./server/migrations postgres ${DATABASE_URL} up
 
 PHONY: goose-down
 goose-down:		## Roll back the version by 1
-	goose -dir migrations postgres ${DATABASE_URL} down
+	goose -dir ./server/migrations postgres ${DATABASE_URL} down
 
 #######################################################################################################################
 

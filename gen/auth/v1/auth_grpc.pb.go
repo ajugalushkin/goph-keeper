@@ -19,139 +19,139 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthV1_RegisterV1_FullMethodName = "/auth.v1.AuthV1/RegisterV1"
-	AuthV1_LoginV1_FullMethodName    = "/auth.v1.AuthV1/LoginV1"
+	AuthServiceV1_RegisterV1_FullMethodName = "/auth.v1.AuthServiceV1/RegisterV1"
+	AuthServiceV1_LoginV1_FullMethodName    = "/auth.v1.AuthServiceV1/LoginV1"
 )
 
-// AuthV1Client is the client API for AuthV1 service.
+// AuthServiceV1Client is the client API for AuthServiceV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuthV1Client interface {
+type AuthServiceV1Client interface {
 	RegisterV1(ctx context.Context, in *RegisterRequestV1, opts ...grpc.CallOption) (*RegisterResponseV1, error)
 	LoginV1(ctx context.Context, in *LoginRequestV1, opts ...grpc.CallOption) (*LoginResponseV1, error)
 }
 
-type authV1Client struct {
+type authServiceV1Client struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuthV1Client(cc grpc.ClientConnInterface) AuthV1Client {
-	return &authV1Client{cc}
+func NewAuthServiceV1Client(cc grpc.ClientConnInterface) AuthServiceV1Client {
+	return &authServiceV1Client{cc}
 }
 
-func (c *authV1Client) RegisterV1(ctx context.Context, in *RegisterRequestV1, opts ...grpc.CallOption) (*RegisterResponseV1, error) {
+func (c *authServiceV1Client) RegisterV1(ctx context.Context, in *RegisterRequestV1, opts ...grpc.CallOption) (*RegisterResponseV1, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RegisterResponseV1)
-	err := c.cc.Invoke(ctx, AuthV1_RegisterV1_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, AuthServiceV1_RegisterV1_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authV1Client) LoginV1(ctx context.Context, in *LoginRequestV1, opts ...grpc.CallOption) (*LoginResponseV1, error) {
+func (c *authServiceV1Client) LoginV1(ctx context.Context, in *LoginRequestV1, opts ...grpc.CallOption) (*LoginResponseV1, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginResponseV1)
-	err := c.cc.Invoke(ctx, AuthV1_LoginV1_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, AuthServiceV1_LoginV1_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthV1Server is the server API for AuthV1 service.
-// All implementations must embed UnimplementedAuthV1Server
+// AuthServiceV1Server is the server API for AuthServiceV1 service.
+// All implementations must embed UnimplementedAuthServiceV1Server
 // for forward compatibility.
-type AuthV1Server interface {
+type AuthServiceV1Server interface {
 	RegisterV1(context.Context, *RegisterRequestV1) (*RegisterResponseV1, error)
 	LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error)
-	mustEmbedUnimplementedAuthV1Server()
+	mustEmbedUnimplementedAuthServiceV1Server()
 }
 
-// UnimplementedAuthV1Server must be embedded to have
+// UnimplementedAuthServiceV1Server must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedAuthV1Server struct{}
+type UnimplementedAuthServiceV1Server struct{}
 
-func (UnimplementedAuthV1Server) RegisterV1(context.Context, *RegisterRequestV1) (*RegisterResponseV1, error) {
+func (UnimplementedAuthServiceV1Server) RegisterV1(context.Context, *RegisterRequestV1) (*RegisterResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterV1 not implemented")
 }
-func (UnimplementedAuthV1Server) LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error) {
+func (UnimplementedAuthServiceV1Server) LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginV1 not implemented")
 }
-func (UnimplementedAuthV1Server) mustEmbedUnimplementedAuthV1Server() {}
-func (UnimplementedAuthV1Server) testEmbeddedByValue()                {}
+func (UnimplementedAuthServiceV1Server) mustEmbedUnimplementedAuthServiceV1Server() {}
+func (UnimplementedAuthServiceV1Server) testEmbeddedByValue()                       {}
 
-// UnsafeAuthV1Server may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuthV1Server will
+// UnsafeAuthServiceV1Server may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthServiceV1Server will
 // result in compilation errors.
-type UnsafeAuthV1Server interface {
-	mustEmbedUnimplementedAuthV1Server()
+type UnsafeAuthServiceV1Server interface {
+	mustEmbedUnimplementedAuthServiceV1Server()
 }
 
-func RegisterAuthV1Server(s grpc.ServiceRegistrar, srv AuthV1Server) {
-	// If the following call pancis, it indicates UnimplementedAuthV1Server was
+func RegisterAuthServiceV1Server(s grpc.ServiceRegistrar, srv AuthServiceV1Server) {
+	// If the following call pancis, it indicates UnimplementedAuthServiceV1Server was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&AuthV1_ServiceDesc, srv)
+	s.RegisterService(&AuthServiceV1_ServiceDesc, srv)
 }
 
-func _AuthV1_RegisterV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthServiceV1_RegisterV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthV1Server).RegisterV1(ctx, in)
+		return srv.(AuthServiceV1Server).RegisterV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthV1_RegisterV1_FullMethodName,
+		FullMethod: AuthServiceV1_RegisterV1_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthV1Server).RegisterV1(ctx, req.(*RegisterRequestV1))
+		return srv.(AuthServiceV1Server).RegisterV1(ctx, req.(*RegisterRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthV1_LoginV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthServiceV1_LoginV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginRequestV1)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthV1Server).LoginV1(ctx, in)
+		return srv.(AuthServiceV1Server).LoginV1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthV1_LoginV1_FullMethodName,
+		FullMethod: AuthServiceV1_LoginV1_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthV1Server).LoginV1(ctx, req.(*LoginRequestV1))
+		return srv.(AuthServiceV1Server).LoginV1(ctx, req.(*LoginRequestV1))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AuthV1_ServiceDesc is the grpc.ServiceDesc for AuthV1 service.
+// AuthServiceV1_ServiceDesc is the grpc.ServiceDesc for AuthServiceV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AuthV1_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "auth.v1.AuthV1",
-	HandlerType: (*AuthV1Server)(nil),
+var AuthServiceV1_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "auth.v1.AuthServiceV1",
+	HandlerType: (*AuthServiceV1Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "RegisterV1",
-			Handler:    _AuthV1_RegisterV1_Handler,
+			Handler:    _AuthServiceV1_RegisterV1_Handler,
 		},
 		{
 			MethodName: "LoginV1",
-			Handler:    _AuthV1_LoginV1_Handler,
+			Handler:    _AuthServiceV1_LoginV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

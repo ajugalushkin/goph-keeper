@@ -1,0 +1,5 @@
+env: "dev"  #dev, prod
+client:
+  address: ":8080"
+  timeout: 1h
+  retries: 3

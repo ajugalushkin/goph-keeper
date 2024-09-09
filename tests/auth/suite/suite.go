@@ -7,21 +7,21 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/internal/config"
+	v1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
+	"github.com/ajugalushkin/goph-keeper/server/config"
 )
 
 type Suite struct {
 	*testing.T
 	Cfg        *config.Config
-	AuthClient authv1.AuthV1Client
+	AuthClient v1.AuthServiceV1Client
 }
 
 func New(t *testing.T) (context.Context, *Suite) {
 	t.Helper()
 	t.Parallel()
 
-	cfg := config.MustLoadByPath("../../config/dev.yaml")
+	cfg := config.MustLoadByPath("../../server/config/config.yaml")
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
 
 	t.Cleanup(func() {
@@ -29,7 +29,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 		cancelCtx()
 	})
 
-	cc, err := grpc.NewClient(cfg.GRPC.ServerAddress,
+	cc, err := grpc.NewClient(cfg.GRPC.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("grpc server connection failed: %v", err)
@@ -38,6 +38,6 @@ func New(t *testing.T) (context.Context, *Suite) {
 	return ctx, &Suite{
 		T:          t,
 		Cfg:        cfg,
-		AuthClient: authv1.NewAuthV1Client(cc),
+		AuthClient: v1.NewAuthServiceV1Client(cc),
 	}
 }

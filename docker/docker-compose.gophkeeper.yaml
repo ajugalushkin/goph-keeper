@@ -6,7 +6,7 @@ services:
     restart: always
     build:
       context: ../
-      dockerfile: ./cmd/server/Dockerfile
+      dockerfile: ./server/cmd/Dockerfile
     image: goph-keeper:v1.0
     container_name: goph-keeper
     hostname: goph-keeper
