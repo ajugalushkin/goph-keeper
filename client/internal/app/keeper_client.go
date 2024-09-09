@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -45,10 +44,7 @@ func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePa
 	}
 	defer file.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3600*time.Second)
-	defer cancel()
-
-	stream, err := k.api.CreateItemStreamV1(ctx)
+	stream, err := k.api.CreateItemStreamV1(context.Background())
 	if err != nil {
 		slog.Error("cannot upload file: ", slog.String("error", err.Error()))
 		return nil, err

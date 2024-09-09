@@ -56,8 +56,8 @@ func accessibleMethods() []string {
 }
 
 // MustRun метод для запуска приложения, при возникновении ошибки паникуем
-func (app *App) MustRun() {
-	if err := app.Run(); err != nil {
+func (a *App) MustRun() {
+	if err := a.Run(); err != nil {
 		panic(err)
 	}
 }

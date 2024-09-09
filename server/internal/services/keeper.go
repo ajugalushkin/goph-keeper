@@ -103,7 +103,7 @@ func (k *Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
 
 	item, err := k.itmProvider.Get(ctx, item.Name, item.OwnerID)
 	if err != nil {
-		log.Debug("failed get item", err)
+		log.Debug("failed get item", slog.String("error", err.Error()))
 		return err
 	}
 

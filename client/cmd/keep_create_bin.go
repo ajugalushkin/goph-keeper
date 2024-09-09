@@ -24,19 +24,19 @@ var keepCreateBinCmd = &cobra.Command{
 
 		name, err := cmd.Flags().GetString("name")
 		if err != nil {
-			log.Error("Error reading secret name ", err)
+			log.Error("Error reading secret name ", slog.String("error", err.Error()))
 			return
 		}
 
 		filePath, err := cmd.Flags().GetString("file_path")
 		if err != nil {
-			log.Error("Error reading file path ", err)
+			log.Error("Error reading file path ", slog.String("error", err.Error()))
 			return
 		}
 
 		stat, err := os.Stat(filePath)
 		if err != nil {
-			log.Error("Error reading file stat ", err)
+			log.Error("Error reading file stat ", slog.String("error", err.Error()))
 			return
 		}
 
@@ -47,24 +47,24 @@ var keepCreateBinCmd = &cobra.Command{
 
 		content, err := encryptSecret(fileInfo)
 		if err != nil {
-			log.Error("Failed to encrypt secret: ",
-				slog.String("error", err.Error()))
+			log.Error("Failed to encrypt secret: ", slog.String("error", err.Error()))
 			return
 		}
 
 		token, err := tokenStorage.Load()
 		if err != nil {
+			log.Error("Error loading token: ", slog.String("error", err.Error()))
 			return
 		}
 
 		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
 		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath, content)
 		if err != nil {
-			log.Error("Error creating bin", err)
+			log.Error("Error creating bin", slog.String("error", err.Error()))
 			return
 		}
 
-		fmt.Printf("Secret %s version %v created successfully\n", resp.GetName())
+		fmt.Printf("Secret %s created successfully\n", resp.GetName())
 	},
 }
 

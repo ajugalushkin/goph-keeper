@@ -88,7 +88,7 @@ func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*mod
 func (v *VaultStorage) List(ctx context.Context, userID int64) ([]*models.Item, error) {
 	rows, err := v.db.QueryContext(
 		ctx, `SELECT name, version, content FROM vaults WHERE owner_id = ($1)`, userID)
-	if err != nil {
+	if err != nil || rows.Err() != nil {
 		return nil, err
 	}
 
