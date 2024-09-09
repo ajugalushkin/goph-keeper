@@ -96,3 +96,14 @@ func (m *MinioStorage) Get(ctx context.Context, objectID string) (*models.File, 
 		Data: object,
 	}, nil
 }
+
+func (m *MinioStorage) Delete(ctx context.Context, objectID string) error {
+	const op = "minio.storage.Minio.Delete"
+
+	err := m.mc.RemoveObject(ctx, m.cfg.Bucket, objectID, minio.RemoveObjectOptions{})
+	if err != nil {
+		return fmt.Errorf("op: %s, error deleting file: %v", op, err)
+	}
+
+	return nil
+}

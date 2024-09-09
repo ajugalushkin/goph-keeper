@@ -29,6 +29,7 @@ type ItemSaver interface {
 
 type ObjectSaver interface {
 	Create(ctx context.Context, file *models.File) (string, error)
+	Delete(ctx context.Context, objectID string) error
 }
 
 type ObjectProvider interface {
@@ -98,12 +99,26 @@ func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Ite
 
 func (k *Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
 	const op = "services.keeper.deleteItem"
-	k.log.With("op", op)
+	log := k.log.With("op", op)
 
-	err := k.itmSaver.Delete(ctx, item)
+	item, err := k.itmProvider.Get(ctx, item.Name, item.OwnerID)
+	if err != nil {
+		log.Debug("failed get item", err)
+		return err
+	}
+
+	err = k.itmSaver.Delete(ctx, item)
 	if err != nil {
 		k.log.Debug("Failed to delete item", slog.String("error", err.Error()))
 		return err
+	}
+
+	if item.FileID != "" {
+		err := k.ObjSaver.Delete(ctx, item.FileID)
+		if err != nil {
+			log.Debug("Failed to delete file", slog.String("error", err.Error()))
+			return err
+		}
 	}
 
 	k.log.Debug("Successfully deleted item")
