@@ -63,7 +63,19 @@ func (manager *JWTManager) Verify(accessToken string) (bool, int64, error) {
 		},
 	)
 
-	if err != nil || !token.Valid {
+	if token == nil {
+
+	}
+
+	if err != nil {
+		return false, 0, fmt.Errorf("invalid token: %w", err)
+	}
+
+	if token == nil {
+		return false, 0, fmt.Errorf("invalid token: %w", err)
+	}
+
+	if !token.Valid {
 		log.Debug("Failed to verify token",
 			"error", err,
 			"key", manager.secretKey,

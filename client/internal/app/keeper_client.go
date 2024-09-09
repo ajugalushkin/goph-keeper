@@ -173,6 +173,11 @@ func GetKeeperConnection(token string) *grpc.ClientConn {
 		log.Error("Unable to create interceptor: ", slog.String("error", err.Error()))
 	}
 
+	if interceptor == nil {
+		log.Error("interceptor is nil")
+		return nil
+	}
+
 	cfg := config.GetInstance().Config
 	keeperClientConnection, err := grpc.NewClient(
 		cfg.Client.Address,

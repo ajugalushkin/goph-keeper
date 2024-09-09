@@ -13,14 +13,14 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
-type MinioStorage struct {
+type FileStorage struct {
 	mc  *minio.Client
 	cfg *config.Minio
 }
 
 func NewMinioStorage(
 	cfg config.Minio,
-) (*MinioStorage, error) {
+) (*FileStorage, error) {
 	const op = "storage.minio.NewMinioStorage"
 	ctx := context.Background()
 
@@ -43,13 +43,13 @@ func NewMinioStorage(
 		}
 	}
 
-	return &MinioStorage{
+	return &FileStorage{
 		mc:  client,
 		cfg: &cfg,
 	}, nil
 }
 
-func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, error) {
+func (m *FileStorage) Create(ctx context.Context, file *models.File) (string, error) {
 	const op = "minio.storage.Minio.Create"
 
 	objectID := uuid.New().String()
@@ -73,7 +73,7 @@ func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, e
 	return objectID, nil
 }
 
-func (m *MinioStorage) Get(ctx context.Context, objectID string) (*models.File, error) {
+func (m *FileStorage) Get(ctx context.Context, objectID string) (*models.File, error) {
 	const op = "minio.storage.Minio.Get"
 
 	opts := minio.GetObjectOptions{}
@@ -94,7 +94,7 @@ func (m *MinioStorage) Get(ctx context.Context, objectID string) (*models.File, 
 	}, nil
 }
 
-func (m *MinioStorage) Delete(ctx context.Context, objectID string) error {
+func (m *FileStorage) Delete(ctx context.Context, objectID string) error {
 	const op = "minio.storage.Minio.Delete"
 
 	err := m.mc.RemoveObject(ctx, m.cfg.Bucket, objectID, minio.RemoveObjectOptions{})
