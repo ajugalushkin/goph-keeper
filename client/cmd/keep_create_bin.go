@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 )
 
 // binCmd represents the bin command
@@ -31,13 +34,31 @@ var keepCreateBinCmd = &cobra.Command{
 			return
 		}
 
+		stat, err := os.Stat(filePath)
+		if err != nil {
+			log.Error("Error reading file stat ", err)
+			return
+		}
+
+		fileInfo := vaulttypes.Bin{
+			FileName: filepath.Base(filePath),
+			Size:     stat.Size(),
+		}
+
+		content, err := encryptSecret(fileInfo)
+		if err != nil {
+			log.Error("Failed to encrypt secret: ",
+				slog.String("error", err.Error()))
+			return
+		}
+
 		token, err := tokenStorage.Load()
 		if err != nil {
 			return
 		}
 
 		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
-		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath)
+		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath, content)
 		if err != nil {
 			log.Error("Error creating bin", err)
 			return

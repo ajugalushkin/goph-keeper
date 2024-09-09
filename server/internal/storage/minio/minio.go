@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
@@ -17,8 +17,6 @@ type MinioStorage struct {
 	mc  *minio.Client
 	cfg *config.Minio
 }
-
-const bucketNameTemplate = "bucket-%d"
 
 func NewMinioStorage(
 	cfg config.Minio,
@@ -57,53 +55,44 @@ func NewMinioStorage(
 func (m *MinioStorage) Create(ctx context.Context, file *models.File) (string, error) {
 	const op = "minio.storage.Minio.Create"
 
-	bucketName := fmt.Sprintf(bucketNameTemplate, file.UserID)
-	isExists, err := m.mc.BucketExists(ctx, bucketName)
+	objectID := uuid.New().String()
+
+	isExists, err := m.mc.BucketExists(ctx, m.cfg.Bucket)
 	if err != nil || !isExists {
-		err := m.mc.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		err := m.mc.MakeBucket(ctx, m.cfg.Bucket, minio.MakeBucketOptions{})
 		if err != nil {
 			slog.Error("Minio New Error", slog.String("op", op), slog.String("error", err.Error()))
 			return "", err
 		}
 	}
 
-	opts := minio.PutObjectOptions{
-		UserMetadata: map[string]string{
-			"name": file.NameWithExt,
-			"size": strconv.FormatInt(file.Size, 10),
-		},
-	}
+	opts := minio.PutObjectOptions{}
 
-	fileInfo, err := m.mc.PutObject(ctx, bucketName, file.Name, file.Data, file.Size, opts)
+	_, err = m.mc.PutObject(ctx, m.cfg.Bucket, objectID, file.Data, file.Size, opts)
 	if err != nil {
 		return "", fmt.Errorf("error uploading file: %v", err)
 	}
 
-	return fileInfo.VersionID, nil
+	return objectID, nil
 }
 
-func (m *MinioStorage) Get(ctx context.Context, userID int64, name string) (*models.File, error) {
+func (m *MinioStorage) Get(ctx context.Context, objectID string) (*models.File, error) {
 	const op = "minio.storage.Minio.Get"
 
 	opts := minio.GetObjectOptions{}
 
-	bucketName := fmt.Sprintf(bucketNameTemplate, userID)
-	object, err := m.mc.GetObject(ctx, bucketName, name, opts)
+	object, err := m.mc.GetObject(ctx, m.cfg.Bucket, objectID, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error uploading file: %v", err)
+		return nil, fmt.Errorf("op: %s, error uploading file: %v", op, err)
 	}
 
 	stat, err := object.Stat()
 	if err != nil {
-		return nil, fmt.Errorf("error get stat file: %v", err)
+		return nil, fmt.Errorf("op: %s, error get stat file: %v", op, err)
 	}
 
-	fileName := stat.UserMetadata["name"]
-
 	return &models.File{
-		Name:        name,
-		NameWithExt: fileName,
-		UserID:      userID,
-		Data:        object,
+		Size: stat.Size,
+		Data: object,
 	}, nil
 }

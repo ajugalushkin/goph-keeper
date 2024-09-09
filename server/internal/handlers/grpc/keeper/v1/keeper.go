@@ -44,8 +44,8 @@ type Keeper interface {
 	) (*models.Item, error)
 	GetFile(
 		ctx context.Context,
+		name string,
 		userID int64,
-		fileName string,
 	) (*models.File, error)
 	ListItems(
 		ctx context.Context,
@@ -111,9 +111,9 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
 	}
 
-	Name := req.GetInfo().GetName()
-	fileName := req.GetInfo().GetFullName()
-	log.Printf("receive an upload-file request for %s", fileName)
+	nameItem := req.GetInfo().GetName()
+	fileContent := req.GetInfo().GetContent()
+	log.Printf("receive an upload-file request for %s", nameItem)
 
 	ctx := stream.Context()
 	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
@@ -123,7 +123,7 @@ func (s *serverAPI) CreateItemStreamV1(
 
 	fileSize := 0
 
-	tempFile, err := os.CreateTemp("", fileName)
+	tempFile, err := os.CreateTemp("", nameItem)
 	if err != nil {
 		return err
 	}
@@ -161,18 +161,21 @@ func (s *serverAPI) CreateItemStreamV1(
 
 	version, err := s.keeper.CreateFile(context.Background(),
 		&models.File{
-			Name:        Name,
-			NameWithExt: fileName,
-			Size:        int64(fileSize),
-			UserID:      userID,
-			Data:        tempFile,
+			Item: models.Item{
+				Name:    nameItem,
+				Content: fileContent,
+				Version: uuid.UUID{},
+				OwnerID: userID,
+			},
+			Size: int64(fileSize),
+			Data: tempFile,
 		})
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot write file data: %v", err))
 	}
 
 	res := &keeperv1.CreateItemResponseV1{
-		Name:    fileName,
+		Name:    nameItem,
 		Version: version,
 	}
 
@@ -181,7 +184,7 @@ func (s *serverAPI) CreateItemStreamV1(
 		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
 	}
 
-	log.Printf("saved file with id: %s, file size: %d, version: %s", fileName, fileSize, version)
+	log.Printf("saved file with id: %s, file size: %d, version: %s", nameItem, fileSize, version)
 
 	return nil
 }
@@ -292,14 +295,14 @@ func (s *serverAPI) GetItemStreamV1(
 		return logError(status.Errorf(codes.Unauthenticated, "op: %s, empty user id", op))
 	}
 
-	file, err := s.keeper.GetFile(context.Background(), userID, name)
+	file, err := s.keeper.GetFile(context.Background(), name, userID)
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "op: %s, file not found: %v", op, err))
 	}
 	defer file.Data.Close()
 
 	err = stream.Send(&keeperv1.GetItemStreamResponseV1{
-		Name: file.NameWithExt,
+		Content: file.Item.Content,
 	})
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "op: %s, cannot send info response: %v", op, err))

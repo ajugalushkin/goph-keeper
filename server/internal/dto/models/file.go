@@ -10,9 +10,7 @@ type Data interface {
 }
 
 type File struct {
-	Name        string
-	NameWithExt string
-	Size        int64
-	UserID      int64
-	Data        Data
+	Item Item
+	Size int64
+	Data Data
 }

@@ -2,7 +2,8 @@ package vaulttypes
 
 // Bin произвольные бинарные данные
 type Bin struct {
-	Data []byte
+	FileName string
+	Size     int64
 }
 
 // Type возвращает тип хранимой информации

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
@@ -31,7 +32,7 @@ type ObjectSaver interface {
 }
 
 type ObjectProvider interface {
-	Get(ctx context.Context, userID int64, fileName string) (*models.File, error)
+	Get(ctx context.Context, objectID string) (*models.File, error)
 }
 
 func NewKeeperService(
@@ -65,7 +66,20 @@ func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Ite
 }
 
 func (k *Keeper) CreateFile(ctx context.Context, file *models.File) (string, error) {
-	return k.ObjSaver.Create(ctx, file)
+	const op = "services.keeper.createFile"
+
+	var err error
+	file.Item.FileID, err = k.ObjSaver.Create(ctx, file)
+	if err != nil || file.Item.FileID == "" {
+		return "", fmt.Errorf("op: %s, failed to create file: %w", op, err)
+	}
+
+	item, err := k.itmSaver.Create(ctx, &file.Item)
+	if err != nil {
+		return "", fmt.Errorf("op: %s, failed to create info item for file: %w", op, err)
+	}
+
+	return item.Version.String(), nil
 }
 
 func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
@@ -110,8 +124,22 @@ func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*model
 	return item, nil
 }
 
-func (k *Keeper) GetFile(ctx context.Context, userID int64, fileName string) (*models.File, error) {
-	return k.objProvider.Get(ctx, userID, fileName)
+func (k *Keeper) GetFile(ctx context.Context, name string, userID int64) (*models.File, error) {
+	const op = "services.keeper.getFile"
+
+	item, err := k.itmProvider.Get(ctx, name, userID)
+	if err != nil {
+		return nil, fmt.Errorf("op: %s, failed to get info item for file: %w", op, err)
+	}
+
+	file, err := k.objProvider.Get(ctx, item.FileID)
+	if err != nil {
+		return nil, fmt.Errorf("op: %s, failed to get file: %w", op, err)
+	}
+
+	file.Item = *item
+
+	return file, nil
 }
 
 func (k *Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {

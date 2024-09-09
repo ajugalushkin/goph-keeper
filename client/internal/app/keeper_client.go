@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	"google.golang.org/grpc"
@@ -38,7 +37,7 @@ func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItem
 	return resp, nil
 }
 
-func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePath string) (*keeperv1.CreateItemResponseV1, error) {
+func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePath string, content []byte) (*keeperv1.CreateItemResponseV1, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("cannot open file: ", slog.String("error", err.Error()))
@@ -60,8 +59,8 @@ func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePa
 	req := &keeperv1.CreateItemStreamRequestV1{
 		Data: &keeperv1.CreateItemStreamRequestV1_Info{
 			Info: &keeperv1.CreateItemStreamRequestV1_FileInfo{
-				Name:     name,
-				FullName: filepath.Base(filePath),
+				Name:    name,
+				Content: content,
 			},
 		},
 	}
@@ -144,7 +143,7 @@ func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemReques
 	return resp, nil
 }
 
-func (k *KeeperClient) GetFile(ctx context.Context, name string, filePath string) error {
+func (k *KeeperClient) GetFile(ctx context.Context, name string) (keeperv1.KeeperServiceV1_GetItemStreamV1Client, error) {
 	const op = "client.keeper.GetItem"
 
 	stream, err := k.api.GetItemStreamV1(
@@ -152,38 +151,10 @@ func (k *KeeperClient) GetFile(ctx context.Context, name string, filePath string
 		&keeperv1.GetItemRequestV1{Name: name},
 	)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	req, err := stream.Recv()
-	if err != nil {
-		return err
-	}
-
-	fileName := req.GetName()
-
-	newFile, err := os.Create(filepath.Join(filePath, fileName))
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	defer newFile.Close()
-
-	for {
-		req, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return fmt.Errorf("%s: %w", op, err)
-		}
-		chunk := req.GetChunkData()
-
-		_, err = newFile.Write(chunk)
-		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-	}
-	return nil
+	return stream, nil
 }
 
 func exists(path string) (bool, error) {

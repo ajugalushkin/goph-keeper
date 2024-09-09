@@ -71,14 +71,14 @@ func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
 func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*models.Item, error) {
 	row := v.db.QueryRowContext(
 		ctx,
-		`SELECT content, version FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
+		`SELECT content, version, file_id FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
 		name, userID,
 	)
 	secret := &models.Item{
 		Name:    name,
 		OwnerID: userID,
 	}
-	err := row.Scan(&secret.Content, &secret.Version)
+	err := row.Scan(&secret.Content, &secret.Version, &secret.FileID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, storage.ErrItemNotFound
 	}

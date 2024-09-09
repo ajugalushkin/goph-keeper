@@ -27,7 +27,7 @@ message CreateItemResponseV1 {
 message CreateItemStreamRequestV1 {
   message FileInfo {
     string name = 1;
-    string full_name = 2;
+    bytes content = 2;
   }
   oneof data {
     FileInfo info = 1;
@@ -65,7 +65,7 @@ message GetItemResponseV1 {
 
 message GetItemStreamResponseV1{
   bytes chunk_data = 1;
-  string name = 2;
+  bytes content = 2;
 }
 
 message ListItemsRequestV1 {
