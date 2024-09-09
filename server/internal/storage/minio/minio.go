@@ -29,20 +29,17 @@ func NewMinioStorage(
 		Secure: cfg.SSL,
 	})
 	if err != nil {
-		slog.Error("Minio New Error", slog.String("error", err.Error()))
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", err, op)
 	}
 
 	exists, err := client.BucketExists(ctx, cfg.Bucket)
 	if err != nil {
-		slog.Error("Minio New Error", slog.String("error", err.Error()))
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", err, op)
 	}
 	if !exists {
 		err := client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{})
 		if err != nil {
-			slog.Error("Minio New Error", slog.String("error", err.Error()))
-			return nil, err
+			return nil, fmt.Errorf("%w: %s", err, op)
 		}
 	}
 

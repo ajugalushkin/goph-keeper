@@ -153,17 +153,6 @@ func (k *KeeperClient) GetFile(ctx context.Context, name string) (keeperv1.Keepe
 	return stream, nil
 }
 
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
 func (k *KeeperClient) ListItems(ctx context.Context, item *keeperv1.ListItemsRequestV1) (*keeperv1.ListItemsResponseV1, error) {
 	const op = "client.keeper.Register"
 
