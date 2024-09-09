@@ -63,10 +63,6 @@ func (manager *JWTManager) Verify(accessToken string) (bool, int64, error) {
 		},
 	)
 
-	if token == nil {
-
-	}
-
 	if err != nil {
 		return false, 0, fmt.Errorf("invalid token: %w", err)
 	}

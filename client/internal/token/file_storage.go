@@ -11,8 +11,6 @@ type FileStorage struct {
 	Path string
 }
 
-//var _ Storage = (*FileStorage)(nil)
-
 // NewFileStorage создает новое файловое хранилище для токена
 func NewFileStorage(path string) *FileStorage {
 	return &FileStorage{
