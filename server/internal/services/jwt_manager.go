@@ -11,13 +11,18 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
+//go:generate mockery --name UserProvider
 type JWTManager struct {
 	log           *slog.Logger
 	secretKey     string
 	tokenDuration time.Duration
 }
 
-func NewJWTManager(log *slog.Logger, secretKey string, tokenDuration time.Duration) *JWTManager {
+func NewJWTManager(
+	log *slog.Logger,
+	secretKey string,
+	tokenDuration time.Duration,
+) *JWTManager {
 	return &JWTManager{
 		log,
 		secretKey,

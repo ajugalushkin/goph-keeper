@@ -22,11 +22,15 @@ const (
 
 type AuthInterceptor struct {
 	log               *slog.Logger
-	jwtManager        *JWTManager
+	jwtManager        TokenManager
 	accessibleMethods []string
 }
 
-func NewAuthInterceptor(log *slog.Logger, jwtManager *JWTManager, accessibleMethods []string) *AuthInterceptor {
+func NewAuthInterceptor(
+	log *slog.Logger,
+	jwtManager TokenManager,
+	accessibleMethods []string,
+) *AuthInterceptor {
 	return &AuthInterceptor{
 		log:               log,
 		jwtManager:        jwtManager,

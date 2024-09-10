@@ -16,9 +16,10 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	jwtManager  *JWTManager
+	jwtManager  TokenManager
 }
 
+//go:generate mockery --name UserSaver
 type UserSaver interface {
 	SaveUser(
 		ctx context.Context,
@@ -27,6 +28,7 @@ type UserSaver interface {
 	) (uid int64, err error)
 }
 
+//go:generate mockery --name UserProvider
 type UserProvider interface {
 	User(ctx context.Context, email string) (user models.User, err error)
 }
@@ -38,7 +40,12 @@ var (
 )
 
 // NewAuthService returns a new instance of the Auth service.
-func NewAuthService(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, jwtManager *JWTManager) *Auth {
+func NewAuthService(
+	log *slog.Logger,
+	userSaver UserSaver,
+	userProvider UserProvider,
+	jwtManager TokenManager,
+) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,

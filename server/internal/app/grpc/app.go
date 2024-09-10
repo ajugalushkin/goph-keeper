@@ -25,7 +25,7 @@ func New(
 	log *slog.Logger,
 	authService authhandlerv1.Auth,
 	keeperService keeperhandlerv1.Keeper,
-	jwtManager *services.JWTManager,
+	jwtManager services.TokenManager,
 	Address string,
 ) *App {
 
