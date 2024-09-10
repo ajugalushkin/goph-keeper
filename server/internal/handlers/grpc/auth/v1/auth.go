@@ -13,6 +13,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
+//go:generate mockery --name Auth
 type Auth interface {
 	Login(
 		ctx context.Context,
