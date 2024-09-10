@@ -14,7 +14,6 @@ const (
 	vaultTypeCard        VaultType = "card"
 )
 
-//go:generate mockery --name Vault
 type Vault interface {
 	Type() VaultType
 	String() string
