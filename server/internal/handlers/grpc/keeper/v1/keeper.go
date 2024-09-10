@@ -20,6 +20,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
+//go:generate mockery --name Keeper
 type Keeper interface {
 	CreateItem(
 		ctx context.Context,
