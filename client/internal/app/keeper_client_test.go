@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
-	"github.com/ajugalushkin/goph-keeper/gen/keeper/v1/mocks"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 )
 
 // Initializes KeeperClient with valid grpc.ClientConn

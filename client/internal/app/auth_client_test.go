@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/gen/auth/v1/mocks"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 )
 
 // Creates an AuthClient instance with a valid grpc.ClientConn
