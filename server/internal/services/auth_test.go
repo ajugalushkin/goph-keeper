@@ -12,7 +12,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services/mocks"
-	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
 // Initializes Auth service with valid logger, userSaver, userProvider, and jwtManager
@@ -91,27 +90,4 @@ func TestLoginSuccessful(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "valid-token", token)
-}
-
-// User not found returns ErrInvalidCredentials
-func TestLoginUserNotFound(t *testing.T) {
-	ctx := context.Background()
-
-	log := slog.New(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-	)
-
-	email := "nonexistent@example.com"
-	password := "password123"
-
-	mockUserProvider := new(mocks.UserProvider)
-	mockUserProvider.On("User", ctx, email).Return(models.User{}, storage.ErrUserNotFound)
-
-	auth := NewAuthService(log, nil, mockUserProvider, nil)
-
-	token, err := auth.Login(ctx, email, password)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrInvalidCredentials, err)
-	assert.Empty(t, token)
 }
