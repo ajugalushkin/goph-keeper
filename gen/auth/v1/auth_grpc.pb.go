@@ -26,6 +26,7 @@ const (
 // AuthServiceV1Client is the client API for AuthServiceV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//go:generate mockery --name AuthServiceV1Client
 type AuthServiceV1Client interface {
 	RegisterV1(ctx context.Context, in *RegisterRequestV1, opts ...grpc.CallOption) (*RegisterResponseV1, error)
 	LoginV1(ctx context.Context, in *LoginRequestV1, opts ...grpc.CallOption) (*LoginResponseV1, error)
@@ -62,6 +63,7 @@ func (c *authServiceV1Client) LoginV1(ctx context.Context, in *LoginRequestV1, o
 // AuthServiceV1Server is the server API for AuthServiceV1 service.
 // All implementations must embed UnimplementedAuthServiceV1Server
 // for forward compatibility.
+//go:generate mockery --name AuthServiceV1Server
 type AuthServiceV1Server interface {
 	RegisterV1(context.Context, *RegisterRequestV1) (*RegisterResponseV1, error)
 	LoginV1(context.Context, *LoginRequestV1) (*LoginResponseV1, error)

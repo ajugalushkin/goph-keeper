@@ -41,14 +41,12 @@ func (c *AuthClient) Register(ctx context.Context, email string, password string
 }
 
 func (c *AuthClient) Login(ctx context.Context, email string, password string) (string, error) {
-	const op = "client.auth.Login"
-
 	resp, err := c.api.LoginV1(ctx, &authv1.LoginRequestV1{
 		Email:    email,
 		Password: password,
 	})
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", err
 	}
 
 	return resp.Token, nil
