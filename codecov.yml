@@ -1,4 +1,3 @@
 ignore:
   - "gen"
-  - "*/mocks"
-  - "mocks"
+  - "*mocks*"
