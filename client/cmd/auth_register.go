@@ -22,11 +22,13 @@ var registerCmd = &cobra.Command{
 		email, err := cmd.Flags().GetString("email")
 		if err != nil {
 			log.Error("Error getting email", slog.String("error", err.Error()))
+			return
 		}
 
 		password, err := cmd.Flags().GetString("password")
 		if err != nil {
 			log.Error("Error getting password", slog.String("error", err.Error()))
+			return
 		}
 
 		authClient := app.NewAuthClient(app.GetAuthConnection())
@@ -34,6 +36,7 @@ var registerCmd = &cobra.Command{
 		err = authClient.Register(context.Background(), email, password)
 		if err != nil {
 			log.Error("Error registering user", slog.String("error", err.Error()))
+			return
 		}
 
 		fmt.Println("User registered successfully")
