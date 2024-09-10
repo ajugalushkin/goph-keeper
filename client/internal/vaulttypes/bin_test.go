@@ -1,53 +1,50 @@
 package vaulttypes
 
-import "testing"
+import (
+	"testing"
 
-func TestBin_String(t *testing.T) {
-	type fields struct {
-		FileName string
-		Size     int64
+	"github.com/stretchr/testify/assert"
+)
+
+// Returns vaultTypeBin when called on a Bin instance
+func TestBinTypeReturnsVaultTypeBin(t *testing.T) {
+	bin := Bin{
+		FileName: "example.bin",
+		Size:     1024,
 	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := Bin{
-				FileName: tt.fields.FileName,
-				Size:     tt.fields.Size,
-			}
-			if got := b.String(); got != tt.want {
-				t.Errorf("String() = %v, want %v", got, tt.want)
-			}
-		})
+
+	result := bin.Type()
+
+	assert.Equal(t, VaultType("bin"), result)
+}
+
+// Handles an uninitialized Bin instance gracefully
+func TestUninitializedBinType(t *testing.T) {
+	var bin Bin
+
+	result := bin.Type()
+
+	assert.Equal(t, VaultType("bin"), result)
+}
+
+// Returns the string "BINARY DATA" for any Bin instance
+func TestBinStringReturnsBinaryData(t *testing.T) {
+	bin := Bin{FileName: "example.txt", Size: 1024}
+	expected := "BINARY DATA"
+	result := bin.String()
+
+	if result != expected {
+		t.Errorf("expected %s, got %s", expected, result)
 	}
 }
 
-func TestBin_Type(t *testing.T) {
-	type fields struct {
-		FileName string
-		Size     int64
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   VaultType
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := Bin{
-				FileName: tt.fields.FileName,
-				Size:     tt.fields.Size,
-			}
-			if got := b.Type(); got != tt.want {
-				t.Errorf("Type() = %v, want %v", got, tt.want)
-			}
-		})
+// Handles empty Bin struct without errors
+func TestBinStringHandlesEmptyStruct(t *testing.T) {
+	bin := Bin{}
+	expected := "BINARY DATA"
+	result := bin.String()
+
+	if result != expected {
+		t.Errorf("expected %s, got %s", expected, result)
 	}
 }
