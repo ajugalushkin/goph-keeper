@@ -49,7 +49,10 @@ func NewMinioStorage(
 	}, nil
 }
 
-func (m *FileStorage) Create(ctx context.Context, file *models.File) (string, error) {
+func (m *FileStorage) Create(
+	ctx context.Context,
+	file *models.File,
+) (string, error) {
 	const op = "minio.storage.Minio.Create"
 
 	objectID := uuid.New().String()

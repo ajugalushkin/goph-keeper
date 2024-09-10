@@ -26,10 +26,19 @@ func NewUserStorage(storagePath string) (*UserStorage, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	err = db.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
 	return &UserStorage{db: db}, nil
 }
 
-func (s *UserStorage) SaveUser(ctx context.Context, email string, passHash []byte) (uid int64, err error) {
+func (s *UserStorage) SaveUser(
+	ctx context.Context,
+	email string,
+	passHash []byte,
+) (uid int64, err error) {
 	const op = "storage.postgres.SaveUser"
 
 	stmt, err := s.db.Prepare("INSERT INTO users(email, password_hash) VALUES ($1, $2)")
@@ -55,7 +64,10 @@ func (s *UserStorage) SaveUser(ctx context.Context, email string, passHash []byt
 	return lastUser.ID, nil
 }
 
-func (s *UserStorage) User(ctx context.Context, email string) (models.User, error) {
+func (s *UserStorage) User(
+	ctx context.Context,
+	email string,
+) (models.User, error) {
 	const op = "storage.postgres.User"
 
 	stmt, err := s.db.Prepare("SELECT id, email, password_hash FROM users WHERE email = $1")

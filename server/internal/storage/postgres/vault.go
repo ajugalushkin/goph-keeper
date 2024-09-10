@@ -24,7 +24,10 @@ func NewVaultStorage(storagePath string) (*VaultStorage, error) {
 	return &VaultStorage{db: db}, nil
 }
 
-func (v *VaultStorage) Create(ctx context.Context, item *models.Item) (*models.Item, error) {
+func (v *VaultStorage) Create(
+	ctx context.Context,
+	item *models.Item,
+) (*models.Item, error) {
 	row := v.db.QueryRowContext(
 		ctx,
 		`INSERT INTO vaults (name, content, owner_id, file_id)
@@ -58,7 +61,10 @@ func (v *VaultStorage) Update(ctx context.Context, item *models.Item) (*models.I
 	return item, nil
 }
 
-func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
+func (v *VaultStorage) Delete(
+	ctx context.Context,
+	item *models.Item,
+) error {
 	_, err := v.db.ExecContext(
 		ctx,
 		`DELETE FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
@@ -68,7 +74,11 @@ func (v *VaultStorage) Delete(ctx context.Context, item *models.Item) error {
 	return err
 }
 
-func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*models.Item, error) {
+func (v *VaultStorage) Get(
+	ctx context.Context,
+	name string,
+	userID int64,
+) (*models.Item, error) {
 	row := v.db.QueryRowContext(
 		ctx,
 		`SELECT content, version, file_id FROM vaults WHERE name = ($1) AND owner_id = ($2)`,
@@ -85,7 +95,10 @@ func (v *VaultStorage) Get(ctx context.Context, name string, userID int64) (*mod
 	return secret, err
 }
 
-func (v *VaultStorage) List(ctx context.Context, userID int64) ([]*models.Item, error) {
+func (v *VaultStorage) List(
+	ctx context.Context,
+	userID int64,
+) ([]*models.Item, error) {
 	rows, err := v.db.QueryContext(
 		ctx, `SELECT name, version, content FROM vaults WHERE owner_id = ($1)`, userID)
 	if err != nil || rows.Err() != nil {

@@ -6,22 +6,22 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/config"
 )
 
-// Handles invalid Minio endpoint gracefully
-func TestNewMinioStorage_InvalidEndpoint(t *testing.T) {
+// Returns an error if the Minio client cannot be created due to invalid credentials
+func TestNewMinioStorage_InvalidCredentials(t *testing.T) {
 	cfg := config.Minio{
-		Endpoint: "invalid-endpoint",
-		Username: "minioadmin",
-		Password: "minioadmin",
+		Endpoint: "localhost:9000",
+		Username: "invaliduser",
+		Password: "invalidpass",
 		SSL:      false,
 		Bucket:   "testbucket",
 	}
 
 	storage, err := NewMinioStorage(cfg)
 	if err == nil {
-		t.Fatalf("expected error, got nil")
+		t.Fatalf("expected an error, got none")
 	}
 
 	if storage != nil {
-		t.Fatalf("expected storage to be nil, got %v", storage)
+		t.Fatalf("expected storage to be nil")
 	}
 }
