@@ -1,3 +1,4 @@
 ignore:
   - "gen"
-  - "*mocks*"
+  - "mocks"
+  - "client/internal/vaulttypes/mocks"
