@@ -16,22 +16,26 @@ type Keeper struct {
 	objProvider ObjectProvider
 }
 
+//go:generate mockery --name ItemProvider
 type ItemProvider interface {
 	Get(ctx context.Context, name string, userID int64) (*models.Item, error)
 	List(ctx context.Context, userID int64) ([]*models.Item, error)
 }
 
+//go:generate mockery --name ItemSaver
 type ItemSaver interface {
 	Create(ctx context.Context, item *models.Item) (*models.Item, error)
 	Update(ctx context.Context, item *models.Item) (*models.Item, error)
 	Delete(ctx context.Context, item *models.Item) error
 }
 
+//go:generate mockery --name ObjectSaver
 type ObjectSaver interface {
 	Create(ctx context.Context, file *models.File) (string, error)
 	Delete(ctx context.Context, objectID string) error
 }
 
+//go:generate mockery --name ObjectProvider
 type ObjectProvider interface {
 	Get(ctx context.Context, objectID string) (*models.File, error)
 }
@@ -52,7 +56,10 @@ func NewKeeperService(
 	}
 }
 
-func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
+func (k *Keeper) CreateItem(
+	ctx context.Context,
+	item *models.Item,
+) (*models.Item, error) {
 	const op = "services.keeper.createItem"
 	k.log.With("op", op)
 
@@ -66,7 +73,10 @@ func (k *Keeper) CreateItem(ctx context.Context, item *models.Item) (*models.Ite
 	return newItem, nil
 }
 
-func (k *Keeper) CreateFile(ctx context.Context, file *models.File) (string, error) {
+func (k *Keeper) CreateFile(
+	ctx context.Context,
+	file *models.File,
+) (string, error) {
 	const op = "services.keeper.createFile"
 
 	var err error
@@ -97,7 +107,10 @@ func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Ite
 	return item, nil
 }
 
-func (k *Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
+func (k *Keeper) DeleteItem(
+	ctx context.Context,
+	item *models.Item,
+) error {
 	const op = "services.keeper.deleteItem"
 	log := k.log.With("op", op)
 
@@ -125,7 +138,11 @@ func (k *Keeper) DeleteItem(ctx context.Context, item *models.Item) error {
 	return nil
 }
 
-func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*models.Item, error) {
+func (k *Keeper) GetItem(
+	ctx context.Context,
+	name string,
+	userID int64,
+) (*models.Item, error) {
 	const op = "services.keeper.getItem"
 	k.log.With("op", op)
 
@@ -139,7 +156,11 @@ func (k *Keeper) GetItem(ctx context.Context, name string, userID int64) (*model
 	return item, nil
 }
 
-func (k *Keeper) GetFile(ctx context.Context, name string, userID int64) (*models.File, error) {
+func (k *Keeper) GetFile(
+	ctx context.Context,
+	name string,
+	userID int64,
+) (*models.File, error) {
 	const op = "services.keeper.getFile"
 
 	item, err := k.itmProvider.Get(ctx, name, userID)
@@ -157,7 +178,10 @@ func (k *Keeper) GetFile(ctx context.Context, name string, userID int64) (*model
 	return file, nil
 }
 
-func (k *Keeper) ListItems(ctx context.Context, userID int64) (list []*models.Item, err error) {
+func (k *Keeper) ListItems(
+	ctx context.Context,
+	userID int64,
+) (list []*models.Item, err error) {
 	const op = "services.keeper.listItem"
 	k.log.With("op", op)
 
