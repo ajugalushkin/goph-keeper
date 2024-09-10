@@ -32,6 +32,7 @@ const (
 // KeeperServiceV1Client is the client API for KeeperServiceV1 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//go:generate mockery --name KeeperServiceV1Client
 type KeeperServiceV1Client interface {
 	CreateItemV1(ctx context.Context, in *CreateItemRequestV1, opts ...grpc.CallOption) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateItemStreamRequestV1, CreateItemResponseV1], error)
@@ -135,6 +136,7 @@ func (c *keeperServiceV1Client) ListItemsV1(ctx context.Context, in *ListItemsRe
 // KeeperServiceV1Server is the server API for KeeperServiceV1 service.
 // All implementations must embed UnimplementedKeeperServiceV1Server
 // for forward compatibility.
+//go:generate mockery --name KeeperServiceV1Client
 type KeeperServiceV1Server interface {
 	CreateItemV1(context.Context, *CreateItemRequestV1) (*CreateItemResponseV1, error)
 	CreateItemStreamV1(grpc.ClientStreamingServer[CreateItemStreamRequestV1, CreateItemResponseV1]) error

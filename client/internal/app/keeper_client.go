@@ -25,18 +25,19 @@ func NewKeeperClient(cc *grpc.ClientConn) *KeeperClient {
 	return &KeeperClient{service}
 }
 
-func (k *KeeperClient) CreateItem(ctx context.Context, item *keeperv1.CreateItemRequestV1) (*keeperv1.CreateItemResponseV1, error) {
-	const op = "client.keeper.CreateItem"
-
-	resp, err := k.api.CreateItemV1(ctx, item)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return resp, nil
+func (k *KeeperClient) CreateItem(
+	ctx context.Context,
+	item *keeperv1.CreateItemRequestV1,
+) (*keeperv1.CreateItemResponseV1, error) {
+	return k.api.CreateItemV1(ctx, item)
 }
 
-func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePath string, content []byte) (*keeperv1.CreateItemResponseV1, error) {
+func (k *KeeperClient) CreateItemStream(
+	ctx context.Context,
+	name string,
+	filePath string,
+	content []byte,
+) (*keeperv1.CreateItemResponseV1, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("cannot open file: ", slog.String("error", err.Error()))
@@ -106,7 +107,10 @@ func (k *KeeperClient) CreateItemStream(ctx context.Context, name string, filePa
 	return res, nil
 }
 
-func (k *KeeperClient) UpdateItem(ctx context.Context, item *keeperv1.UpdateItemRequestV1) (*keeperv1.UpdateItemResponseV1, error) {
+func (k *KeeperClient) UpdateItem(
+	ctx context.Context,
+	item *keeperv1.UpdateItemRequestV1,
+) (*keeperv1.UpdateItemResponseV1, error) {
 	const op = "keeper.UpdateItem"
 
 	resp, err := k.api.UpdateItemV1(ctx, item)
@@ -117,7 +121,10 @@ func (k *KeeperClient) UpdateItem(ctx context.Context, item *keeperv1.UpdateItem
 	return resp, nil
 }
 
-func (k *KeeperClient) DeleteItem(ctx context.Context, item *keeperv1.DeleteItemRequestV1) (*keeperv1.DeleteItemResponseV1, error) {
+func (k *KeeperClient) DeleteItem(
+	ctx context.Context,
+	item *keeperv1.DeleteItemRequestV1,
+) (*keeperv1.DeleteItemResponseV1, error) {
 	const op = "keeper.DeleteItem"
 
 	resp, err := k.api.DeleteItemV1(ctx, item)
@@ -128,7 +135,10 @@ func (k *KeeperClient) DeleteItem(ctx context.Context, item *keeperv1.DeleteItem
 	return resp, nil
 }
 
-func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemRequestV1) (*keeperv1.GetItemResponseV1, error) {
+func (k *KeeperClient) GetItem(
+	ctx context.Context,
+	item *keeperv1.GetItemRequestV1,
+) (*keeperv1.GetItemResponseV1, error) {
 	const op = "client.keeper.GetItem"
 
 	resp, err := k.api.GetItemV1(ctx, item)
@@ -139,7 +149,10 @@ func (k *KeeperClient) GetItem(ctx context.Context, item *keeperv1.GetItemReques
 	return resp, nil
 }
 
-func (k *KeeperClient) GetFile(ctx context.Context, name string) (keeperv1.KeeperServiceV1_GetItemStreamV1Client, error) {
+func (k *KeeperClient) GetFile(
+	ctx context.Context,
+	name string,
+) (keeperv1.KeeperServiceV1_GetItemStreamV1Client, error) {
 	const op = "client.keeper.GetItem"
 
 	stream, err := k.api.GetItemStreamV1(
@@ -153,7 +166,10 @@ func (k *KeeperClient) GetFile(ctx context.Context, name string) (keeperv1.Keepe
 	return stream, nil
 }
 
-func (k *KeeperClient) ListItems(ctx context.Context, item *keeperv1.ListItemsRequestV1) (*keeperv1.ListItemsResponseV1, error) {
+func (k *KeeperClient) ListItems(
+	ctx context.Context,
+	item *keeperv1.ListItemsRequestV1,
+) (*keeperv1.ListItemsResponseV1, error) {
 	const op = "client.keeper.Register"
 
 	list, err := k.api.ListItemsV1(ctx, item)
