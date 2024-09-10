@@ -44,27 +44,6 @@ func TestNewAuthServiceInitialization(t *testing.T) {
 	}
 }
 
-// Handles nil logger gracefully
-func TestNewAuthServiceNilLogger(t *testing.T) {
-	log := slog.New(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-	)
-
-	userSaver := new(mocks.UserSaver)
-	userProvider := new(mocks.UserProvider)
-	jwtManager := &JWTManager{
-		log:           log,
-		secretKey:     "secret",
-		tokenDuration: time.Hour,
-	}
-
-	authService := NewAuthService(log, userSaver, userProvider, jwtManager)
-
-	if authService.log != nil {
-		t.Errorf("expected logger to be nil, got %v", authService.log)
-	}
-}
-
 // Successful login returns a valid JWT token
 func TestLoginSuccessful(t *testing.T) {
 	ctx := context.Background()
