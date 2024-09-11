@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
@@ -158,4 +159,32 @@ func TestHandleGRPCConnectionError(t *testing.T) {
 	if conn.Target() != "invalid_address" {
 		t.Fatalf("Expected nil gRPC connection due to invalid address, got a valid connection")
 	}
+}
+
+// Logger function is created successfully
+func TestLoggerFunctionCreation(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+	interceptor := interceptorLogger(log)
+
+	if interceptor == nil {
+		t.Fatalf("Expected non-nil logger function, got nil")
+	}
+}
+
+// Logger function handles nil context gracefully
+func TestLoggerFunctionHandlesNilContext(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+	interceptor := interceptorLogger(log)
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Logger function did not handle nil context gracefully, panicked with: %v", r)
+		}
+	}()
+
+	interceptor.Log(nil, grpclog.LevelInfo, "Test message")
 }
