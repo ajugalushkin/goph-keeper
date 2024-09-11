@@ -52,6 +52,13 @@ var keepCreateBinCmd = &cobra.Command{
 			return
 		}
 
+		file, err := os.Open(filePath)
+		if err != nil {
+			log.Error("cannot open file: ", slog.String("error", err.Error()))
+			return
+		}
+		defer file.Close()
+
 		token, err := tokenStorage.Load()
 		if err != nil {
 			log.Error("Error loading token: ", slog.String("error", err.Error()))
@@ -60,7 +67,7 @@ var keepCreateBinCmd = &cobra.Command{
 
 		cfg := config.GetInstance().Config.Client
 		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
-		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath, content)
+		resp, err := keeperClient.CreateItemStream(context.Background(), name, file, content)
 		if err != nil {
 			log.Error("Error creating bin", slog.String("error", err.Error()))
 			return

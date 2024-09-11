@@ -9,12 +9,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
-	"github.com/ajugalushkin/goph-keeper/mocks"
+	commonmocks "github.com/ajugalushkin/goph-keeper/mocks"
 )
 
 // Initializes KeeperClient with valid grpc.ClientConn
@@ -42,7 +44,7 @@ func TestHandlesNilClientConnGracefully(t *testing.T) {
 // Successfully creates an item when valid request is provided
 func TestCreateItem_Success(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.CreateItemRequestV1{
@@ -68,7 +70,7 @@ func TestCreateItem_ContextCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.CreateItemRequestV1{
@@ -86,26 +88,41 @@ func TestCreateItem_ContextCanceled(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-// File specified by filePath does not exist
-func TestCreateItemStream_FileDoesNotExist(t *testing.T) {
+// Successfully opens the file specified by filePath
+func TestCreateItemStream_Success(t *testing.T) {
 	ctx := context.Background()
-	name := "testfile"
-	filePath := "nonexistentfile.txt"
+	name := "testfile.txt"
 	content := []byte("test content")
+	file, err := os.CreateTemp("", name)
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(file.Name())
+	defer file.Close()
 
-	mockClient := mocks.NewKeeperServiceV1Client(t)
+	_, err = file.Write(content)
+	if err != nil {
+		t.Fatalf("failed to write to temp file: %v", err)
+	}
+
+	mockClient := commonmocks.NewKeeperServiceV1Client(t)
+	mockStream := mocks.NewCreateItemStreamClient(t)
+	mockClient.On("CreateItemStreamV1", ctx).Return(mockStream, nil)
+	mockStream.On("Send", mock.Anything).Return(nil)
+	mockStream.On("CloseAndRecv").Return(&keeperv1.CreateItemResponseV1{Name: name, Version: "1"}, nil)
 
 	k := &KeeperClient{api: mockClient}
+	res, err := k.CreateItemStream(ctx, name, file, content)
 
-	res, err := k.CreateItemStream(ctx, name, filePath, content)
-	assert.Error(t, err)
-	assert.Nil(t, res)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, name, res.GetName())
 }
 
 // Successfully updates an item when valid request is provided
 func TestUpdateItem_Success(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.UpdateItemRequestV1{
@@ -129,7 +146,7 @@ func TestUpdateItem_Success(t *testing.T) {
 // Successfully deletes an item when valid request is provided
 func TestDeleteItem_Success(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.DeleteItemRequestV1{Name: "test-item"}
@@ -147,7 +164,7 @@ func TestDeleteItem_Success(t *testing.T) {
 // Handles network failures gracefully
 func TestDeleteItem_NetworkFailure(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.DeleteItemRequestV1{Name: "test-item"}
@@ -166,7 +183,7 @@ func TestDeleteItem_NetworkFailure(t *testing.T) {
 // Successfully retrieves item when valid request is provided
 func TestGetItem_Success(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.GetItemRequestV1{Name: "test-item"}
@@ -185,7 +202,7 @@ func TestGetItem_Success(t *testing.T) {
 // Handles error when API call fails
 func TestGetItem_Error(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	req := &keeperv1.GetItemRequestV1{Name: "test-item"}
@@ -207,8 +224,8 @@ func TestGetFile_Success(t *testing.T) {
 	ctx := context.Background()
 	name := "test-file"
 
-	mockStream := mocks.NewServerStreamingClient[keeperv1.GetItemStreamResponseV1](t)
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockStream := commonmocks.NewServerStreamingClient[keeperv1.GetItemStreamResponseV1](t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(mockStream, nil)
 
 	client := &KeeperClient{api: mockAPI}
@@ -222,7 +239,7 @@ func TestGetFile_Success(t *testing.T) {
 // Successfully retrieves a list of items when the API call returns a valid response
 func TestListItems_Success(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	request := &keeperv1.ListItemsRequestV1{}
@@ -245,7 +262,7 @@ func TestListItems_Success(t *testing.T) {
 // Handles the case where the API call returns an error
 func TestListItems_Error(t *testing.T) {
 	ctx := context.Background()
-	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
 	client := &KeeperClient{api: mockAPI}
 
 	request := &keeperv1.ListItemsRequestV1{}

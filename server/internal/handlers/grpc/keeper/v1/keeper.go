@@ -54,6 +54,11 @@ type Keeper interface {
 	) (list []*models.Item, err error)
 }
 
+//go:generate mockery --name CreateItemStreamServer
+type CreateItemStreamServer interface {
+	keeperv1.KeeperServiceV1_CreateItemStreamV1Server
+}
+
 type serverAPI struct {
 	keeperv1.UnimplementedKeeperServiceV1Server
 	keeper Keeper

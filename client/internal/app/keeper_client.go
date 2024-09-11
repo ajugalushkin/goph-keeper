@@ -13,6 +13,11 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
+//go:generate mockery --name CreateItemStreamClient
+type CreateItemStreamClient interface {
+	keeperv1.KeeperServiceV1_CreateItemStreamV1Client
+}
+
 type KeeperClient struct {
 	api keeperv1.KeeperServiceV1Client
 }
@@ -33,23 +38,14 @@ func (k *KeeperClient) CreateItem(
 func (k *KeeperClient) CreateItemStream(
 	ctx context.Context,
 	name string,
-	filePath string,
+	file *os.File,
 	content []byte,
 ) (*keeperv1.CreateItemResponseV1, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		slog.Error("cannot open file: ", slog.String("error", err.Error()))
-		return nil, err
-	}
-	defer file.Close()
-
 	stream, err := k.api.CreateItemStreamV1(context.Background())
 	if err != nil {
 		slog.Error("cannot upload file: ", slog.String("error", err.Error()))
 		return nil, err
 	}
-
-	buffer := make([]byte, 1024)
 
 	req := &keeperv1.CreateItemStreamRequestV1{
 		Data: &keeperv1.CreateItemStreamRequestV1_Info{
@@ -67,6 +63,8 @@ func (k *KeeperClient) CreateItemStream(
 			slog.String("stream msg", stream.RecvMsg(nil).Error()))
 		return nil, err
 	}
+
+	buffer := make([]byte, 1024)
 
 	for {
 		n, err := file.Read(buffer)
