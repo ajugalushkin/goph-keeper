@@ -141,6 +141,35 @@ func TestCreateItemStream_FileNotExist(t *testing.T) {
 	assert.Nil(t, res)
 }
 
+// Error occurs while sending file info to the server
+func TestCreateItemStream_ErrorSendingFileInfo(t *testing.T) {
+	ctx := context.Background()
+	name := "testfile.txt"
+	content := []byte("test content")
+	file, err := os.CreateTemp("", name)
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(file.Name())
+	defer file.Close()
+
+	_, err = file.Write(content)
+	if err != nil {
+		t.Fatalf("failed to write to temp file: %v", err)
+	}
+
+	mockClient := commonmocks.NewKeeperServiceV1Client(t)
+	mockStream := mocks.NewCreateItemStreamClient(t)
+	mockClient.On("CreateItemStreamV1", context.Background()).Return(mockStream, nil)
+	mockStream.On("Send", mock.Anything).Return(errors.New("error sending file info"))
+	mockStream.On("RecvMsg", nil).Return(errors.New("error receiving message"))
+
+	k := &KeeperClient{api: mockClient}
+	_, err = k.CreateItemStream(ctx, name, file, content)
+
+	assert.Error(t, err)
+}
+
 // Error occurs while creating the stream
 func TestCreateItemStream_ErrorOnStreamCreation(t *testing.T) {
 	ctx := context.Background()
@@ -165,6 +194,65 @@ func TestCreateItemStream_ErrorOnStreamCreation(t *testing.T) {
 	_, err = k.CreateItemStream(ctx, name, file, content)
 
 	assert.Error(t, err)
+}
+
+// Error occurs while sending a chunk to the server
+func TestCreateItemStream_ErrorSendingChunk(t *testing.T) {
+	ctx := context.Background()
+	name := "testfile.txt"
+	content := []byte("test content")
+	file, err := os.CreateTemp("", name)
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(file.Name())
+	defer file.Close()
+
+	_, err = file.Write(content)
+	if err != nil {
+		t.Fatalf("failed to write to temp file: %v", err)
+	}
+
+	mockClient := commonmocks.NewKeeperServiceV1Client(t)
+	mockStream := mocks.NewCreateItemStreamClient(t)
+	mockClient.On("CreateItemStreamV1", context.Background()).Return(mockStream, nil)
+	mockStream.On("Send", mock.Anything).Return(errors.New("error sending chunk"))
+	mockStream.On("RecvMsg", nil).Return(errors.New("error receiving message"))
+
+	k := &KeeperClient{api: mockClient}
+	_, err = k.CreateItemStream(ctx, name, file, content)
+
+	assert.Error(t, err)
+}
+
+// Error occurs while receiving the response after closing the stream
+func TestCreateItemStream_ErrorOnResponseReceive(t *testing.T) {
+	ctx := context.Background()
+	name := "testfile.txt"
+	content := []byte("test content")
+	file, err := os.CreateTemp("", name)
+	if err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+	defer os.Remove(file.Name())
+	defer file.Close()
+
+	_, err = file.Write(content)
+	if err != nil {
+		t.Fatalf("failed to write to temp file: %v", err)
+	}
+
+	mockClient := commonmocks.NewKeeperServiceV1Client(t)
+	mockStream := mocks.NewCreateItemStreamClient(t)
+	mockClient.On("CreateItemStreamV1", ctx).Return(mockStream, nil)
+	mockStream.On("Send", mock.Anything).Return(nil)
+	mockStream.On("CloseAndRecv").Return(nil, errors.New("error receiving response"))
+
+	k := &KeeperClient{api: mockClient}
+	res, err := k.CreateItemStream(ctx, name, file, content)
+
+	assert.Error(t, err)
+	assert.Nil(t, res)
 }
 
 // Successfully updates an item when valid request is provided
