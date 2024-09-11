@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/ajugalushkin/goph-keeper/client/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 )
 
@@ -52,15 +51,14 @@ func (c *AuthClient) Login(ctx context.Context, email string, password string) (
 	return resp.Token, nil
 }
 
-func GetAuthConnection() *grpc.ClientConn {
+func GetAuthConnection(log *slog.Logger, cfg config.Client) *grpc.ClientConn {
 	const op = "rootCmd.PersistentPreRun"
-	log := logger.GetInstance().Log.With("op", op)
+	log.With("op", op)
 
-	cfg := config.GetInstance().Config
 	retryOpts := []grpcretry.CallOption{
 		grpcretry.WithCodes(codes.NotFound, codes.Aborted, codes.DeadlineExceeded),
-		grpcretry.WithMax(uint(cfg.Client.Retries)),
-		grpcretry.WithPerRetryTimeout(cfg.Client.Timeout),
+		grpcretry.WithMax(uint(cfg.Retries)),
+		grpcretry.WithPerRetryTimeout(cfg.Timeout),
 	}
 
 	logOpts := []grpclog.Option{
@@ -68,7 +66,7 @@ func GetAuthConnection() *grpc.ClientConn {
 	}
 
 	var err error
-	connection, err := grpc.NewClient(cfg.Client.Address,
+	connection, err := grpc.NewClient(cfg.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
 			grpclog.UnaryClientInterceptor(interceptorLogger(log), logOpts...),

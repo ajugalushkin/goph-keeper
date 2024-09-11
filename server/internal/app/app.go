@@ -11,7 +11,7 @@ import (
 )
 
 type App struct {
-	GRPCSrv *grpcapp.App
+	GRPCSrv grpcapp.GrpcServer
 }
 
 func New(
@@ -37,7 +37,13 @@ func New(
 	jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
 
 	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
-	serviceKeeper := services.NewKeeperService(log, vaultStorage, vaultStorage, minioStorage, minioStorage)
+	serviceKeeper := services.NewKeeperService(
+		log,
+		vaultStorage,
+		vaultStorage,
+		minioStorage,
+		minioStorage,
+	)
 
 	grpcApp := grpcapp.New(
 		log,

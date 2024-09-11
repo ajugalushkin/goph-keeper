@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
@@ -45,7 +46,8 @@ func run(cmd *cobra.Command, args []string) {
 		log.Error("Error while getting password", slog.String("error", err.Error()))
 	}
 
-	authClient := app.NewAuthClient(app.GetAuthConnection())
+	cfg := config.GetInstance().Config
+	authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
 
 	token, err := authClient.Login(context.Background(), email, password)
 	if err != nil {

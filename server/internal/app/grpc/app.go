@@ -14,6 +14,13 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
+//go:generate mockery --name GrpcServer
+type GrpcServer interface {
+	MustRun()
+	Run() error
+	Stop()
+}
+
 type App struct {
 	log        *slog.Logger
 	gRPCServer *grpc.Server

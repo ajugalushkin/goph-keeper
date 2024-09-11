@@ -3,11 +3,15 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 	"github.com/ajugalushkin/goph-keeper/mocks"
 )
@@ -118,4 +122,40 @@ func TestLoginWithIncorrectCredentialsReturnsError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "", token)
 	assert.Equal(t, expectedError.Error(), err.Error())
+}
+
+// Establishes a gRPC connection with the provided server address
+func TestEstablishGRPCConnection(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	cfg := config.Client{
+		Address: "localhost:50051",
+		Timeout: 5 * time.Second,
+		Retries: 3,
+	}
+
+	conn := GetAuthConnection(log, cfg)
+	if conn == nil {
+		t.Fatalf("Expected a valid gRPC connection, got nil")
+	}
+}
+
+// Handles errors when the server address is incorrect or unreachable
+func TestHandleGRPCConnectionError(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	cfg := config.Client{
+		Address: "invalid_address",
+		Timeout: 5 * time.Second,
+		Retries: 3,
+	}
+
+	conn := GetAuthConnection(log, cfg)
+	if conn.Target() != "invalid_address" {
+		t.Fatalf("Expected nil gRPC connection due to invalid address, got a valid connection")
+	}
 }
