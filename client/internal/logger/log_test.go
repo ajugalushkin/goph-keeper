@@ -1,11 +1,10 @@
 package logger
 
 import (
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/ajugalushkin/goph-keeper/client/config"
 )
 
 // Returns a LogInstance when called for the first time

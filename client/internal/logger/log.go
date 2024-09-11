@@ -1,11 +1,10 @@
 package logger
 
 import (
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
 	"os"
 	"sync"
-
-	"github.com/ajugalushkin/goph-keeper/client/config"
 )
 
 type LogInstance struct {

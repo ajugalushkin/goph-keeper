@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
 
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
@@ -11,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 )
 

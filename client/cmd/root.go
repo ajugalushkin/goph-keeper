@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
 	"os"
 	"strings"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/token"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 

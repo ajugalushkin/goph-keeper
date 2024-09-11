@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"

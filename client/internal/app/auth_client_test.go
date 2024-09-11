@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
 	"os"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
 	"github.com/ajugalushkin/goph-keeper/mocks"
 )
