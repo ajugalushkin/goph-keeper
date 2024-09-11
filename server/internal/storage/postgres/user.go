@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -30,18 +29,18 @@ type UserStorage struct {
 // - A pointer to a new UserStorage instance if successful.
 // - An error if the database connection fails or cannot be pinged.
 func NewUserStorage(storagePath string) (*UserStorage, error) {
-    const op = "storage.postgres.NewUserStorage"
-    db, err := sql.Open("pgx", storagePath)
-    if err != nil {
-        return nil, fmt.Errorf("%s: %w", op, err)
-    }
+	const op = "storage.postgres.NewUserStorage"
+	db, err := sql.Open("pgx", storagePath)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-    err = db.Ping()
-    if err != nil {
-        return nil, fmt.Errorf("%s: %w", op, err)
-    }
+	err = db.Ping()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
 
-    return &UserStorage{db: db}, nil
+	return &UserStorage{db: db}, nil
 }
 
 // SaveUser inserts a new user into the database with the provided email and password hash.
@@ -56,33 +55,33 @@ func NewUserStorage(storagePath string) (*UserStorage, error) {
 // - uid: The ID of the newly created user.
 // - err: An error if any occurs during the operation.
 func (s *UserStorage) SaveUser(
-    ctx context.Context,
-    email string,
-    passHash []byte,
+	ctx context.Context,
+	email string,
+	passHash []byte,
 ) (uid int64, err error) {
-    const op = "storage.postgres.SaveUser"
+	const op = "storage.postgres.SaveUser"
 
-    stmt, err := s.db.Prepare("INSERT INTO users(email, password_hash) VALUES ($1, $2)")
-    if err != nil {
-        return 0, fmt.Errorf("%s: %w", op, err)
-    }
+	stmt, err := s.db.Prepare("INSERT INTO users(email, password_hash) VALUES ($1, $2)")
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
 
-    _, err = stmt.ExecContext(ctx, email, passHash)
-    if err != nil {
-        var pgError *pgconn.PgError
-        if errors.As(err, &pgError) && pgError.Code == pgerrcode.UniqueViolation {
-            return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
-        }
+	_, err = stmt.ExecContext(ctx, email, passHash)
+	if err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) && pgError.Code == pgerrcode.UniqueViolation {
+			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
+		}
 
-        return 0, fmt.Errorf("%s: %w", op, err)
-    }
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
 
-    lastUser, err := s.User(ctx, email)
-    if err != nil {
-        return 0, fmt.Errorf("%s: %w", op, err)
-    }
+	lastUser, err := s.User(ctx, email)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
 
-    return lastUser.ID, nil
+	return lastUser.ID, nil
 }
 
 // User retrieves a user from the database by their email.
@@ -96,31 +95,31 @@ func (s *UserStorage) SaveUser(
 // - user: The user's information if found.
 // - err: An error if any occurs during the operation.
 func (s *UserStorage) User(
-    ctx context.Context,
-    email string,
+	ctx context.Context,
+	email string,
 ) (models.User, error) {
-    const op = "storage.postgres.User"
+	const op = "storage.postgres.User"
 
-    // Prepare a SQL statement to select user information by email.
-    stmt, err := s.db.Prepare("SELECT id, email, password_hash FROM users WHERE email = $1")
-    if err != nil {
-        return models.User{}, fmt.Errorf("%s: %w", op, err)
-    }
+	// Prepare a SQL statement to select user information by email.
+	stmt, err := s.db.Prepare("SELECT id, email, password_hash FROM users WHERE email = $1")
+	if err != nil {
+		return models.User{}, fmt.Errorf("%s: %w", op, err)
+	}
 
-    // Execute the prepared statement with the given email.
-    row := stmt.QueryRowContext(ctx, email)
+	// Execute the prepared statement with the given email.
+	row := stmt.QueryRowContext(ctx, email)
 
-    var user models.User
-    err = row.Scan(&user.ID, &user.Email, &user.PasswordHash)
-    if err != nil {
-        // If no rows were returned, return storage.ErrUserNotFound.
-        if errors.Is(err, pgx.ErrNoRows) {
-            return models.User{}, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
-        }
-        // If any other error occurred, return it.
-        return models.User{}, fmt.Errorf("%s: %w", op, err)
-    }
+	var user models.User
+	err = row.Scan(&user.ID, &user.Email, &user.PasswordHash)
+	if err != nil {
+		// If no rows were returned, return storage.ErrUserNotFound.
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.User{}, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
+		}
+		// If any other error occurred, return it.
+		return models.User{}, fmt.Errorf("%s: %w", op, err)
+	}
 
-    // Return the retrieved user information.
-    return user, nil
+	// Return the retrieved user information.
+	return user, nil
 }
