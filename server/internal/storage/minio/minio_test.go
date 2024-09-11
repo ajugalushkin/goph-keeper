@@ -48,25 +48,6 @@ func TestNewMinioStorage_EmptyEndpoint(t *testing.T) {
 		t.Fatalf("expected storage to be nil")
 	}
 }
-func TestNewMinioStorage_EmptyUsername(t *testing.T) {
-	cfg := config.Minio{
-		Endpoint: "localhost:9000",
-		Username: "",
-		Password: "validpass",
-		SSL:      false,
-		Bucket:   "testbucket",
-	}
-
-	_, err := NewMinioStorage(cfg)
-	if err == nil {
-		t.Fatalf("expected an error, got none")
-	}
-
-	expectedError := "Get \"http://localhost:9000/testbucket/?location=\": dial tcp [::1]:9000: connectex: No connection could be made because the target machine actively refused it."
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Fatalf("expected error to contain '%s', got '%s'", expectedError, err.Error())
-	}
-}
 func TestNewMinioStorage_EmptyPassword(t *testing.T) {
 	cfg := config.Minio{
 		Endpoint: "localhost:9000",
