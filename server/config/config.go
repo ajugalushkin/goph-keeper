@@ -46,6 +46,13 @@ func MustLoad() *Config {
 	return MustLoadByPath(fetchConfig())
 }
 
+// MustLoadByPath is a function that loads and parses a configuration file into a Config struct.
+// If a non-empty configPath is provided, it sets the viper configuration file path to the given path.
+// Otherwise, it sets the viper configuration file name to "config", type to "yaml", and adds "./server/config" and "." to the search paths.
+// It then reads the configuration file and unmarshals it into a new Config struct.
+// If an error occurs during the reading or unmarshalling process, it logs the error and panics.
+// If the environment variable "TOKEN_SECRET" is set, it updates the Config.Token.Secret field with the value from the environment variable.
+// Finally, it returns a pointer to the newly created Config struct.
 func MustLoadByPath(configPath string) *Config {
 	if configPath != "" {
 		viper.SetConfigFile(configPath)
@@ -80,8 +87,22 @@ func MustLoadByPath(configPath string) *Config {
 	return &newConfig
 }
 
-// fetchConfig функция для чтения флага config или переменнной окружения CONFIG.
-// приоритет flag
+// fetchConfig is a function that reads the configuration file path from command-line flags or environment variables.
+// The function prioritizes command-line flags over environment variables.
+//
+// The function uses the "flag" package to define a command-line flag named "config" with a default value of an empty string.
+// The flag is used to specify the path to the configuration file.
+//
+// If the "config" flag is provided on the command line, the function returns the value of the flag.
+// If the "config" flag is not provided, the function checks for the existence of the "CONFIG" environment variable.
+// If the "CONFIG" environment variable is set, the function returns the value of the environment variable.
+// If the "CONFIG" environment variable is not set, the function returns an empty string.
+//
+// Parameters:
+// None
+//
+// Return value:
+// A string representing the path to the configuration file.
 func fetchConfig() string {
 	var result string
 

@@ -1,9 +1,8 @@
 package minio
 
 import (
-	"testing"
-
 	"github.com/ajugalushkin/goph-keeper/server/config"
+	"testing"
 )
 
 // Returns an error if the Minio client cannot be created due to invalid credentials

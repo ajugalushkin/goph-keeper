@@ -10,6 +10,6 @@ FROM alpine AS server
 WORKDIR /
 COPY --from=builder /goph-keeper /goph-keeper
 WORKDIR /config
-COPY ../../server/config/config.yaml ./
+COPY ../config/config.yaml ./
 EXPOSE 8080
 ENTRYPOINT ["/goph-keeper"]

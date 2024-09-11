@@ -2,13 +2,13 @@ package suite
 
 import (
 	"context"
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	"testing"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	v1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/server/config"
 )
 
 type Suite struct {

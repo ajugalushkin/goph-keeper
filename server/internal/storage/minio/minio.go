@@ -3,13 +3,13 @@ package minio
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	"github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 

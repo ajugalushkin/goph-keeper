@@ -1,9 +1,9 @@
 package app
 
 import (
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	"log/slog"
 
-	"github.com/ajugalushkin/goph-keeper/server/config"
 	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
