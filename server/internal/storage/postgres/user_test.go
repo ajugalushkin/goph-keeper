@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgerrcode"
@@ -137,5 +139,256 @@ func TestUserReturnsErrUserNotFound(t *testing.T) {
 
 	if !errors.Is(err, storage.ErrUserNotFound) {
 		t.Errorf("expected %v, got %v", storage.ErrUserNotFound, err)
+	}
+}
+func TestSaveUserWithEmailExceedingMaxLength(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := strings.Repeat("a", 256) + "@example.com" // 256 characters
+	passHash := []byte("hashedpassword")
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("value too long for type character varying(255)"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "value too long for type character varying(255)"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+func TestSaveUserWithPasswordHashExceedingMaxLength(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com"
+	passHash := make([]byte, 513) // 513 bytes, which exceeds the maximum length
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("value too long for type bytea"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "value too long for type bytea"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+func TestRetrieveUserDetailsWithSQLInjectionAttempt(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com' OR 1=1 --" // SQL injection attempt
+
+	mock.ExpectPrepare("SELECT id, email, password_hash FROM users WHERE email = \\$1").
+		ExpectQuery().
+		WithArgs(email).
+		WillReturnError(pgx.ErrNoRows) // Simulate no user found
+
+	_, err = userStorage.User(ctx, email)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	if !errors.Is(err, storage.ErrUserNotFound) {
+		t.Errorf("expected %v, got %v", storage.ErrUserNotFound, err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSaveUserWithInvalidPasswordHashCharacters(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com"
+	passHash := []byte("invalid_characters") // Invalid characters
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("invalid characters in password hash"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "invalid characters in password hash"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSaveUser_EmptyEmail(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := ""
+	passHash := []byte("hashedpassword")
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("empty email"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "empty email"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSaveUserWithEmptyPasswordHash(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com"
+	passHash := []byte{} // Empty password hash
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("password hash cannot be empty"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "password hash cannot be empty"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSaveUserWithInvalidEmailCharacters(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com!#" // Invalid characters
+	passHash := []byte("hashedpassword")
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("invalid characters in email"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "invalid characters in email"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestSaveUserWithSQLInjectionAttempt(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	userStorage := &UserStorage{db: db}
+	email := "test@example.com' OR 1=1 --" // SQL injection attempt
+	passHash := []byte("hashedpassword")
+
+	mock.ExpectPrepare("INSERT INTO users\\(email, password_hash\\) VALUES \\(\\$1, \\$2\\)").
+		ExpectExec().
+		WithArgs(email, passHash).
+		WillReturnError(fmt.Errorf("unique constraint violation"))
+
+	_, err = userStorage.SaveUser(ctx, email, passHash)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	expectedError := "unique constraint violation"
+	if !strings.Contains(err.Error(), expectedError) {
+		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
