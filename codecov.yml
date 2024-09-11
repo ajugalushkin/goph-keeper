@@ -3,3 +3,4 @@ ignore:
   - "mocks"
   - "client/internal/vaulttypes/mocks"
   - "server/internal/services/mocks"
+  - "/client/internal/app/mocks"
