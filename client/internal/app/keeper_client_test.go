@@ -279,6 +279,70 @@ func TestUpdateItem_Success(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
+// Returns an error when the context is canceled or expired
+func TestUpdateItem_ContextCanceled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel the context immediately
+
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	client := &KeeperClient{api: mockAPI}
+
+	req := &keeperv1.UpdateItemRequestV1{
+		Name:    "test-item",
+		Content: []byte("test-content"),
+	}
+
+	mockAPI.On("UpdateItemV1", ctx, req).Return(nil, context.Canceled)
+
+	result, err := client.UpdateItem(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.Equal(t, context.Canceled, errors.Unwrap(err))
+
+	mockAPI.AssertExpectations(t)
+}
+
+// Handles grpc errors and returns a formatted error message
+func TestUpdateItem_GrpcError(t *testing.T) {
+	ctx := context.Background()
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	client := &KeeperClient{api: mockAPI}
+
+	req := &keeperv1.UpdateItemRequestV1{
+		Name:    "test-item",
+		Content: []byte("test-content"),
+	}
+	expectedErr := errors.New("grpc error")
+
+	mockAPI.On("UpdateItemV1", ctx, req).Return(nil, expectedErr)
+
+	_, err := client.UpdateItem(ctx, req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "keeper.UpdateItem: grpc error")
+
+	mockAPI.AssertExpectations(t)
+}
+
+// Handles network failures gracefully
+func TestUpdateItem_NetworkFailure(t *testing.T) {
+	ctx := context.Background()
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	client := &KeeperClient{api: mockAPI}
+
+	req := &keeperv1.UpdateItemRequestV1{
+		Name:    "test-item",
+		Content: []byte("test-content"),
+	}
+
+	mockAPI.On("UpdateItemV1", ctx, req).Return(nil, errors.New("network error"))
+
+	result, err := client.UpdateItem(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, result)
+
+	mockAPI.AssertExpectations(t)
+}
+
 // Successfully deletes an item when valid request is provided
 func TestDeleteItem_Success(t *testing.T) {
 	ctx := context.Background()
@@ -370,6 +434,56 @@ func TestGetFile_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, mockStream, stream)
+}
+
+// Handles the case where the context is canceled or expired
+func TestGetFile_ContextCanceled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	name := "testfile"
+
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(nil, context.Canceled)
+
+	client := &KeeperClient{api: mockAPI}
+
+	stream, err := client.GetFile(ctx, name)
+
+	assert.Error(t, err)
+	assert.Nil(t, stream)
+	assert.Equal(t, context.Canceled, errors.Unwrap(err))
+}
+
+// Handles network failures or interruptions during the API call
+func TestGetFile_NetworkFailure(t *testing.T) {
+	ctx := context.Background()
+	name := "testfile"
+
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(nil, errors.New("network error"))
+
+	client := &KeeperClient{api: mockAPI}
+
+	stream, err := client.GetFile(ctx, name)
+
+	assert.Error(t, err)
+	assert.Nil(t, stream)
+}
+
+// Properly formats and returns errors when the API call fails
+func TestGetFile_Error(t *testing.T) {
+	ctx := context.Background()
+	name := "testfile"
+
+	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
+	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(nil, errors.New("API call failed"))
+
+	client := &KeeperClient{api: mockAPI}
+
+	_, err := client.GetFile(ctx, name)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "client.keeper.GetItem")
 }
 
 // Successfully retrieves a list of items when the API call returns a valid response
