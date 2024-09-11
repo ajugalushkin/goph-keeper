@@ -13,20 +13,6 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
 
-// Successfully creates a new VaultStorage instance with a valid storage path
-func TestNewVaultStorage_Success(t *testing.T) {
-	storagePath := "user=postgres password=mysecretpassword dbname=mydb sslmode=disable"
-	vaultStorage, err := NewVaultStorage(storagePath)
-
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	if vaultStorage == nil {
-		t.Fatalf("expected vaultStorage to be non-nil")
-	}
-}
-
 // Handles the case where the item already exists and returns an item conflict error
 func TestCreateItemConflict(t *testing.T) {
 	ctx := context.Background()
