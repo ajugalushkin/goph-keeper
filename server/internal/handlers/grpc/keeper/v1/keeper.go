@@ -64,135 +64,163 @@ type serverAPI struct {
 	keeper Keeper
 }
 
+// Register registers the KeeperServiceV1 server to the gRPC server.
+// It takes a gRPC server instance and a Keeper interface as parameters.
+// The Keeper interface provides methods for interacting with the storage layer.
+// The serverAPI struct implements the KeeperServiceV1Server interface,
+// which is responsible for handling the gRPC requests.
 func Register(
-	gRPC *grpc.Server,
-	keeper Keeper,
+    gRPC *grpc.Server,
+    keeper Keeper,
 ) {
-	keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{
-		keeper: keeper,
-	})
+    keeperv1.RegisterKeeperServiceV1Server(gRPC, &serverAPI{
+        keeper: keeper,
+    })
 }
 
+// CreateItemV1 handles the creation of a new item in the storage.
+// It validates the input request, retrieves the user ID from the context,
+// creates a new item model, and calls the Keeper's CreateItem method.
+// If the item already exists, it returns an AlreadyExists error.
+// If any other error occurs, it returns an Internal error.
+// Otherwise, it returns the created item's name and version.
 func (s *serverAPI) CreateItemV1(
-	ctx context.Context,
-	req *keeperv1.CreateItemRequestV1,
+    ctx context.Context,
+    req *keeperv1.CreateItemRequestV1,
 ) (*keeperv1.CreateItemResponseV1, error) {
-	validator, err := protovalidate.New()
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if err := validator.Validate(req); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
+    // Create a new validator instance.
+    validator, err := protovalidate.New()
+    if err != nil {
+        return nil, status.Error(codes.Internal, err.Error())
+    }
 
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "empty user id")
-	}
+    // Validate the input request.
+    if err := validator.Validate(req); err != nil {
+        return nil, status.Error(codes.InvalidArgument, err.Error())
+    }
 
-	item, err := s.keeper.CreateItem(ctx, &models.Item{
-		Name:    req.GetName(),
-		Content: req.GetContent(),
-		Version: uuid.UUID{},
-		OwnerID: userID,
-	})
-	if err != nil {
-		if errors.Is(err, storage.ErrItemConflict) {
-			return nil, status.Error(codes.AlreadyExists, "item already exists")
-		}
-		return nil, status.Error(codes.Internal, "failed to create item")
-	}
+    // Retrieve the user ID from the context.
+    userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+    if !ok {
+        return nil, status.Error(codes.Unauthenticated, "empty user id")
+    }
 
-	return &keeperv1.CreateItemResponseV1{
-		Name:    req.GetName(),
-		Version: item.Version.String(),
-	}, nil
+    // Create a new item model.
+    item, err := s.keeper.CreateItem(ctx, &models.Item{
+        Name:    req.GetName(),
+        Content: req.GetContent(),
+        Version: uuid.UUID{},
+        OwnerID: userID,
+    })
+    if err != nil {
+        // Handle specific errors.
+        if errors.Is(err, storage.ErrItemConflict) {
+            return nil, status.Error(codes.AlreadyExists, "item already exists")
+        }
+        return nil, status.Error(codes.Internal, "failed to create item")
+    }
+
+    // Return the created item's name and version.
+    return &keeperv1.CreateItemResponseV1{
+        Name:    req.GetName(),
+        Version: item.Version.String(),
+    }, nil
 }
 
+// CreateItemStreamV1 handles the streaming of file data for creating a new item in the storage.
+// It receives the file data in chunks and writes it to a temporary file.
+// Once all the data is received, it creates a new file model and calls the Keeper's CreateFile method.
+// If any error occurs during the process, it returns an appropriate error.
+//
+// Parameters:
+// - stream: A KeeperServiceV1_CreateItemStreamV1Server instance that handles the streaming of file data.
+//
+// Return Value:
+// - error: An error if any error occurs during the process. Otherwise, it returns nil.
 func (s *serverAPI) CreateItemStreamV1(
-	stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
+    stream keeperv1.KeeperServiceV1_CreateItemStreamV1Server,
 ) error {
-	req, err := stream.Recv()
-	if err != nil {
-		return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
-	}
+    req, err := stream.Recv()
+    if err != nil {
+        return logError(status.Errorf(codes.Unknown, "cannot receive file info"))
+    }
 
-	nameItem := req.GetInfo().GetName()
-	fileContent := req.GetInfo().GetContent()
-	log.Printf("receive an upload-file request for %s", nameItem)
+    nameItem := req.GetInfo().GetName()
+    fileContent := req.GetInfo().GetContent()
+    log.Printf("receive an upload-file request for %s", nameItem)
 
-	ctx := stream.Context()
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
-	if !ok || userID == 0 {
-		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
-	}
+    ctx := stream.Context()
+    userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+    if !ok || userID == 0 {
+        return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
+    }
 
-	fileSize := 0
+    fileSize := 0
 
-	tempFile, err := os.CreateTemp("", nameItem)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tempFile.Name())
+    tempFile, err := os.CreateTemp("", nameItem)
+    if err != nil {
+        return err
+    }
+    defer os.Remove(tempFile.Name())
 
-	for {
-		err := contextError(stream.Context())
-		if err != nil {
-			return err
-		}
+    for {
+        err := contextError(stream.Context())
+        if err != nil {
+            return err
+        }
 
-		log.Print("waiting to receive more data")
+        log.Print("waiting to receive more data")
 
-		req, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				log.Print("no more data")
-				break
-			}
-			return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
-		}
+        req, err := stream.Recv()
+        if err != nil {
+            if err == io.EOF {
+                log.Print("no more data")
+                break
+            }
+            return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
+        }
 
-		chunk := req.GetChunkData()
-		size := len(chunk)
+        chunk := req.GetChunkData()
+        size := len(chunk)
 
-		log.Printf("received a chunk with size: %d", size)
+        log.Printf("received a chunk with size: %d", size)
 
-		fileSize += size
+        fileSize += size
 
-		_, err = tempFile.Write(chunk)
-		if err != nil {
-			return err
-		}
-	}
+        _, err = tempFile.Write(chunk)
+        if err != nil {
+            return err
+        }
+    }
 
-	version, err := s.keeper.CreateFile(context.Background(),
-		&models.File{
-			Item: models.Item{
-				Name:    nameItem,
-				Content: fileContent,
-				Version: uuid.UUID{},
-				OwnerID: userID,
-			},
-			Size: int64(fileSize),
-			Data: tempFile,
-		})
-	if err != nil {
-		return logError(status.Errorf(codes.Internal, "cannot write file data: %v", err))
-	}
+    version, err := s.keeper.CreateFile(context.Background(),
+        &models.File{
+            Item: models.Item{
+                Name:    nameItem,
+                Content: fileContent,
+                Version: uuid.UUID{},
+                OwnerID: userID,
+            },
+            Size: int64(fileSize),
+            Data: tempFile,
+        })
+    if err != nil {
+        return logError(status.Errorf(codes.Internal, "cannot write file data: %v", err))
+    }
 
-	res := &keeperv1.CreateItemResponseV1{
-		Name:    nameItem,
-		Version: version,
-	}
+    res := &keeperv1.CreateItemResponseV1{
+        Name:    nameItem,
+        Version: version,
+    }
 
-	err = stream.SendAndClose(res)
-	if err != nil {
-		return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
-	}
+    err = stream.SendAndClose(res)
+    if err != nil {
+        return logError(status.Errorf(codes.Unknown, "cannot send response: %v", err))
+    }
 
-	log.Printf("saved file with id: %s, file size: %d, version: %s", nameItem, fileSize, version)
+    log.Printf("saved file with id: %s, file size: %d, version: %s", nameItem, fileSize, version)
 
-	return nil
+    return nil
 }
 
 func (s *serverAPI) UpdateItemV1(

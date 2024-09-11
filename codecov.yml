@@ -5,3 +5,6 @@ ignore:
   - "client/internal/app/mocks"
   - "server/internal/services/mocks"
   - "server/internal/app/grpc/mocks"
+  - "server/internal/handlers/grpc/auth/v1/mocks"
+  - "server/internal/handlers/grpc/keeper/v1/mocks"
+  - "server/internal/storage/mocks"
