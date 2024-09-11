@@ -16,26 +16,26 @@ import (
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Logins a user in the gophkeeper service",
-	Run:   run,
+	Run:   loginCmdRun,
 }
 
 // init initializes the login command and its flags.
 // It adds the login command to the authCmd and sets up the required flags for email and password.
 // If there's an error while marking the flags as required, it logs the error using the slog package.
 func init() {
-    authCmd.AddCommand(loginCmd)
+	authCmd.AddCommand(loginCmd)
 
-    loginCmd.Flags().StringP("email", "e", "", "User Email")
-    if err := loginCmd.MarkFlagRequired("email"); err != nil {
-        slog.Error("Error marking email as required", slog.String("error", err.Error()))
-    }
-    loginCmd.Flags().StringP("password", "p", "", "User password")
-    if err := loginCmd.MarkFlagRequired("password"); err != nil {
-        slog.Error("Error marking password as required", slog.String("error", err.Error()))
-    }
+	loginCmd.Flags().StringP("email", "e", "", "User Email")
+	if err := loginCmd.MarkFlagRequired("email"); err != nil {
+		slog.Error("Error marking email as required", slog.String("error", err.Error()))
+	}
+	loginCmd.Flags().StringP("password", "p", "", "User password")
+	if err := loginCmd.MarkFlagRequired("password"); err != nil {
+		slog.Error("Error marking password as required", slog.String("error", err.Error()))
+	}
 }
 
-// run is the main function for the login command. It handles user login to the gophkeeper service.
+// loginCmdRun is the main function for the login command. It handles user login to the gophkeeper service.
 //
 // The function performs the following steps:
 // 1. Retrieves the email and password from the command-line flags.
@@ -50,31 +50,31 @@ func init() {
 //
 // Return:
 // - None.
-func run(cmd *cobra.Command, args []string) {
-    const op = "client.auth.login.run"
-    log := logger.GetInstance().Log.With("op", op)
+func loginCmdRun(cmd *cobra.Command, args []string) {
+	const op = "client.auth.login.run"
+	log := logger.GetInstance().Log.With("op", op)
 
-    email, err := cmd.Flags().GetString("email")
-    if err != nil {
-        log.Error("Error while getting email", slog.String("error", err.Error()))
-    }
+	email, err := cmd.Flags().GetString("email")
+	if err != nil {
+		log.Error("Error while getting email", slog.String("error", err.Error()))
+	}
 
-    password, err := cmd.Flags().GetString("password")
-    if err != nil {
-        log.Error("Error while getting password", slog.String("error", err.Error()))
-    }
+	password, err := cmd.Flags().GetString("password")
+	if err != nil {
+		log.Error("Error while getting password", slog.String("error", err.Error()))
+	}
 
-    cfg := config.GetInstance().Config
-    authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
+	cfg := config.GetInstance().Config
+	authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
 
-    token, err := authClient.Login(context.Background(), email, password)
-    if err != nil {
-        log.Error("Error while login", slog.String("error", err.Error()))
-    }
+	token, err := authClient.Login(context.Background(), email, password)
+	if err != nil {
+		log.Error("Error while login", slog.String("error", err.Error()))
+	}
 
-    if err := tokenStorage.Save(token); err != nil {
-        log.Error("Failed to store access token", slog.String("error", err.Error()))
-    }
+	if err := tokenStorage.Save(token); err != nil {
+		log.Error("Failed to store access token", slog.String("error", err.Error()))
+	}
 
-    fmt.Printf("Access Token: %s\n", token)
+	fmt.Printf("Access Token: %s\n", token)
 }
