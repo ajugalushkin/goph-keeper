@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
@@ -30,7 +31,8 @@ var keepGetCmd = &cobra.Command{
 			return
 		}
 
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 		resp, err := keeperClient.GetItem(context.Background(), &v1.GetItemRequestV1{
 			Name: name,
 		})

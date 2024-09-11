@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
@@ -41,7 +42,8 @@ var keepGetBinCmd = &cobra.Command{
 			return
 		}
 
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 		stream, err := keeperClient.GetFile(context.Background(), name)
 		if err != nil {
 			log.Error("Error getting file stream: ", slog.String("error", err.Error()))

@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
@@ -25,7 +26,8 @@ var keepListCmd = &cobra.Command{
 			return
 		}
 
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 		resp, err := keeperClient.ListItems(context.Background(), &v1.ListItemsRequestV1{})
 		if err != nil {
 			log.Error("Failed to list secret: ", slog.String("error", err.Error()))

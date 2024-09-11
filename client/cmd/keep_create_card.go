@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
@@ -74,7 +75,8 @@ var keepCreateCardCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 
 		resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
 			Name:    name,

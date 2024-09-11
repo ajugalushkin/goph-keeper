@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
@@ -57,7 +58,8 @@ var keepCreateBinCmd = &cobra.Command{
 			return
 		}
 
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 		resp, err := keeperClient.CreateItemStream(context.Background(), name, filePath, content)
 		if err != nil {
 			log.Error("Error creating bin", slog.String("error", err.Error()))

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,8 +85,6 @@ func TestCreateItem_ContextCanceled(t *testing.T) {
 
 	mockAPI.AssertExpectations(t)
 }
-
-// stream
 
 // File specified by filePath does not exist
 func TestCreateItemStream_FileDoesNotExist(t *testing.T) {
@@ -202,7 +202,22 @@ func TestGetItem_Error(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-// stream get file
+// Successfully retrieves a stream when given a valid context and name
+func TestGetFile_Success(t *testing.T) {
+	ctx := context.Background()
+	name := "test-file"
+
+	mockStream := mocks.NewServerStreamingClient[keeperv1.GetItemStreamResponseV1](t)
+	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(mockStream, nil)
+
+	client := &KeeperClient{api: mockAPI}
+
+	stream, err := client.GetFile(ctx, name)
+
+	assert.NoError(t, err)
+	assert.Equal(t, mockStream, stream)
+}
 
 // Successfully retrieves a list of items when the API call returns a valid response
 func TestListItems_Success(t *testing.T) {
@@ -246,7 +261,37 @@ func TestListItems_Error(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-// get connection
+// Returns a valid grpc.ClientConn when provided a valid token
+func TestGetKeeperConnectionWithValidToken(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	address := "localhost:50051"
+	token := "valid-token"
+
+	conn := GetKeeperConnection(log, address, token)
+
+	if conn == nil {
+		t.Fatalf("Expected a valid grpc.ClientConn, got nil")
+	}
+}
+
+// Handles nil token input gracefully
+func TestGetKeeperConnectionWithNilToken(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	address := "invalid_connection"
+	token := ""
+
+	conn := GetKeeperConnection(log, address, token)
+
+	if conn.Target() != "invalid_connection" {
+		t.Fatalf("Expected nil grpc.ClientConn, got a valid connection")
+	}
+}
 
 // Returns a map with correct method names as keys
 func TestAuthMethodsReturnsCorrectKeys(t *testing.T) {

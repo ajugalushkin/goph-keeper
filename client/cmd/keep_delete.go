@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ajugalushkin/goph-keeper/client/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
@@ -30,7 +31,9 @@ var keepDeleteCmd = &cobra.Command{
 		if err != nil {
 			return
 		}
-		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(token))
+
+		cfg := config.GetInstance().Config.Client
+		keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 
 		resp, err := keeperClient.DeleteItem(context.Background(), &keeperv1.DeleteItemRequestV1{
 			Name: name,

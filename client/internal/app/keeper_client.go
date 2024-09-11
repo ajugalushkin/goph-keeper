@@ -10,8 +10,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -180,9 +178,13 @@ func (k *KeeperClient) ListItems(
 	return list, nil
 }
 
-func GetKeeperConnection(token string) *grpc.ClientConn {
+func GetKeeperConnection(
+	log *slog.Logger,
+	address string,
+	token string,
+) *grpc.ClientConn {
 	const op = "app.GetKeeperConnection"
-	log := logger.GetInstance().Log.With("op", op)
+	log.With("op", op)
 
 	interceptor, err := NewAuthInterceptor(token, authMethods())
 	if err != nil {
@@ -194,15 +196,17 @@ func GetKeeperConnection(token string) *grpc.ClientConn {
 		return nil
 	}
 
-	cfg := config.GetInstance().Config
 	keeperClientConnection, err := grpc.NewClient(
-		cfg.Client.Address,
+		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(interceptor.Unary()),
 		grpc.WithStreamInterceptor(interceptor.Stream()),
 	)
 	if err != nil {
-		log.Error("Unable to connect to server: ", slog.String("error", err.Error()))
+		log.Error(
+			"Unable to connect to server: ",
+			slog.String("error", err.Error()),
+		)
 	}
 
 	return keeperClientConnection
