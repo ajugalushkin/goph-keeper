@@ -99,6 +99,12 @@ func createCredentialsCmdRun(cmd *cobra.Command, args []string) {
 	})
 	if err != nil {
 		log.Error("Failed to create secret: ", slog.String("error", err.Error()))
+		return
+	}
+
+	if resp == nil {
+		log.Error("Failed to create secret: No response received")
+		return
 	}
 
 	fmt.Printf("Secret %s version %v created successfully\n", resp.GetName(), resp.GetVersion())

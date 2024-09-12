@@ -4,19 +4,6 @@ import (
 	"testing"
 )
 
-type mockVault struct {
-	vaultType VaultType
-	data      string
-}
-
-func (m mockVault) Type() VaultType {
-	return m.vaultType
-}
-
-func (m mockVault) String() string {
-	return m.data
-}
-
 // Decodes valid credentials data correctly
 func TestDecodeVaultWithValidCredentials(t *testing.T) {
 	data := []byte(`{"type":"credentials","data":{"Login":"user","Password":"pass"}}`)

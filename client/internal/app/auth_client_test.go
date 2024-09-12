@@ -28,9 +28,10 @@ func TestNewAuthClientWithValidConn(t *testing.T) {
 	// Assert
 	if client == nil {
 		t.Errorf("Expected AuthClient instance, got nil")
-	}
-	if client.api == nil {
-		t.Errorf("Expected AuthServiceV1Client instance, got nil")
+	} else {
+		if client.api == nil {
+			t.Errorf("Expected AuthServiceV1Client instance, got nil")
+		}
 	}
 }
 
@@ -45,9 +46,10 @@ func TestNewAuthClientWithNilConn(t *testing.T) {
 	// Assert
 	if client == nil {
 		t.Errorf("Expected AuthClient instance, got nil")
-	}
-	if client.api == nil {
-		t.Errorf("Expected AuthServiceV1Client instance, got nil")
+	} else {
+		if client.api == nil {
+			t.Errorf("Expected AuthServiceV1Client instance, got nil")
+		}
 	}
 }
 

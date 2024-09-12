@@ -28,21 +28,21 @@ var keepCreateTextCmd = &cobra.Command{
 // The "data" flag represents the text data to be stored in the secret.
 // If any error occurs during the flag setup, it logs the error using the slog package.
 func init() {
-    const op = "keep_create_text"
-    keepCreateCmd.AddCommand(keepCreateTextCmd)
+	const op = "keep_create_text"
+	keepCreateCmd.AddCommand(keepCreateTextCmd)
 
-    keepCreateTextCmd.Flags().String("name", "", "Secret name")
-    if err := keepCreateTextCmd.MarkFlagRequired("name"); err != nil {
-        slog.Error("Error setting flag: ",
-            slog.String("op", op),
-            slog.String("error", err.Error()))
-    }
-    keepCreateTextCmd.Flags().String("data", "", "Text data")
-    if err := keepCreateTextCmd.MarkFlagRequired("data"); err != nil {
-        slog.Error("Error setting flag: ",
-            slog.String("op", op),
-            slog.String("error", err.Error()))
-    }
+	keepCreateTextCmd.Flags().String("name", "", "Secret name")
+	if err := keepCreateTextCmd.MarkFlagRequired("name"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
+	keepCreateTextCmd.Flags().String("data", "", "Text data")
+	if err := keepCreateTextCmd.MarkFlagRequired("data"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
 }
 
 // keepCreateTextCmdRun is responsible for handling the execution of the "text" subcommand of the "keep create" command.
@@ -56,49 +56,54 @@ func init() {
 // Return:
 // - This function does not return any value.
 func keepCreateTextCmdRun(cmd *cobra.Command, args []string) {
-    const op = "keep_create_text"
-    log := logger.GetInstance().Log.With("op", op)
+	const op = "keep_create_text"
+	log := logger.GetInstance().Log.With("op", op)
 
-    name, err := cmd.Flags().GetString("name")
-    if err != nil {
-        log.Error("Error reading secret name: ",
-            slog.String("error", err.Error()))
-        return
-    }
+	name, err := cmd.Flags().GetString("name")
+	if err != nil {
+		log.Error("Error reading secret name: ",
+			slog.String("error", err.Error()))
+		return
+	}
 
-    data, err := cmd.Flags().GetString("data")
-    if err != nil {
-        log.Error("Error reading text data: ",
-            slog.String("error", err.Error()))
-        return
-    }
+	data, err := cmd.Flags().GetString("data")
+	if err != nil {
+		log.Error("Error reading text data: ",
+			slog.String("error", err.Error()))
+		return
+	}
 
-    text := vaulttypes.Text{
-        Data: data,
-    }
+	text := vaulttypes.Text{
+		Data: data,
+	}
 
-    content, err := encryptSecret(text)
-    if err != nil {
-        log.Error("Failed to encrypt secret: ",
-            slog.String("error", err.Error()))
-        return
-    }
+	content, err := encryptSecret(text)
+	if err != nil {
+		log.Error("Failed to encrypt secret: ",
+			slog.String("error", err.Error()))
+		return
+	}
 
-    token, err := tokenStorage.Load()
-    if err != nil {
-        return
-    }
+	token, err := tokenStorage.Load()
+	if err != nil {
+		return
+	}
 
-    cfg := config.GetInstance().Config.Client
-    keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	cfg := config.GetInstance().Config.Client
+	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
 
-    resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
-        Name:    name,
-        Content: content,
-    })
-    if err != nil {
-        log.Error("Failed to create secret: ", slog.String("error", err.Error()))
-    }
+	resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	})
+	if err != nil {
+		log.Error("Failed to create secret: ", slog.String("error", err.Error()))
+	}
 
-    fmt.Printf("Secret %s version %v created successfully\n", resp.GetName(), resp.GetVersion())
+	if resp == nil {
+		log.Error("Nil response received from Keeper server")
+		return
+	}
+
+	fmt.Printf("Secret %s version %v created successfully\n", resp.GetName(), resp.GetVersion())
 }

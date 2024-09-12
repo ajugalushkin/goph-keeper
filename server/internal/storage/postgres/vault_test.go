@@ -150,7 +150,11 @@ func TestListHandlesDBConnectionError(t *testing.T) {
 		t.Error("expected an error but got none")
 	}
 
-	if err.Error() != "db connection error" {
-		t.Errorf("expected 'db connection error', got %v", err)
+	if err == nil {
+		t.Error("expected an error but got none")
+	} else {
+		if err.Error() != "db connection error" {
+			t.Errorf("expected 'db connection error', got %v", err)
+		}
 	}
 }

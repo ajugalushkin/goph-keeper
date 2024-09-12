@@ -161,11 +161,11 @@ func TestSaveUserWithEmailExceedingMaxLength(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
-	}
-
-	expectedError := "value too long for type character varying(255)"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	} else {
+		expectedError := "value too long for type character varying(255)"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -192,11 +192,11 @@ func TestSaveUserWithPasswordHashExceedingMaxLength(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
-	}
-
-	expectedError := "value too long for type bytea"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	} else {
+		expectedError := "value too long for type bytea"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -253,11 +253,11 @@ func TestSaveUserWithInvalidPasswordHashCharacters(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
-	}
-
-	expectedError := "invalid characters in password hash"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	} else {
+		expectedError := "invalid characters in password hash"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -285,13 +285,12 @@ func TestSaveUser_EmptyEmail(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
+	} else {
+		expectedError := "empty email"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
-
-	expectedError := "empty email"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
-	}
-
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -317,13 +316,12 @@ func TestSaveUserWithEmptyPasswordHash(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
+	} else {
+		expectedError := "password hash cannot be empty"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
-
-	expectedError := "password hash cannot be empty"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
-	}
-
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -349,11 +347,11 @@ func TestSaveUserWithInvalidEmailCharacters(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
-	}
-
-	expectedError := "invalid characters in email"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	} else {
+		expectedError := "invalid characters in email"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -381,11 +379,11 @@ func TestSaveUserWithSQLInjectionAttempt(t *testing.T) {
 	_, err = userStorage.SaveUser(ctx, email, passHash)
 	if err == nil {
 		t.Error("expected an error but got none")
-	}
-
-	expectedError := "unique constraint violation"
-	if !strings.Contains(err.Error(), expectedError) {
-		t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+	} else {
+		expectedError := "unique constraint violation"
+		if !strings.Contains(err.Error(), expectedError) {
+			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
+		}
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

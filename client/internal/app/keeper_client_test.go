@@ -21,7 +21,7 @@ import (
 
 // Initializes KeeperClient with valid grpc.ClientConn
 func TestInitializesKeeperClientWithValidClientConn(t *testing.T) {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("Failed to dial: %v", err)
 	}

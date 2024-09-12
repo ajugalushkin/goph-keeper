@@ -147,6 +147,11 @@ func createCardCmdRun(cmd *cobra.Command, args []string) {
 	})
 	if err != nil {
 		log.Error("Failed to create secret: ", slog.String("error", err.Error()))
+		return
+	}
+	if resp == nil {
+		log.Error("No response received from Keeper server")
+		return
 	}
 
 	// Print a success message with the created secret's name and version.
