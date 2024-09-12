@@ -64,7 +64,13 @@ func TestInterceptorAddsAuthorizationMetadata(t *testing.T) {
 	method := "TestMethod"
 	req, reply := struct{}{}, struct{}{}
 	cc := &grpc.ClientConn{}
-	invoker := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
+	invoker := func(
+		ctx context.Context,
+		method string,
+		req, reply interface{},
+		cc *grpc.ClientConn,
+		opts ...grpc.CallOption,
+	) error {
 		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
 			t.Fatalf("No metadata in context")
