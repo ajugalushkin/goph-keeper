@@ -24,7 +24,7 @@ func (_m *CreateItemStreamServer) Context() context.Context {
 		panic("no return value specified for Context")
 	}
 
-	var r0 context.Context
+	r0:= context.TODO
 	if rf, ok := ret.Get(0).(func() context.Context); ok {
 		r0 = rf()
 	} else {
