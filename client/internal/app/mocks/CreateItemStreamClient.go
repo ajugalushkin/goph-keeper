@@ -72,7 +72,7 @@ func (_m *CreateItemStreamClient) Context() context.Context {
 		panic("no return value specified for Context")
 	}
 
-	r0:= context.TODO()
+	var r0 context.Context
 	if rf, ok := ret.Get(0).(func() context.Context); ok {
 		r0 = rf()
 	} else {
