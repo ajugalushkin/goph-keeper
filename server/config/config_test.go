@@ -37,8 +37,8 @@ func TestMustLoadValidConfig(t *testing.T) {
 	tmpFile.Close()
 
 	// Set the CONFIG environment variable to the temp file path
-	os.Setenv("CONFIG", tmpFile.Name())
-	defer os.Unsetenv("CONFIG")
+	os.Setenv("SERVER_CONFIG", tmpFile.Name())
+	defer os.Unsetenv("SERVER_CONFIG")
 
 	// Load the config
 	cfg := MustLoad()
