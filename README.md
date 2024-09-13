@@ -1,7 +1,6 @@
-[![codecov.io](https://codecov.io/github/ajugalushkin/goph-keeper/coverage.svg?branch=master)](https://codecov.io/github/ajugalushkin/goph-keeper?branch=iter3)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3))
-[![Lint tests](https://github.com/ajugalushkin/goph-keeper/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/hikjik/gophkeeper/actions/workflows/lint-tests.yml)
-[![Unit tests](https://github.com/ajugalushkin/goph-keeper/actions/workflows/action-codecov.yml/badge.svg)](https://github.com/hikjik/gophkeeper/actions/workflows/unit-tests.yml)
+[![codecov](https://codecov.io/github/ajugalushkin/goph-keeper/branch/iter3/graph/badge.svg?token=AM7EOPJ3D6)](https://codecov.io/github/ajugalushkin/goph-keeper)
+[![Lint tests](https://github.com/ajugalushkin/goph-keeper/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/ajugalushkin/goph-keeper/actions/workflows/golangci-lint.yml)
+[![Unit tests](https://github.com/ajugalushkin/goph-keeper/actions/workflows/action-codecov.yml/badge.svg)](https://github.com/ajugalushkin/goph-keeper/actions/workflows/action-codecov.yml)
 ------
 # Менеджер паролей GophKeeper
 
