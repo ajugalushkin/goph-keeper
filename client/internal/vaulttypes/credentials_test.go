@@ -15,7 +15,7 @@ func TestTypeReturnsVaultTypeCredentials(t *testing.T) {
 
 	result := creds.Type()
 
-	assert.Equal(t, VaultType("credentials"), result)
+	assert.Equal(t, VaultType("creds"), result)
 }
 
 // Handles empty Credentials struct without errors
@@ -24,7 +24,7 @@ func TestTypeHandlesEmptyCredentials(t *testing.T) {
 
 	result := creds.Type()
 
-	assert.Equal(t, VaultType("credentials"), result)
+	assert.Equal(t, VaultType("creds"), result)
 }
 
 // Returns formatted string with login and password

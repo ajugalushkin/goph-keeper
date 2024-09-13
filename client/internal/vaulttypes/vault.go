@@ -8,7 +8,7 @@ import (
 type VaultType string
 
 const (
-	vaultTypeCredentials VaultType = "credentials"
+	vaultTypeCredentials VaultType = "creds"
 	vaultTypeText        VaultType = "text"
 	vaultTypeBin         VaultType = "bin"
 	vaultTypeCard        VaultType = "card"

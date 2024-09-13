@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// Initializes AuthInterceptor with valid token and authMethods
+// Initializes AuthInterceptor with valid token_cache and authMethods
 func TestInitializesAuthInterceptorWithValidTokenAndAuthMethods(t *testing.T) {
-	token := "valid-token"
+	token := "valid-token_cache"
 	authMethods := map[string]bool{
 		"/service/method": true,
 	}
@@ -30,7 +30,7 @@ func TestInitializesAuthInterceptorWithValidTokenAndAuthMethods(t *testing.T) {
 	}
 }
 
-// Handles empty token string gracefully
+// Handles empty token_cache string gracefully
 func TestHandlesEmptyTokenStringGracefully(t *testing.T) {
 	token := ""
 	authMethods := map[string]bool{
@@ -55,7 +55,7 @@ func TestHandlesEmptyTokenStringGracefully(t *testing.T) {
 // Interceptor adds authorization metadata to context
 func TestInterceptorAddsAuthorizationMetadata(t *testing.T) {
 	authMethods := map[string]bool{"TestMethod": true}
-	interceptor, err := NewAuthInterceptor("test-token", authMethods)
+	interceptor, err := NewAuthInterceptor("test-token_cache", authMethods)
 	if err != nil {
 		t.Fatalf("Failed to create AuthInterceptor: %v", err)
 	}
@@ -75,8 +75,8 @@ func TestInterceptorAddsAuthorizationMetadata(t *testing.T) {
 		if !ok {
 			t.Fatalf("No metadata in context")
 		}
-		if len(md["authorization"]) == 0 || md["authorization"][0] != "Bearer test-token" {
-			t.Fatalf("Authorization token not found in metadata")
+		if len(md["authorization"]) == 0 || md["authorization"][0] != "Bearer test-token_cache" {
+			t.Fatalf("Authorization token_cache not found in metadata")
 		}
 		return nil
 	}
@@ -90,7 +90,7 @@ func TestInterceptorAddsAuthorizationMetadata(t *testing.T) {
 // Method name is empty
 func TestInterceptorWithEmptyMethodName(t *testing.T) {
 	authMethods := map[string]bool{"": true}
-	interceptor, err := NewAuthInterceptor("test-token", authMethods)
+	interceptor, err := NewAuthInterceptor("test-token_cache", authMethods)
 	if err != nil {
 		t.Fatalf("Failed to create AuthInterceptor: %v", err)
 	}
@@ -104,8 +104,8 @@ func TestInterceptorWithEmptyMethodName(t *testing.T) {
 		if !ok {
 			t.Fatalf("No metadata in context")
 		}
-		if len(md["authorization"]) == 0 || md["authorization"][0] != "Bearer test-token" {
-			t.Fatalf("Authorization token not found in metadata")
+		if len(md["authorization"]) == 0 || md["authorization"][0] != "Bearer test-token_cache" {
+			t.Fatalf("Authorization token_cache not found in metadata")
 		}
 		return nil
 	}
@@ -134,7 +134,7 @@ func TestStreamInterceptorAddsAuthorizationMetadata(t *testing.T) {
 			t.Fatalf("No metadata found in context")
 		}
 		if len(md["authorization"]) == 0 || md["authorization"][0] != "Bearer testToken" {
-			t.Fatalf("Authorization token not found in metadata")
+			t.Fatalf("Authorization token_cache not found in metadata")
 		}
 		return nil, nil
 	}

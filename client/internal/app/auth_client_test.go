@@ -86,12 +86,12 @@ func TestRegistrationWithEmptyEmail(t *testing.T) {
 	mockAuthService.AssertExpectations(t)
 }
 
-// Successful login returns a valid token
+// Successful login returns a valid token_cache
 func TestSuccessfulLoginReturnsValidToken(t *testing.T) {
 	ctx := context.Background()
 	email := "test@example.com"
 	password := "password123"
-	expectedToken := "valid-token"
+	expectedToken := "valid-token_cache"
 
 	mockAuthService := mocks.NewAuthServiceV1Client(t)
 	mockAuthService.On("LoginV1", ctx, &authv1.LoginRequestV1{
@@ -111,7 +111,7 @@ func TestLoginWithIncorrectCredentialsReturnsError(t *testing.T) {
 	ctx := context.Background()
 	email := "wrong@example.com"
 	password := "wrongpassword"
-	expectedError := fmt.Errorf("client.auth.Login: invalid credentials")
+	expectedError := fmt.Errorf("client.auth.Login: invalid creds")
 
 	mockAuthService := mocks.NewAuthServiceV1Client(t)
 	mockAuthService.On("LoginV1", ctx, &authv1.LoginRequestV1{

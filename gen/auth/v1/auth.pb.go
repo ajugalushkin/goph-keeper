@@ -183,7 +183,7 @@ type LoginResponseV1 struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Token string `protobuf:"bytes,1,opt,name=token_cache,proto3" json:"token_cache,omitempty"`
 }
 
 func (x *LoginResponseV1) Reset() {

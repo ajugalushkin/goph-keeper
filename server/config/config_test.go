@@ -18,7 +18,7 @@ func TestMustLoadValidConfig(t *testing.T) {
     grpc:
       address: "localhost:50051"
       timeout: "1h"
-    token:
+    token_cache:
       ttl: "24h"
       secret: "supersecret"
     minio:

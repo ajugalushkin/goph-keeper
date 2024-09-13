@@ -9,7 +9,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 )
 
-// Creates a JWTManager instance with valid logger, secret key, and token duration
+// Creates a JWTManager instance with valid logger, secret key, and token_cache duration
 func TestNewJWTManagerWithValidInputs(t *testing.T) {
 
 	log := slog.New(
@@ -48,7 +48,7 @@ func TestNewJWTManagerWithEmptySecretKey(t *testing.T) {
 	}
 }
 
-// Generates a valid JWT token for a given user
+// Generates a valid JWT token_cache for a given user
 func TestGeneratesValidJWTToken(t *testing.T) {
 	log := slog.New(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
@@ -69,11 +69,11 @@ func TestGeneratesValidJWTToken(t *testing.T) {
 	}
 
 	if token == "" {
-		t.Fatalf("expected a valid token, got an empty string")
+		t.Fatalf("expected a valid token_cache, got an empty string")
 	}
 }
 
-// Verify valid token with correct signing method
+// Verify valid token_cache with correct signing method
 func TestVerifyValidToken(t *testing.T) {
 	log := slog.New(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
@@ -83,16 +83,16 @@ func TestVerifyValidToken(t *testing.T) {
 	user := models.User{ID: 1, Email: "test@example.com"}
 	token, err := manager.NewToken(user)
 	if err != nil {
-		t.Fatalf("Failed to create token: %v", err)
+		t.Fatalf("Failed to create token_cache: %v", err)
 	}
 
 	valid, userID, err := manager.Verify(token)
 	if err != nil {
-		t.Fatalf("Failed to verify token: %v", err)
+		t.Fatalf("Failed to verify token_cache: %v", err)
 	}
 
 	if !valid {
-		t.Errorf("Expected token to be valid")
+		t.Errorf("Expected token_cache to be valid")
 	}
 
 	if userID != user.ID {
@@ -100,19 +100,19 @@ func TestVerifyValidToken(t *testing.T) {
 	}
 }
 
-// Handle invalid token format
+// Handle invalid token_cache format
 func TestVerifyInvalidTokenFormat(t *testing.T) {
 	log := slog.New(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 	)
 	manager := NewJWTManager(log, "secret", time.Hour)
 
-	invalidToken := "invalid.token.format"
+	invalidToken := "invalid.token_cache.format"
 
 	valid, userID, err := manager.Verify(invalidToken)
 
 	if valid {
-		t.Errorf("Expected token to be invalid")
+		t.Errorf("Expected token_cache to be invalid")
 	}
 
 	if userID != 0 {
@@ -120,6 +120,6 @@ func TestVerifyInvalidTokenFormat(t *testing.T) {
 	}
 
 	if err == nil {
-		t.Errorf("Expected an error for invalid token format")
+		t.Errorf("Expected an error for invalid token_cache format")
 	}
 }

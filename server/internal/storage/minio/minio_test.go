@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Returns an error if the Minio client cannot be created due to invalid credentials
+// Returns an error if the Minio client cannot be created due to invalid creds
 func TestNewMinioStorage_InvalidCredentials(t *testing.T) {
 	cfg := config.Minio{
 		Endpoint: "localhost:9000",

@@ -528,14 +528,14 @@ func TestListItems_Error(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-// Returns a valid grpc.ClientConn when provided a valid token
+// Returns a valid grpc.ClientConn when provided a valid token_cache
 func TestGetKeeperConnectionWithValidToken(t *testing.T) {
 	log := slog.New(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 	)
 
 	address := "localhost:50051"
-	token := "valid-token"
+	token := "valid-token_cache"
 
 	conn := GetKeeperConnection(log, address, token)
 
@@ -544,7 +544,7 @@ func TestGetKeeperConnectionWithValidToken(t *testing.T) {
 	}
 }
 
-// Handles nil token input gracefully
+// Handles nil token_cache input gracefully
 func TestGetKeeperConnectionWithNilToken(t *testing.T) {
 	log := slog.New(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),

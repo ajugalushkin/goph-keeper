@@ -44,7 +44,7 @@ func TestNewAuthServiceInitialization(t *testing.T) {
 	}
 }
 
-// Successful login returns a valid JWT token
+// Successful login returns a valid JWT token_cache
 func TestLoginSuccessful(t *testing.T) {
 	ctx := context.Background()
 
@@ -61,12 +61,12 @@ func TestLoginSuccessful(t *testing.T) {
 	mockUserProvider.On("User", ctx, email).Return(user, nil)
 
 	mockJWTManager := new(mocks.TokenManager)
-	mockJWTManager.On("NewToken", user).Return("valid-token", nil)
+	mockJWTManager.On("NewToken", user).Return("valid-token_cache", nil)
 
 	auth := NewAuthService(log, nil, mockUserProvider, mockJWTManager)
 
 	token, err := auth.Login(ctx, email, password)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "valid-token", token)
+	assert.Equal(t, "valid-token_cache", token)
 }

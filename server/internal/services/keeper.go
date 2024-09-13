@@ -53,19 +53,19 @@ type ObjectProvider interface {
 // Returns:
 // - A pointer to a new instance of the Keeper service.
 func NewKeeperService(
-    log *slog.Logger,
-    provider ItemProvider,
-    saver ItemSaver,
-    objectSaver ObjectSaver,
-    objectProvider ObjectProvider,
+	log *slog.Logger,
+	provider ItemProvider,
+	saver ItemSaver,
+	objectSaver ObjectSaver,
+	objectProvider ObjectProvider,
 ) *Keeper {
-    return &Keeper{
-        log:         log,
-        itmSaver:    saver,
-        itmProvider: provider,
-        ObjSaver:    objectSaver,
-        objProvider: objectProvider,
-    }
+	return &Keeper{
+		log:         log,
+		itmSaver:    saver,
+		itmProvider: provider,
+		ObjSaver:    objectSaver,
+		objProvider: objectProvider,
+	}
 }
 
 // CreateItem creates a new item in the keeper.
@@ -88,20 +88,20 @@ func NewKeeperService(
 // - A pointer to a models.Item representing the newly created item.
 // - An error if the save operation fails.
 func (k *Keeper) CreateItem(
-    ctx context.Context,
-    item *models.Item,
+	ctx context.Context,
+	item *models.Item,
 ) (*models.Item, error) {
-    const op = "services.keeper.createItem"
-    k.log.With("op", op)
+	const op = "services.keeper.createItem"
+	k.log.With("op", op)
 
-    newItem, err := k.itmSaver.Create(ctx, item)
-    if err != nil {
-        k.log.Debug("Failed to create item", slog.String("error", err.Error()))
-        return nil, err
-    }
+	newItem, err := k.itmSaver.Create(ctx, item)
+	if err != nil {
+		k.log.Debug("Failed to create item", slog.String("error", err.Error()))
+		return nil, err
+	}
 
-    k.log.Debug("Successfully created item")
-    return newItem, nil
+	k.log.Debug("Successfully created item")
+	return newItem, nil
 }
 
 // CreateFile creates a new file in the keeper and associates it with an item.
@@ -123,23 +123,23 @@ func (k *Keeper) CreateItem(
 // - A string representing the version of the newly created item.
 // - An error if the save operations fail.
 func (k *Keeper) CreateFile(
-    ctx context.Context,
-    file *models.File,
+	ctx context.Context,
+	file *models.File,
 ) (string, error) {
-    const op = "services.keeper.createFile"
+	const op = "services.keeper.createFile"
 
-    var err error
-    file.Item.FileID, err = k.ObjSaver.Create(ctx, file)
-    if err != nil || file.Item.FileID == "" {
-        return "", fmt.Errorf("op: %s, failed to create file: %w", op, err)
-    }
+	var err error
+	file.Item.FileID, err = k.ObjSaver.Create(ctx, file)
+	if err != nil || file.Item.FileID == "" {
+		return "", fmt.Errorf("op: %s, failed to create file: %w", op, err)
+	}
 
-    item, err := k.itmSaver.Create(ctx, &file.Item)
-    if err != nil {
-        return "", fmt.Errorf("op: %s, failed to create info item for file: %w", op, err)
-    }
+	item, err := k.itmSaver.Create(ctx, &file.Item)
+	if err != nil {
+		return "", fmt.Errorf("op: %s, failed to create info item for file: %w", op, err)
+	}
 
-    return item.Version.String(), nil
+	return item.Version.String(), nil
 }
 
 // UpdateItem updates an existing item in the keeper.
@@ -162,17 +162,17 @@ func (k *Keeper) CreateFile(
 // - A pointer to a models.Item representing the updated item.
 // - An error if the update operation fails.
 func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Item, error) {
-    const op = "services.keeper.updateItem"
-    k.log.With("op", op)
+	const op = "services.keeper.updateItem"
+	k.log.With("op", op)
 
-    item, err := k.itmSaver.Update(ctx, item)
-    if err != nil {
-        k.log.Debug("Failed to update item", slog.String("error", err.Error()))
-        return nil, err
-    }
+	item, err := k.itmSaver.Update(ctx, item)
+	if err != nil {
+		k.log.Debug("Failed to update item", slog.String("error", err.Error()))
+		return nil, err
+	}
 
-    k.log.Debug("Successfully update item")
-    return item, nil
+	k.log.Debug("Successfully update item")
+	return item, nil
 }
 
 // DeleteItem deletes an existing item in the keeper along with its associated file, if any.
@@ -181,9 +181,9 @@ func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Ite
 // execution deadline, cancelation, and other request-scoped values. The item parameter represents
 // the data to be deleted from the keeper.
 //
-// The function interacts with the ItemProvider and ItemSaver interfaces to retrieve and delete the item.
+// The function interacts with the ItemProvider and ItemSaver interfaces to retrieve and del the item.
 // If the item has an associated file (identified by the FileID field), the function also interacts with
-// the ObjectSaver interface to delete the file.
+// the ObjectSaver interface to del the file.
 //
 // If any of the deletion operations fail, the function logs the error and returns the error.
 // Otherwise, the function logs a success message and returns nil.
@@ -195,34 +195,34 @@ func (k *Keeper) UpdateItem(ctx context.Context, item *models.Item) (*models.Ite
 // Returns:
 // - An error if any of the deletion operations fail.
 func (k *Keeper) DeleteItem(
-    ctx context.Context,
-    item *models.Item,
+	ctx context.Context,
+	item *models.Item,
 ) error {
-    const op = "services.keeper.deleteItem"
-    log := k.log.With("op", op)
+	const op = "services.keeper.deleteItem"
+	log := k.log.With("op", op)
 
-    item, err := k.itmProvider.Get(ctx, item.Name, item.OwnerID)
-    if err != nil {
-        log.Debug("failed get item", slog.String("error", err.Error()))
-        return err
-    }
+	item, err := k.itmProvider.Get(ctx, item.Name, item.OwnerID)
+	if err != nil {
+		log.Debug("failed get item", slog.String("error", err.Error()))
+		return err
+	}
 
-    err = k.itmSaver.Delete(ctx, item)
-    if err != nil {
-        k.log.Debug("Failed to delete item", slog.String("error", err.Error()))
-        return err
-    }
+	err = k.itmSaver.Delete(ctx, item)
+	if err != nil {
+		k.log.Debug("Failed to del item", slog.String("error", err.Error()))
+		return err
+	}
 
-    if item.FileID != "" {
-        err := k.ObjSaver.Delete(ctx, item.FileID)
-        if err != nil {
-            log.Debug("Failed to delete file", slog.String("error", err.Error()))
-            return err
-        }
-    }
+	if item.FileID != "" {
+		err := k.ObjSaver.Delete(ctx, item.FileID)
+		if err != nil {
+			log.Debug("Failed to del file", slog.String("error", err.Error()))
+			return err
+		}
+	}
 
-    k.log.Debug("Successfully deleted item")
-    return nil
+	k.log.Debug("Successfully deleted item")
+	return nil
 }
 
 // GetItem retrieves an item from the keeper by name and user ID.
@@ -240,21 +240,21 @@ func (k *Keeper) DeleteItem(
 // - A pointer to a models.Item representing the retrieved item.
 // - An error if the retrieval operation fails.
 func (k *Keeper) GetItem(
-    ctx context.Context,
-    name string,
-    userID int64,
+	ctx context.Context,
+	name string,
+	userID int64,
 ) (*models.Item, error) {
-    const op = "services.keeper.getItem"
-    k.log.With("op", op)
+	const op = "services.keeper.getItem"
+	k.log.With("op", op)
 
-    item, err := k.itmProvider.Get(ctx, name, userID)
-    if err != nil {
-        k.log.Debug("Failed to get item", slog.String("error", err.Error()))
-        return nil, err
-    }
+	item, err := k.itmProvider.Get(ctx, name, userID)
+	if err != nil {
+		k.log.Debug("Failed to get item", slog.String("error", err.Error()))
+		return nil, err
+	}
 
-    k.log.Debug("Successfully get item")
-    return item, nil
+	k.log.Debug("Successfully get item")
+	return item, nil
 }
 
 // GetFile retrieves a file from the keeper by name and user ID.
@@ -271,25 +271,25 @@ func (k *Keeper) GetItem(
 // - A pointer to a models.File representing the retrieved file.
 // - An error if the retrieval operation fails.
 func (k *Keeper) GetFile(
-    ctx context.Context,
-    name string,
-    userID int64,
+	ctx context.Context,
+	name string,
+	userID int64,
 ) (*models.File, error) {
-    const op = "services.keeper.getFile"
+	const op = "services.keeper.getFile"
 
-    item, err := k.itmProvider.Get(ctx, name, userID)
-    if err != nil {
-        return nil, fmt.Errorf("op: %s, failed to get info item for file: %w", op, err)
-    }
+	item, err := k.itmProvider.Get(ctx, name, userID)
+	if err != nil {
+		return nil, fmt.Errorf("op: %s, failed to get info item for file: %w", op, err)
+	}
 
-    file, err := k.objProvider.Get(ctx, item.FileID)
-    if err != nil {
-        return nil, fmt.Errorf("op: %s, failed to get file: %w", op, err)
-    }
+	file, err := k.objProvider.Get(ctx, item.FileID)
+	if err != nil {
+		return nil, fmt.Errorf("op: %s, failed to get file: %w", op, err)
+	}
 
-    file.Item = *item
+	file.Item = *item
 
-    return file, nil
+	return file, nil
 }
 
 // ListItems retrieves a list of items from the keeper for a given user ID.
@@ -306,18 +306,18 @@ func (k *Keeper) GetFile(
 // - list: A slice of models.Item pointers representing the retrieved items.
 // - err: An error if the retrieval operation fails. If nil, the operation was successful.
 func (k *Keeper) ListItems(
-    ctx context.Context,
-    userID int64,
+	ctx context.Context,
+	userID int64,
 ) (list []*models.Item, err error) {
-    const op = "services.keeper.listItem"
-    k.log.With("op", op)
+	const op = "services.keeper.listItem"
+	k.log.With("op", op)
 
-    list, err = k.itmProvider.List(ctx, userID)
-    if err != nil {
-        k.log.Debug("Failed to list items", slog.String("error", err.Error()))
-        return nil, err
-    }
+	list, err = k.itmProvider.List(ctx, userID)
+	if err != nil {
+		k.log.Debug("Failed to list items", slog.String("error", err.Error()))
+		return nil, err
+	}
 
-    k.log.Debug("Successfully get list")
-    return list, nil
+	k.log.Debug("Successfully get list")
+	return list, nil
 }

@@ -91,7 +91,7 @@ func TestRegisterV1_InvalidRequest(t *testing.T) {
 	assert.Equal(t, codes.InvalidArgument, status.Code(err))
 }
 
-// Valid login request returns a token
+// Valid login request returns a token_cache
 func TestValidLoginRequestReturnsToken(t *testing.T) {
 	ctx := context.Background()
 	req := &v1.LoginRequestV1{
@@ -100,7 +100,7 @@ func TestValidLoginRequestReturnsToken(t *testing.T) {
 	}
 
 	mockAuth := mocks.NewAuth(t)
-	mockAuth.On("Login", ctx, "test@example.com", "password123").Return("valid-token", nil)
+	mockAuth.On("Login", ctx, "test@example.com", "password123").Return("valid-token_cache", nil)
 
 	s := &serverAPI{
 		auth: mockAuth,
@@ -108,10 +108,10 @@ func TestValidLoginRequestReturnsToken(t *testing.T) {
 
 	resp, err := s.LoginV1(ctx, req)
 	require.NoError(t, err)
-	assert.Equal(t, "valid-token", resp.Token)
+	assert.Equal(t, "valid-token_cache", resp.Token)
 }
 
-// Invalid credentials return an invalid argument error
+// Invalid creds return an invalid argument error
 func TestInvalidCredentialsReturnInvalidArgumentError(t *testing.T) {
 	ctx := context.Background()
 	req := &v1.LoginRequestV1{
@@ -130,5 +130,5 @@ func TestInvalidCredentialsReturnInvalidArgumentError(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, resp)
 	assert.Equal(t, codes.InvalidArgument, status.Code(err))
-	assert.Contains(t, err.Error(), "invalid credentials")
+	assert.Contains(t, err.Error(), "invalid creds")
 }

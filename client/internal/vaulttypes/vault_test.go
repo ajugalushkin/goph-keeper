@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-// Decodes valid credentials data correctly
+// Decodes valid creds data correctly
 func TestDecodeVaultWithValidCredentials(t *testing.T) {
-	data := []byte(`{"type":"credentials","data":{"Login":"user","Password":"pass"}}`)
+	data := []byte(`{"type":"creds","data":{"Login":"user","Password":"pass"}}`)
 	vault, err := DecodeVault(data)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
