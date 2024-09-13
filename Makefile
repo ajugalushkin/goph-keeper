@@ -83,9 +83,3 @@ goose-down:		## Roll back the version by 1
 	goose -dir ./server/migrations postgres ${DATABASE_URL} down
 
 #######################################################################################################################
-
-#.reqs:
-#	pip install --upgrade pip
-#	pip install pgcli
-#	pip install "psycopg[binary,pool]"
-#	go install github.com/pressly/goose/v3/cmd/goose@latest

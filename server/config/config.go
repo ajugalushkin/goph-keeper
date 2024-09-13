@@ -110,7 +110,7 @@ func fetchConfig() string {
 	flag.Parse()
 
 	if result == "" {
-		result = os.Getenv("CONFIG")
+		result = os.Getenv("SERVER_CONFIG")
 	}
 	return result
 }

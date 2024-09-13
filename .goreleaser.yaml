@@ -19,22 +19,22 @@ builds:
   - main: ./client/main.go
     env:
       - CGO_ENABLED=0
-    id: "cli"
-    binary: cli
+    id: "goph-keeper-cli"
+    binary: goph-keeper-cli
     goos:
       - linux
       - darwin
       - windows
 
-  - main: ./server/cmd/main.go
-    env:
-      - CGO_ENABLED=0
-    id: "server"
-    binary: server
-    goos:
-      - linux
-      - darwin
-      - windows
+#  - main: ./server/cmd/main.go
+#    env:
+#      - CGO_ENABLED=0
+#    id: "server"
+#    binary: server
+#    goos:
+#      - linux
+#      - darwin
+#      - windows
 
 archives:
   - format: tar.gz

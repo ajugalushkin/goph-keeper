@@ -14,7 +14,7 @@ services:
       - 8080:8080
       - 40000:40000
     environment:
-      CONFIG: ${CONFIG:?Please configure CONFIG in the .env file}
+      SERVER_CONFIG: ${SERVER_CONFIG:?Please configure SERVER_CONFIG in the .env file}
     security_opt:
       - "seccomp:unconfined"
     cap_add:
