@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -138,4 +139,61 @@ func TestLoginWithEmptyPassword(t *testing.T) {
 
 	_, err := authClient.Login(context.Background(), email, password)
 	assert.Error(t, err, "Expected error for empty password")
+}
+func TestLoginWithValidEmailAndPasswordButFailedToSaveToken(t *testing.T) {
+	email := "test@example.com"
+	password := "testpassword"
+
+	mockAuthClient := &MockAuthClient{}
+	mockAuthClient.On("Login", context.Background(), email, password).Return("test_token", nil)
+
+	token, err := mockAuthClient.Login(context.Background(), email, password)
+	assert.Nil(t, err, "Expected no error, but got %v", err)
+	assert.Equal(t, "test_token", token, "Expected token 'test_token', but got %s", token)
+
+	mockTokenStorage := &MockTokenStorage{}
+	mockTokenStorage.On("Save", token).Return(errors.New("failed to save token"))
+
+	err = mockTokenStorage.Save(token)
+	assert.Error(t, err, "Expected error for failed to save token")
+
+	mockAuthClient.AssertExpectations(t)
+	mockTokenStorage.AssertExpectations(t)
+}
+
+func TestLoginWithValidEmailAndPasswordButAuthClientReturnsError(t *testing.T) {
+	email := "test@example.com"
+	password := "testpassword"
+
+	mockAuthClient := &MockAuthClient{}
+	expectedError := errors.New("failed to login")
+	mockAuthClient.On("Login", context.Background(), email, password).Return("", expectedError)
+
+	_, err := mockAuthClient.Login(context.Background(), email, password)
+	assert.Error(t, err, "Expected error for failed login")
+	assert.Equal(t, expectedError, err, "Expected error 'failed to login', but got %v", err)
+
+	mockAuthClient.AssertExpectations(t)
+}
+func TestLoginWithValidEmailAndPasswordButTokenStorageReturnsError(t *testing.T) {
+	email := "test@example.com"
+	password := "testpassword"
+
+	mockAuthClient := &MockAuthClient{}
+	mockAuthClient.On("Login", context.Background(), email, password).Return("test_token", nil)
+
+	token, err := mockAuthClient.Login(context.Background(), email, password)
+	assert.Nil(t, err, "Expected no error, but got %v", err)
+	assert.Equal(t, "test_token", token, "Expected token 'test_token', but got %s", token)
+
+	mockTokenStorage := &MockTokenStorage{}
+	expectedError := errors.New("failed to save token")
+	mockTokenStorage.On("Save", token).Return(expectedError)
+
+	err = mockTokenStorage.Save(token)
+	assert.Error(t, err, "Expected error for failed to save token")
+	assert.Equal(t, expectedError, err, "Expected error 'failed to save token', but got %v", err)
+
+	mockAuthClient.AssertExpectations(t)
+	mockTokenStorage.AssertExpectations(t)
 }
