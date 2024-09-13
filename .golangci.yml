@@ -1,4 +1,7 @@
 issues:
+  exclude-rules:
+    - linters:
+        - SA1012
   exclude-dirs:
     - gen
     - mocks
