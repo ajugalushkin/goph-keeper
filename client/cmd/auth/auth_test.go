@@ -1,15 +1,16 @@
 package auth
 
 import (
+	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/spf13/cobra"
 )
 
-// authCmd is successfully added to rootCmd
-func TestAuthCmdAddedToRootCmd(t *testing.T) {
+func TestAuthCmdAddedToRootCmdWithSubcommands(t *testing.T) {
 	rootCmd := &cobra.Command{Use: "root"}
-	authCmd := &cobra.Command{Use: "auth"}
+	authCmd := NewCommand()
 
 	rootCmd.AddCommand(authCmd)
 
@@ -24,20 +25,17 @@ func TestAuthCmdAddedToRootCmd(t *testing.T) {
 	if !found {
 		t.Errorf("authCmd was not added to rootCmd")
 	}
-}
 
-// authCmd is added to rootCmd when rootCmd has no other subcommands
-func TestAuthCmdAddedToEmptyRootCmd(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "root"}
-	authCmd := &cobra.Command{Use: "auth"}
-
-	if len(rootCmd.Commands()) != 0 {
-		t.Fatalf("rootCmd should have no subcommands initially")
+	expectedSubcommands := []string{"login", "register"}
+	actualSubcommands := make([]string, 0, len(authCmd.Commands()))
+	for _, c := range authCmd.Commands() {
+		actualSubcommands = append(actualSubcommands, c.Use)
 	}
 
-	rootCmd.AddCommand(authCmd)
+	sort.Strings(expectedSubcommands)
+	sort.Strings(actualSubcommands)
 
-	if len(rootCmd.Commands()) != 1 {
-		t.Errorf("authCmd was not added to rootCmd")
+	if !reflect.DeepEqual(expectedSubcommands, actualSubcommands) {
+		t.Errorf("authCmd subcommands do not match expected: %v, got: %v", expectedSubcommands, actualSubcommands)
 	}
 }
