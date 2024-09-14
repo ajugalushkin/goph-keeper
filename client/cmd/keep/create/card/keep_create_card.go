@@ -82,7 +82,7 @@ func NewCommand() *cobra.Command {
 // - args: Additional command-line arguments.
 func createCardCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep_create_card"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the required flags for creating a card secret.
 	name, err := cmd.Flags().GetString("name")
@@ -143,7 +143,7 @@ func createCardCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Create a new Keeper client using the provided configuration and token_cache.
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send a request to the Keeper server to create the secret.

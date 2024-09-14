@@ -59,7 +59,7 @@ func NewCommand() *cobra.Command {
 // - None.
 func keepGetRun(cmd *cobra.Command, args []string) {
 	const op = "keep_get"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from the command flags.
 	name, err := cmd.Flags().GetString("name")
@@ -74,7 +74,7 @@ func keepGetRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Get the client configuration for connecting to the goph-keeper service.
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 
 	// Create a new keeper client using the provided configuration and authentication token_cache.
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))

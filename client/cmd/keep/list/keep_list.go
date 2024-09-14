@@ -39,14 +39,14 @@ func NewCommand() *cobra.Command {
 // This function does not return any value.
 func keepListRun(cmd *cobra.Command, args []string) {
 	const op = "keep_get"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	token, err := token_cache.GetInstance().Load()
 	if err != nil {
 		return
 	}
 
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	resp, err := keeperClient.ListItems(context.Background(), &v1.ListItemsRequestV1{})
 	if err != nil {

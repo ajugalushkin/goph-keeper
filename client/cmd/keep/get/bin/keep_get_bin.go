@@ -62,7 +62,7 @@ func NewCommand() *cobra.Command {
 // - This function does not return any value.
 func keepGetBinRun(cmd *cobra.Command, args []string) {
 	const op = "keep_get_bin"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from the command flags
 	name, err := cmd.Flags().GetString("name")
@@ -86,7 +86,7 @@ func keepGetBinRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Create a new gRPC client for interacting with the goph-keeper service
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Request the file stream from the goph-keeper service

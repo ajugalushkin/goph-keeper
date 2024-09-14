@@ -126,6 +126,6 @@ func initConfig() {
 	})
 
 	// Initialize the configuration and logger instances.
-	config.GetInstance()
-	logger.GetInstance()
+	config.GetConfig()
+	logger.GetLogger()
 }

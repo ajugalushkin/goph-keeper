@@ -68,7 +68,7 @@ func NewCommand() *cobra.Command {
 // - This function does not return any value.
 func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	const op = "keep update creds"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from the command-line flag.
 	name, err := cmd.Flags().GetString("name")
@@ -112,7 +112,7 @@ func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Get the Goph-Keeper client configuration.
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 
 	// Create a new Goph-Keeper client using the provided configuration and authentication token_cache.
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))

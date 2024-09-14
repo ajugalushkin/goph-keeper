@@ -20,16 +20,16 @@ type Config struct {
 	Client Client `yaml:"client" env-required:"true"`
 }
 
-type CfgInstance struct {
-	Config *Config
-}
-
 var (
-	singleton *CfgInstance
-	once      sync.Once
+	cfg  *Config
+	once sync.Once
 )
 
-func GetInstance() *CfgInstance {
+func InitConfig(newCfg *Config) {
+	cfg = newCfg
+}
+
+func GetConfig() *Config {
 	once.Do(
 		func() {
 			var config Config
@@ -38,8 +38,8 @@ func GetInstance() *CfgInstance {
 				panic(err)
 			}
 
-			singleton = &CfgInstance{&config}
+			cfg = &config
 		})
 
-	return singleton
+	return cfg
 }

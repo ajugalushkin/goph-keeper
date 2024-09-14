@@ -56,7 +56,7 @@ func NewCommand() *cobra.Command {
 // - No explicit return value. The function logs any errors encountered during execution and prints a success message upon completion.
 func createCredentialsCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep create creds"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
@@ -91,7 +91,7 @@ func createCredentialsCmdRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{

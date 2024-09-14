@@ -5,30 +5,19 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 
 	"github.com/spf13/cobra"
 )
 
-var (
-	// loginCmd is the command line for login
-	loginCmd = &cobra.Command{
-		Use:   "login",
-		Short: "Logins a user in the gophkeeper service",
-		RunE:  authLoginCmdRunE,
-	}
-
-	// log is used to log messages
-	log *slog.Logger
-
-	// login is used to login the user
-	login *Login
-)
-
-// Login is used to login the user
-type Login struct {
-	client app.AuthClient
+// loginCmd is the command line for login
+var loginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Logins a user in the gophkeeper service",
+	RunE:  authLoginCmdRunE,
 }
 
 // NewCommand creates a new Cobra command for logging in a user in the gophkeeper service.
@@ -46,19 +35,19 @@ func NewCommand() *cobra.Command {
 	return loginCmd
 }
 
-// authLoginCmdRunE handles the execution of the login command.
+// authLoginCmdRunE is the main function for the login command. It handles the user authentication process.
 // It retrieves the email and password from command-line flags, logs in the user using the provided credentials,
 // saves the access token to the token cache, and prints it to the console.
 //
 // Parameters:
-// - cmd: A pointer to the Cobra command object.
-// - args: An array of strings representing command-line arguments.
+// - cmd: A pointer to the Cobra command object. This object represents the login command and its associated flags.
+// - args: A slice of strings containing any additional arguments passed to the command. In this case, it is not used.
 //
 // Return:
-// - This function does not return any value.
+// - An error if any error occurs during the login process. If the login is successful, it returns nil.
 func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 	const op = "client.auth.login.run"
-	log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Retrieve email from command-line flags
 	email, err := cmd.Flags().GetString("email")
@@ -80,8 +69,9 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("password is required")
 	}
 
+	client := auth.NewAuthClient(auth.GetAuthConnection(log, config.GetConfig().Client))
 	// Login the user using the provided email and password
-	token, err := login.client.Login(context.Background(), email, password)
+	token, err := client.Login(context.Background(), email, password)
 	if err != nil {
 		log.Error("Error while login", slog.String("error", err.Error()))
 		return err

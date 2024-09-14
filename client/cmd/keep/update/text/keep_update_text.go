@@ -51,7 +51,7 @@ func NewCommand() *cobra.Command {
 // If the secret is successfully updated, a success message is printed.
 func keeperUpdateTextCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep update text"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from command-line flags
 	name, err := cmd.Flags().GetString("name")
@@ -89,7 +89,7 @@ func keeperUpdateTextCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Get a connection to the Goph-Keeper vault
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send an update request to the vault

@@ -1,16 +1,17 @@
 package logger
 
 import (
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"testing"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 
 	"github.com/stretchr/testify/assert"
 )
 
 // Returns a LogInstance when called for the first time
 func TestReturnsLogInstanceFirstCall(t *testing.T) {
-	config.GetInstance().Config.Env = "dev"
-	logInstance := GetInstance()
+	config.GetConfig().Env = "dev"
+	logInstance := GetLogger()
 
 	assert.NotNil(t, logInstance)
 	assert.NotNil(t, logInstance.Log)
@@ -18,8 +19,8 @@ func TestReturnsLogInstanceFirstCall(t *testing.T) {
 
 // Handles missing or invalid environment configuration gracefully
 func TestHandlesInvalidEnvConfigGracefully(t *testing.T) {
-	config.GetInstance().Config.Env = "invalid_env"
-	logInstance := GetInstance()
+	config.GetConfig().Env = "invalid_env"
+	logInstance := GetLogger()
 
 	assert.NotNil(t, logInstance)
 	assert.NotNil(t, logInstance.Log)

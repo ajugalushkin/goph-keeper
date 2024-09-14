@@ -64,7 +64,7 @@ func NewCommand() *cobra.Command {
 // - This function does not return any value.
 func keepCreateTextCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep_create_text"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	name, err := cmd.Flags().GetString("name")
 	if err != nil {
@@ -96,7 +96,7 @@ func keepCreateTextCmdRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{

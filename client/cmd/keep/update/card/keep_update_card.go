@@ -74,7 +74,7 @@ func NewCommand() *cobra.Command {
 // - args: Additional command-line arguments.
 func keeperUpdateCardCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep update card"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the required flags
 	name, err := cmd.Flags().GetString("name")
@@ -135,7 +135,7 @@ func keeperUpdateCardCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Get the Keeper client configuration
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send the update request to the Keeper service

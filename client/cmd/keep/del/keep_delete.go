@@ -55,7 +55,7 @@ func NewCommand() *cobra.Command {
 // - None.
 func keepDeleteCmdRun(cmd *cobra.Command, args []string) {
 	const op = "keep_delete"
-	log := logger.GetInstance().Log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from the command-line flags.
 	name, err := cmd.Flags().GetString("name")
@@ -70,7 +70,7 @@ func keepDeleteCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Retrieve the goph-keeper client configuration.
-	cfg := config.GetInstance().Config.Client
+	cfg := config.GetConfig().Client
 
 	// Establish a connection to the goph-keeper service.
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))

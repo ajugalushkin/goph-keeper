@@ -8,8 +8,8 @@ import (
 
 // GetInstance returns a singleton instance of CfgInstance
 func TestGetInstanceReturnsSingleton(t *testing.T) {
-	instance1 := GetInstance()
-	instance2 := GetInstance()
+	instance1 := GetConfig()
+	instance2 := GetConfig()
 
 	assert.NotNil(t, instance1)
 	assert.Equal(t, instance1, instance2)
