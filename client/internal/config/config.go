@@ -21,7 +21,7 @@ type Config struct {
 }
 
 type CfgInstance struct {
-	Config Config
+	Config *Config
 }
 
 var (
@@ -38,7 +38,7 @@ func GetInstance() *CfgInstance {
 				panic(err)
 			}
 
-			singleton = &CfgInstance{config}
+			singleton = &CfgInstance{&config}
 		})
 
 	return singleton

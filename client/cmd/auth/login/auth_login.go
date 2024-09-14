@@ -3,14 +3,19 @@ package login
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
-	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+)
+
+var (
+	cfg *config.Config
+	log *slog.Logger
 )
 
 // NewCommand creates a new Cobra command for user login to the gophkeeper service.
@@ -29,7 +34,10 @@ import (
 //
 // Return:
 // - A pointer to the Cobra command object.
-func NewCommand() *cobra.Command {
+func NewCommand(newLog *slog.Logger, newCfg *config.Config) *cobra.Command {
+	cfg = newCfg
+	log = newLog
+
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Logins a user in the gophkeeper service",
@@ -65,7 +73,7 @@ func NewCommand() *cobra.Command {
 // - None.
 func loginCmdRun(cmd *cobra.Command, args []string) {
 	const op = "client.auth.login.run"
-	log := logger.GetInstance().Log.With("op", op)
+	log.With("op", op)
 
 	email, err := cmd.Flags().GetString("email")
 	if err != nil {
@@ -77,7 +85,6 @@ func loginCmdRun(cmd *cobra.Command, args []string) {
 		log.Error("Error while getting password", slog.String("error", err.Error()))
 	}
 
-	cfg := config.GetInstance().Config
 	authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
 
 	token, err := authClient.Login(context.Background(), email, password)

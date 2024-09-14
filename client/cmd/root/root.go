@@ -2,12 +2,13 @@ package root
 
 import (
 	"errors"
-	"github.com/ajugalushkin/goph-keeper/client/cmd/auth"
-	"github.com/ajugalushkin/goph-keeper/client/cmd/keep"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/ajugalushkin/goph-keeper/client/cmd/auth"
+	"github.com/ajugalushkin/goph-keeper/client/cmd/keep"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -46,16 +47,16 @@ func Execute() {
 //
 // The function returns a pointer to the initialized root command.
 func NewCommand() *cobra.Command {
-    cmd := &cobra.Command{
-        Use:   "gophkeeper_client",
-        Short: "GophKeeper cli client",
-        Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
-    }
+	cmd := &cobra.Command{
+		Use:   "gophkeeper_client",
+		Short: "GophKeeper cli client",
+		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+	}
 
-    cmd.AddCommand(auth.NewCommand())
-    cmd.AddCommand(keep.NewCommand())
+	cmd.AddCommand(auth.NewCommand(logger.GetInstance().Log, config.GetInstance().Config))
+	cmd.AddCommand(keep.NewCommand())
 
-    return cmd
+	return cmd
 }
 
 // init initializes the root command and its persistent flags.

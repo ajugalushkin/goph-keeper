@@ -1,41 +1,42 @@
 package auth
 
 import (
-	"reflect"
-	"sort"
+	"log/slog"
+	"os"
 	"testing"
 
-	"github.com/spf13/cobra"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 )
 
-func TestAuthCmdAddedToRootCmdWithSubcommands(t *testing.T) {
-	rootCmd := &cobra.Command{Use: "root"}
-	authCmd := NewCommand()
+func TestNewCommand_ValidConfig(t *testing.T) {
+	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	cfg := &config.Config{}
 
-	rootCmd.AddCommand(authCmd)
+	cmd := NewCommand(log, cfg)
 
-	found := false
-	for _, c := range rootCmd.Commands() {
-		if c.Use == "auth" {
-			found = true
-			break
-		}
+	if cmd == nil {
+		t.Fatal("Expected NewCommand to return a non-nil command")
 	}
 
-	if !found {
-		t.Errorf("authCmd was not added to rootCmd")
+	if cmd.Use != "auth" {
+		t.Errorf("Expected command Use to be 'auth', got %s", cmd.Use)
 	}
 
-	expectedSubcommands := []string{"login", "register"}
-	actualSubcommands := make([]string, 0, len(authCmd.Commands()))
-	for _, c := range authCmd.Commands() {
-		actualSubcommands = append(actualSubcommands, c.Use)
+	if cmd.Short != "Manage user registration, authentication and authorization" {
+		t.Errorf("Expected command Short to be 'Manage user registration, authentication and authorization', got %s", cmd.Short)
 	}
 
-	sort.Strings(expectedSubcommands)
-	sort.Strings(actualSubcommands)
+	if len(cmd.Commands()) != 2 {
+		t.Fatalf("Expected command to have 2 subcommands, got %d", len(cmd.Commands()))
+	}
 
-	if !reflect.DeepEqual(expectedSubcommands, actualSubcommands) {
-		t.Errorf("authCmd subcommands do not match expected: %v, got: %v", expectedSubcommands, actualSubcommands)
+	loginCmd := cmd.Commands()[0]
+	if loginCmd.Name() != "login" {
+		t.Errorf("Expected first subcommand to be 'login', got %s", loginCmd.Name())
+	}
+
+	registerCmd := cmd.Commands()[1]
+	if registerCmd.Name() != "register" {
+		t.Errorf("Expected second subcommand to be 'register', got %s", registerCmd.Name())
 	}
 }
