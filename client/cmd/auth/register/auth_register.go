@@ -65,12 +65,18 @@ func registerCmdRun(cmd *cobra.Command, args []string) error {
 		log.Error("Error getting email", slog.String("error", err.Error()))
 		return err
 	}
+	if email == "" {
+		return fmt.Errorf("email is required")
+	}
 
 	// Retrieve the user's password from the command-line flag
 	password, err := cmd.Flags().GetString("password")
 	if err != nil {
 		log.Error("Error getting password", slog.String("error", err.Error()))
 		return err
+	}
+	if password == "" {
+		return fmt.Errorf("password is required")
 	}
 
 	// Register the user using the authentication client
