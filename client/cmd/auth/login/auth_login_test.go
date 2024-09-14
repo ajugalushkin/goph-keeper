@@ -33,55 +33,6 @@ func TestNewCommand_ValidEmailAndPassword(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
-func TestNewCommand_MissingRequiredFlags(t *testing.T) {
-	// Arrange
-	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	mockClient := mocks.NewAuthClient(t)
-
-	// Act
-	cmd := NewCommand(mockLog, mockClient)
-	cmd.SetArgs([]string{"-p", "testpassword"})
-	err := cmd.Execute()
-
-	// Assert
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "required flag(s) \"email\" not set")
-	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
-}
-
-func TestNewCommand_ValidEmailAndMissingPassword(t *testing.T) {
-	// Arrange
-	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	mockClient := mocks.NewAuthClient(t)
-
-	expectedEmail := "test@example.com"
-
-	// Act
-	cmd := NewCommand(mockLog, mockClient)
-	cmd.SetArgs([]string{"-e", expectedEmail})
-	err := cmd.Execute()
-
-	// Assert
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "required flag(s) \"password\" not set")
-	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
-}
-
-func TestNewCommand_MissingEmailFlag(t *testing.T) {
-	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	mockClient := mocks.NewAuthClient(t)
-
-	expectedPassword := "testpassword"
-
-	cmd := NewCommand(mockLog, mockClient)
-	cmd.SetArgs([]string{"-p", expectedPassword})
-	err := cmd.Execute()
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "required flag(s) \"email\" not set")
-	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
-}
-
 func TestNewCommand_EmptyEmailAndValidPassword(t *testing.T) {
 	// Arrange
 	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -97,23 +48,6 @@ func TestNewCommand_EmptyEmailAndValidPassword(t *testing.T) {
 	// Assert
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "email is required")
-	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
-}
-func TestNewCommand_EmptyEmailAndValidPassword2(t *testing.T) {
-	// Arrange
-	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	mockClient := mocks.NewAuthClient(t)
-
-	expectedPassword := "testpassword"
-
-	// Act
-	cmd := NewCommand(mockLog, mockClient)
-	cmd.SetArgs([]string{"-p", expectedPassword})
-	err := cmd.Execute()
-
-	// Assert
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "required flag(s) \"email\" not set")
 	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
 }
 
@@ -133,24 +67,6 @@ func TestNewCommand_ValidEmailAndEmptyPassword(t *testing.T) {
 	// Assert
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "password is required")
-	mockClient.AssertExpectations(t)
-}
-
-func TestNewCommand_ValidEmailAndEmptyPassword2(t *testing.T) {
-	// Arrange
-	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	mockClient := mocks.NewAuthClient(t)
-
-	expectedEmail := "test@example.com"
-
-	// Act
-	cmd := NewCommand(mockLog, mockClient)
-	cmd.SetArgs([]string{"-e", expectedEmail})
-	err := cmd.Execute()
-
-	// Assert
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "required flag(s) \"password\" not set")
 	mockClient.AssertExpectations(t)
 }
 
@@ -237,4 +153,38 @@ func TestNewCommand_NonASCIICharactersInEmailAndPassword(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	mockClient.AssertExpectations(t)
+}
+
+func TestNewCommand_NoEmailProvided(t *testing.T) {
+	// Arrange
+	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	mockClient := mocks.NewAuthClient(t)
+
+	// Act
+	cmd := NewCommand(mockLog, mockClient)
+	cmd.SetArgs([]string{"-e", "", "-p", "testpassword"})
+	err := cmd.Execute()
+
+	// Assert
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "email is required")
+	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
+}
+func TestNewCommand_EmptyPassword(t *testing.T) {
+	// Arrange
+	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	mockClient := mocks.NewAuthClient(t)
+
+	expectedEmail := "test@example.com"
+	expectedPassword := ""
+
+	// Act
+	cmd := NewCommand(mockLog, mockClient)
+	cmd.SetArgs([]string{"-e", expectedEmail, "-p", expectedPassword})
+	err := cmd.Execute()
+
+	// Assert
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "password is required")
+	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
 }

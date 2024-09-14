@@ -12,12 +12,21 @@ import (
 )
 
 var (
+	// loginCmd is the command line for login
+	loginCmd = &cobra.Command{
+		Use:   "login",
+		Short: "Logins a user in the gophkeeper service",
+		RunE:  authLoginCmdRunE,
+	}
+
 	// log is used to log messages
 	log *slog.Logger
+
 	// login is used to login the user
 	login *Login
 )
 
+// Login is used to login the user
 type Login struct {
 	client app.AuthClient
 }
@@ -37,25 +46,10 @@ func NewCommand(newLog *slog.Logger, newClient app.AuthClient) *cobra.Command {
 	log = newLog
 	login = &Login{client: newClient}
 
-	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "Logins a user in the gophkeeper service",
-		RunE:  loginCmdRun,
-	}
-
-	cmd.Flags().StringP("email", "e", "", "User Email")
-	if err := cmd.MarkFlagRequired("email"); err != nil {
-		slog.Error("Error marking email as required", slog.String("error", err.Error()))
-	}
-	cmd.Flags().StringP("password", "p", "", "User password")
-	if err := cmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error marking password as required", slog.String("error", err.Error()))
-	}
-
-	return cmd
+	return loginCmd
 }
 
-// loginCmdRun handles the execution of the login command.
+// authLoginCmdRunE handles the execution of the login command.
 // It retrieves the email and password from command-line flags, logs in the user using the provided credentials,
 // saves the access token to the token cache, and prints it to the console.
 //
@@ -65,7 +59,7 @@ func NewCommand(newLog *slog.Logger, newClient app.AuthClient) *cobra.Command {
 //
 // Return:
 // - This function does not return any value.
-func loginCmdRun(cmd *cobra.Command, args []string) error {
+func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 	const op = "client.auth.login.run"
 	log.With("op", op)
 
@@ -105,4 +99,22 @@ func loginCmdRun(cmd *cobra.Command, args []string) error {
 	// Print the access token to the console
 	fmt.Printf("Access Token: %s\n", token)
 	return nil
+}
+
+// loginCmdFlags sets up the command-line flags for the login command.
+// It adds two flags: "email" and "password". These flags are used to provide the user's email and password
+// when running the login command.
+//
+// Parameters:
+// - cmd: A pointer to the Cobra command object. This object represents the login command and its associated flags.
+//
+// Return:
+// - This function does not return any value. It modifies the provided Cobra command object directly.
+func loginCmdFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("email", "e", "", "User Email")
+	cmd.Flags().StringP("password", "p", "", "User password")
+}
+
+func init() {
+	loginCmdFlags(loginCmd)
 }
