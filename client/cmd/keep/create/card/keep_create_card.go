@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
@@ -16,71 +17,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var keepCreateCard = &cobra.Command{
+	Use:   "card",
+	Short: "Create card secret",
+	RunE:  createCardCmdRunE,
+}
+
+var client app.KeeperClient
+
 // NewCommand creates a Cobra command for creating a card secret.
 // The command accepts flags for specifying the secret name, card number, expiry date,
 // security code, and card holder. It then encrypts the card details, sends a request to
 // the Keeper server to create the secret, and prints a success message with the created
 // secret's name and version.
 func NewCommand() *cobra.Command {
-	const op = "keep_create_card"
-
-	cmd := &cobra.Command{
-		Use:   "card",
-		Short: "Create card secret",
-		Run:   createCardCmdRun,
-	}
-
-	// "name" flag is used to specify the secret name.
-	cmd.Flags().String("name", "", "Secret name")
-	if err := cmd.MarkFlagRequired("name"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// "number" flag is used to specify the card number.
-	cmd.Flags().String("number", "", "Card number")
-	if err := cmd.MarkFlagRequired("number"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// "date" flag is used to specify the card expiry date.
-	cmd.Flags().String("date", "", "Card expiry date")
-	if err := cmd.MarkFlagRequired("date"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// "code" flag is used to specify the card security code.
-	cmd.Flags().String("code", "", "Card security code")
-	if err := cmd.MarkFlagRequired("code"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// "holder" flag is used to specify the card holder.
-	cmd.Flags().String("holder", "", "Card holder")
-	if err := cmd.MarkFlagRequired("holder"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	return cmd
+	return keepCreateCard
 }
 
-// createCardCmdRun is responsible for handling the execution of the "card" command.
+// createCardCmdRunE is the entry point for creating a card secret in the Keeper vault.
 // It reads the required flags for creating a card secret, encrypts the card details,
-// and sends a request to the Keeper server to create the secret.
+// sends a request to the Keeper server to create the secret, and prints a success message.
 //
 // Parameters:
 // - cmd: The Cobra command object.
 // - args: Additional command-line arguments.
-func createCardCmdRun(cmd *cobra.Command, args []string) {
+//
+// Returns:
+// - An error if any error occurs during the process, or nil if the operation is successful.
+func createCardCmdRunE(cmd *cobra.Command, args []string) error {
 	const op = "keep_create_card"
 	log := logger.GetLogger().With("op", op)
 
@@ -89,35 +53,35 @@ func createCardCmdRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Error reading secret name: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	number, err := cmd.Flags().GetString("number")
 	if err != nil {
 		log.Error("Error reading card number: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	date, err := cmd.Flags().GetString("date")
 	if err != nil {
 		log.Error("Error reading card expiry date: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	code, err := cmd.Flags().GetString("code")
 	if err != nil {
 		log.Error("Error reading card security code: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	holder, err := cmd.Flags().GetString("holder")
 	if err != nil {
 		log.Error("Error reading card holder: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	// Create a Card object from the provided details.
@@ -133,33 +97,59 @@ func createCardCmdRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
-	// Load the authentication token_cache from storage.
-	token, err := token_cache.GetToken().Load()
-	if err != nil {
-		return
+	if client == nil {
+		// Load the authentication token_cache from storage.
+		token, err := token_cache.GetToken().Load()
+		if err != nil {
+			return err
+		}
+		// Create a new Keeper client using the provided configuration and token_cache.
+		cfg := config.GetConfig().Client
+		client = keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	}
-
-	// Create a new Keeper client using the provided configuration and token_cache.
-	cfg := config.GetConfig().Client
-	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send a request to the Keeper server to create the secret.
-	resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{
+	resp, err := client.CreateItem(context.Background(), &v1.CreateItemRequestV1{
 		Name:    name,
 		Content: content,
 	})
 	if err != nil {
 		log.Error("Failed to create secret: ", slog.String("error", err.Error()))
-		return
+		return err
 	}
 	if resp == nil {
 		log.Error("No response received from Keeper server")
-		return
+		return err
 	}
 
 	// Print a success message with the created secret's name and version.
 	fmt.Printf("Secret %s version %v created successfully\n", resp.GetName(), resp.GetVersion())
+	return nil
+}
+
+// cardCmdFlags sets up the command-line flags for creating a card secret in the Keeper vault.
+// It accepts five flags: name, number, date, code, and holder. These flags are used to specify
+// the secret name, card number, expiry date, security code, and card holder, respectively.
+//
+// Parameters:
+// - cmd: A pointer to the Cobra command object.
+//
+// The function does not return any value. It sets up the command-line flags for the given command.
+func cardCmdFlags(cmd *cobra.Command) {
+	cmd.Flags().String("name", "", "Secret name")
+	cmd.Flags().String("number", "", "Card number")
+	cmd.Flags().String("date", "", "Card expiry date")
+	cmd.Flags().String("code", "", "Card security code")
+	cmd.Flags().String("holder", "", "Card holder")
+}
+
+func init() {
+	cardCmdFlags(keepCreateCard)
+}
+
+func initClient(newClient app.KeeperClient) {
+	client = newClient
 }
