@@ -170,6 +170,7 @@ func TestNewCommand_NoEmailProvided(t *testing.T) {
 	require.Contains(t, err.Error(), "email is required")
 	mockClient.AssertNotCalled(t, "Login", mock.Anything, mock.Anything, mock.Anything)
 }
+
 func TestNewCommand_EmptyPassword(t *testing.T) {
 	// Arrange
 	mockLog := slog.New(slog.NewJSONHandler(os.Stdout, nil))
