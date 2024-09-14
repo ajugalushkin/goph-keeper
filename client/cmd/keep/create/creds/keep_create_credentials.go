@@ -18,7 +18,7 @@ import (
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-var keepCreateText = &cobra.Command{
+var keepCreateCreds = &cobra.Command{
 	Use:   "creds",
 	Short: "Create creds secret",
 	RunE:  createCredentialsCmdRunE,
@@ -31,7 +31,7 @@ var client app.KeeperClient
 // It also ensures that the 'name', 'login', and 'password' flags are required.
 // Upon execution, the command calls the createCredentialsCmdRun function.
 func NewCommand() *cobra.Command {
-	return keepCreateText
+	return keepCreateCreds
 }
 
 // createCredentialsCmdRunE is the entry point for creating a new credentials secret in the Goph-Keeper vault.
@@ -112,7 +112,7 @@ func createCredentialsCmdRunE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// textCmdFlags configures the command-line flags for the 'text' command.
+// credsCmdFlags configures the command-line flags for the 'text' command.
 // It adds three flags: 'name', 'login', and 'password'.
 //
 // Parameters:
@@ -123,14 +123,14 @@ func createCredentialsCmdRunE(cmd *cobra.Command, args []string) error {
 // The 'password' flag is used to store the password information for the secret.
 //
 // The flags are configured with default values of "", and their descriptions are provided.
-func textCmdFlags(cmd *cobra.Command) {
+func credsCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().String("name", "", "Secret name")
 	cmd.Flags().String("login", "", "Login")
 	cmd.Flags().String("password", "", "Password")
 }
 
 func init() {
-	textCmdFlags(keepCreateText)
+	credsCmdFlags(keepCreateCreds)
 }
 
 func initClient(newClient app.KeeperClient) {
