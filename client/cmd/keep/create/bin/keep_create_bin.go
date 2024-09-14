@@ -7,120 +7,138 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
+
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 )
 
-// NewCommand creates a new Cobra command for creating a binary secret in the Goph-Keeper vault.
-// The command is part of the "keep create" command group.
-//
-// The command accepts two flags:
-// - "name": The name of the secret to be created. This flag is required.
-// - "file_path" (or "f"): The path to the binary file to be stored in the secret. This flag is required.
-//
-// The function returns a pointer to the Cobra command object.
-func NewCommand() *cobra.Command {
-	cmd := &cobra.Command{
+var (
+	// keepCreateBin is a command to create a bin data
+	keepCreateBin = &cobra.Command{
 		Use:   "bin",
 		Short: "Create bin secret",
-		Run:   keepCreateBinCmdRun,
+		RunE:  keepCreateBinCmdRunE,
 	}
 
-	cmd.Flags().String("name", "", "Secret name")
-	if err := cmd.MarkFlagRequired("name"); err != nil {
-		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
-	}
+	// log is used to log messages
+	log *slog.Logger
 
-	cmd.Flags().StringP("file_path", "f", "", "Binary file path")
-	if err := cmd.MarkFlagRequired("file_path"); err != nil {
-		slog.Error("Error setting flag: ", slog.String("error", err.Error()))
-	}
+	bin *Bin
+)
 
-	return cmd
+// Bin is used to set client
+type Bin struct {
+	client app.KeeperClient
 }
 
-// keepCreateBinCmdRun is the main function for the "bin" command in the "keep create" command group.
-// It creates a new binary secret in the Goph-Keeper vault.
+
+// NewCommand creates a new Cobra command for creating a bin secret.
+// It initializes the logger and client for the command and returns the command object.
+//
+// Parameters:
+// - newLog: A pointer to an slog.Logger object used for logging messages.
+// - newClient: An implementation of the app.KeeperClient interface for interacting with the vault.
+//
+// Return:
+// - A pointer to the Cobra command object for creating a bin secret.
+func NewCommand(newLog *slog.Logger, newClient app.KeeperClient) *cobra.Command {
+    log = newLog
+    bin = &Bin{client: newClient}
+
+    return keepCreateBin
+}
+
+
+// keepCreateBinCmdRunE is the entry point for the "bin" command in the "keep create" command group.
+// It reads the secret name and file path from the command-line flags, prepares the file information,
+// encrypts the secret content, opens the file for reading, creates the binary secret in the vault,
+// and prints a success message.
 //
 // Parameters:
 // - cmd: A pointer to the Cobra command object.
-// - args: An array of strings representing the command-line arguments.
+// - args: An array of strings representing command-line arguments.
+//
+// Return:
+// - An error if any error occurs during the execution of the command.
+//   If no error occurs, it returns nil.
+func keepCreateBinCmdRunE(cmd *cobra.Command, args []string) error {
+    const op = "keep.create.bin"
+    log.With("op", op)
+
+    // Read the secret name from the command-line flags
+    name, err := cmd.Flags().GetString("name")
+    if err != nil {
+        log.Error("Error reading secret name ", slog.String("error", err.Error()))
+        return err
+    }
+
+    // Read the file path from the command-line flags
+    filePath, err := cmd.Flags().GetString("file_path")
+    if err != nil {
+        log.Error("Error reading file path ", slog.String("error", err.Error()))
+        return err
+    }
+
+    // Get the file statistics
+    stat, err := os.Stat(filePath)
+    if err != nil {
+        log.Error("Error reading file stat ", slog.String("error", err.Error()))
+        return err
+    }
+
+    // Prepare the file information for the secret
+    fileInfo := vaulttypes.Bin{
+        FileName: filepath.Base(filePath),
+        Size:     stat.Size(),
+    }
+
+    // Encrypt the secret content
+    content, err := secret.EncryptSecret(fileInfo)
+    if err != nil {
+        log.Error("Failed to secret secret: ", slog.String("error", err.Error()))
+        return err
+    }
+
+    // Open the file for reading
+    file, err := os.Open(filePath)
+    if err != nil {
+        log.Error("cannot open file: ", slog.String("error", err.Error()))
+        return err
+    }
+    defer file.Close()
+
+    // Create the binary secret in the vault
+    resp, err := bin.client.CreateItemStream(context.Background(), name, file, content)
+    if err != nil {
+        log.Error("Error creating bin", slog.String("error", err.Error()))
+        return err
+    }
+
+    // Print the success message
+    fmt.Printf("Secret %s created successfully\n", resp.GetName())
+    return nil
+}
+
+// binCmdFlags sets up the flags for the "bin" command in the "keep create" command group.
+// The flags are used to specify the name and file path of the binary secret to be created.
+//
+// Parameters:
+// - cmd: A pointer to the Cobra command object.
 //
 // Return:
 // - None.
-func keepCreateBinCmdRun(cmd *cobra.Command, args []string) {
-	const op = "keep.create.bin"
-	log := logger.GetInstance().Log.With("op", op)
+func binCmdFlags(cmd *cobra.Command) {
+    // Add a flag for the secret name. The default value is an empty string.
+    cmd.Flags().String("name", "", "Secret name")
 
-	// Read the secret name from the command-line flags
-	name, err := cmd.Flags().GetString("name")
-	if err != nil {
-		log.Error("Error reading secret name ", slog.String("error", err.Error()))
-		return
-	}
+    // Add a flag for the file path. The default value is an empty string.
+    // The flag is also available with a short name "f".
+    cmd.Flags().StringP("file_path", "f", "", "Binary file path")
+}
 
-	// Read the file path from the command-line flags
-	filePath, err := cmd.Flags().GetString("file_path")
-	if err != nil {
-		log.Error("Error reading file path ", slog.String("error", err.Error()))
-		return
-	}
-
-	// Get the file statistics
-	stat, err := os.Stat(filePath)
-	if err != nil {
-		log.Error("Error reading file stat ", slog.String("error", err.Error()))
-		return
-	}
-
-	// Prepare the file information for the secret
-	fileInfo := vaulttypes.Bin{
-		FileName: filepath.Base(filePath),
-		Size:     stat.Size(),
-	}
-
-	// Encrypt the secret content
-	content, err := secret.EncryptSecret(fileInfo)
-	if err != nil {
-		log.Error("Failed to secret secret: ", slog.String("error", err.Error()))
-		return
-	}
-
-	// Open the file for reading
-	file, err := os.Open(filePath)
-	if err != nil {
-		log.Error("cannot open file: ", slog.String("error", err.Error()))
-		return
-	}
-	defer file.Close()
-
-	// Load the authentication token_cache
-	token, err := token_cache.GetInstance().Load()
-	if err != nil {
-		log.Error("Error loading token_cache: ", slog.String("error", err.Error()))
-		return
-	}
-
-	// Get the Goph-Keeper client configuration
-	cfg := config.GetInstance().Config.Client
-
-	// Create a new Goph-Keeper client
-	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
-
-	// Create the binary secret in the vault
-	resp, err := keeperClient.CreateItemStream(context.Background(), name, file, content)
-	if err != nil {
-		log.Error("Error creating bin", slog.String("error", err.Error()))
-		return
-	}
-
-	// Print the success message
-	fmt.Printf("Secret %s created successfully\n", resp.GetName())
+func init() {
+	binCmdFlags(keepCreateBin)
 }

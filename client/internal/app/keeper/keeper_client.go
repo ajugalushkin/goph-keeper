@@ -14,11 +14,6 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-//go:generate mockery --name CreateItemStreamClient
-type CreateItemStreamClient interface {
-	keeperv1.KeeperServiceV1_CreateItemStreamV1Client
-}
-
 type KeeperClient struct {
 	api keeperv1.KeeperServiceV1Client
 }

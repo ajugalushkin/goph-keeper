@@ -6,9 +6,14 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/get"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/list"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/update"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+
+	"log/slog"
+
 	"github.com/spf13/cobra"
 )
-
 
 // NewCommand creates a new cobra.Command for managing user private data.
 // The command includes subcommands for creating, getting, deleting, listing, and updating private data.
@@ -23,17 +28,24 @@ import (
 // - del: Delete a specific piece of private data.
 // - list: List all private data.
 // - update: Update a specific piece of private data.
-func NewCommand() *cobra.Command {
-    cmd := &cobra.Command{
-        Use:   "keep",
-        Short: "Manage user private data",
-    }
+func NewCommand(log *slog.Logger, cfg config.Client) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "keep",
+		Short: "Manage user private data",
+	}
 
-    cmd.AddCommand(create.NewCommand())
-    cmd.AddCommand(get.NewCommand())
-    cmd.AddCommand(del.NewCommand())
-    cmd.AddCommand(list.NewCommand())
-    cmd.AddCommand(update.NewCommand())
+	token, err := token_cache.GetInstance().Load()
+	if err != nil {
+		return nil
+	}
 
-    return cmd
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
+
+	cmd.AddCommand(create.NewCommand())
+	cmd.AddCommand(get.NewCommand())
+	cmd.AddCommand(del.NewCommand())
+	cmd.AddCommand(list.NewCommand())
+	cmd.AddCommand(update.NewCommand())
+
+	return cmd
 }
