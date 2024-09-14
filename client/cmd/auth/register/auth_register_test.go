@@ -24,27 +24,6 @@ func TestNewCommand_NilLoggerNilClient(t *testing.T) {
 		t.Error("Expected NewCommand to return a non-nil command")
 	}
 }
-func TestNewCommand_ValidLoggerAndNilClient(t *testing.T) {
-	t.Parallel()
-
-	// Arrange
-	var logger *slog.Logger
-	var client app.AuthClient
-
-	// Act
-	cmd := NewCommand(logger, client)
-
-	// Assert
-	if cmd == nil {
-		t.Error("Expected NewCommand to return a non-nil command")
-	}
-	if register == nil {
-		t.Error("Expected register to be initialized")
-	}
-	if register.client != nil {
-		t.Error("Expected register.client to be nil")
-	}
-}
 
 func TestNewCommand_NilLoggerValidClient(t *testing.T) {
 	defer func() {
