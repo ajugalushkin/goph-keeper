@@ -12,7 +12,11 @@ var (
 	once    sync.Once
 )
 
-func GetInstance() Storage {
+func InitTokenStorage(path string) {
+	storage = newFileStorage(path)
+}
+
+func GetToken() Storage {
 	once.Do(
 		func() {
 			storage = newFileStorage("token_cache.txt")

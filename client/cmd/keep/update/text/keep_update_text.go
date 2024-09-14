@@ -83,7 +83,7 @@ func keeperUpdateTextCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Load the authentication token_cache from storage
-	token, err := token_cache.GetInstance().Load()
+	token, err := token_cache.GetToken().Load()
 	if err != nil {
 		return
 	}

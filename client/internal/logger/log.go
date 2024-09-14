@@ -10,17 +10,21 @@ import (
 
 var (
 	log  *slog.Logger
+	cfg  *config.Config
 	once sync.Once
 )
 
-func InitLogger(newLog *slog.Logger) {
+func InitLogger(newLog *slog.Logger, newCfg *config.Config) {
 	log = newLog
+	cfg = newCfg
 }
 
 func GetLogger() *slog.Logger {
 	once.Do(
 		func() {
-			cfg := config.GetConfig()
+			if cfg == nil {
+				cfg = config.GetConfig()
+			}
 			log = setupLogger(cfg.Env)
 		})
 

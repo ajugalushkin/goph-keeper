@@ -79,7 +79,7 @@ func keepGetBinRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Load the authentication token_cache from the token_cache storage
-	token, err := token_cache.GetInstance().Load()
+	token, err := token_cache.GetToken().Load()
 	if err != nil {
 		log.Error("Error loading token_cache: ", slog.String("error", err.Error()))
 		return

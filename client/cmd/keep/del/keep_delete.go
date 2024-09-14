@@ -64,7 +64,7 @@ func keepDeleteCmdRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Retrieve the user's token_cache.
-	token, err := token_cache.GetInstance().Load()
+	token, err := token_cache.GetToken().Load()
 	if err != nil {
 		return
 	}

@@ -91,7 +91,7 @@ func keepCreateTextCmdRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	token, err := token_cache.GetInstance().Load()
+	token, err := token_cache.GetToken().Load()
 	if err != nil {
 		return
 	}

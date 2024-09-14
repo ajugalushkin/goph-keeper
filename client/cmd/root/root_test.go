@@ -2,11 +2,13 @@ package root
 
 import (
 	"bytes"
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
 
 func TestInit_TokenStorageWithFileBasedStorageWhenFileDoesNotExist(t *testing.T) {
@@ -15,7 +17,7 @@ func TestInit_TokenStorageWithFileBasedStorageWhenFileDoesNotExist(t *testing.T)
 	defer os.Remove(tokenFilePath) // Clean up after the test
 
 	// Act
-	TokenStorage := token_cache.GetInstance()
+	TokenStorage := token_cache.GetToken()
 
 	// Assert
 	assert.NotNil(t, TokenStorage, "Token storage should not be nil")

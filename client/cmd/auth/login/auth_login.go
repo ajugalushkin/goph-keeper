@@ -78,7 +78,7 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Save the access token to the token cache
-	if err := token_cache.GetInstance().Save(token); err != nil {
+	if err := token_cache.GetToken().Save(token); err != nil {
 		log.Error("Failed to store access token_cache", slog.String("error", err.Error()))
 		return err
 	}

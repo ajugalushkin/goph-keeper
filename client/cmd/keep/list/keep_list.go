@@ -41,7 +41,7 @@ func keepListRun(cmd *cobra.Command, args []string) {
 	const op = "keep_get"
 	log := logger.GetLogger().With("op", op)
 
-	token, err := token_cache.GetInstance().Load()
+	token, err := token_cache.GetToken().Load()
 	if err != nil {
 		return
 	}

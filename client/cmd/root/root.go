@@ -68,7 +68,7 @@ func init() {
 	rootCmd.AddCommand(keep.NewCommand())
 
 	// Initialize token_cache storage with a file-based storage using "token_cache.txt" as the file path.
-	token_cache.GetInstance()
+	token_cache.GetToken()
 
 	// Add a persistent flag to the root command.
 	// The flag is named "config" and can be accessed using "--config" or "-c".
