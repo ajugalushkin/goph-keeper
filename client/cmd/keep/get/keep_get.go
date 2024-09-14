@@ -3,20 +3,20 @@ package get
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/get/bin"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
-
 
 // NewCommand creates a new Cobra command for retrieving a secret from the goph-keeper service.
 // The command is named "get" and is used to interact with the secret storage system.
@@ -28,24 +28,24 @@ import (
 //
 // The function returns a pointer to the created Cobra command.
 func NewCommand() *cobra.Command {
-    const op = "keep_get"
+	const op = "keep_get"
 
-    cmd := &cobra.Command{
-        Use:   "get",
-        Short: "Get secret",
-        Run:   keepGetRun,
-    }
+	cmd := &cobra.Command{
+		Use:   "get",
+		Short: "Get secret",
+		Run:   keepGetRun,
+	}
 
-    cmd.AddCommand(bin.NewCommand())
+	cmd.AddCommand(bin.NewCommand())
 
-    cmd.Flags().String("name", "", "Secret name")
-    if err := cmd.MarkFlagRequired("name"); err != nil {
-        slog.Error("Error setting flag: ",
-            slog.String("op", op),
-            slog.String("error", err.Error()))
-    }
+	cmd.Flags().String("name", "", "Secret name")
+	if err := cmd.MarkFlagRequired("name"); err != nil {
+		slog.Error("Error setting flag: ",
+			slog.String("op", op),
+			slog.String("error", err.Error()))
+	}
 
-    return cmd
+	return cmd
 }
 
 // keepGetRun is the function that handles the "get" command for the keep command.
@@ -77,7 +77,7 @@ func keepGetRun(cmd *cobra.Command, args []string) {
 	cfg := config.GetInstance().Config.Client
 
 	// Create a new keeper client using the provided configuration and authentication token_cache.
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Request the secret from the goph-keeper service using the secret name.
 	resp, err := keeperClient.GetItem(context.Background(), &v1.GetItemRequestV1{

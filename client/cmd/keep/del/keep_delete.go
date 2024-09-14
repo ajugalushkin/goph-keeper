@@ -3,10 +3,11 @@ package del
 import (
 	"context"
 	"fmt"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 
@@ -72,7 +73,7 @@ func keepDeleteCmdRun(cmd *cobra.Command, args []string) {
 	cfg := config.GetInstance().Config.Client
 
 	// Establish a connection to the goph-keeper service.
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send a del request to the goph-keeper service.
 	resp, err := keeperClient.DeleteItem(context.Background(), &keeperv1.DeleteItemRequestV1{

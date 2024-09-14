@@ -3,14 +3,15 @@ package text
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
@@ -89,7 +90,7 @@ func keeperUpdateTextCmdRun(cmd *cobra.Command, args []string) {
 
 	// Get a connection to the Goph-Keeper vault
 	cfg := config.GetInstance().Config.Client
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send an update request to the vault
 	resp, err := keeperClient.UpdateItem(context.Background(), &v1.UpdateItemRequestV1{

@@ -1,4 +1,4 @@
-package app
+package keeper
 
 import (
 	"context"

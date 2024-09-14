@@ -3,14 +3,15 @@ package list
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
@@ -46,7 +47,7 @@ func keepListRun(cmd *cobra.Command, args []string) {
 	}
 
 	cfg := config.GetInstance().Config.Client
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	resp, err := keeperClient.ListItems(context.Background(), &v1.ListItemsRequestV1{})
 	if err != nil {
 		log.Error("Failed to list secret: ", slog.String("error", err.Error()))

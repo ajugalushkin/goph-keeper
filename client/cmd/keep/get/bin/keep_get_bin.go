@@ -3,17 +3,18 @@ package bin
 import (
 	"context"
 	"fmt"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 )
@@ -86,7 +87,7 @@ func keepGetBinRun(cmd *cobra.Command, args []string) {
 
 	// Create a new gRPC client for interacting with the goph-keeper service
 	cfg := config.GetInstance().Config.Client
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Request the file stream from the goph-keeper service
 	stream, err := keeperClient.GetFile(context.Background(), name)

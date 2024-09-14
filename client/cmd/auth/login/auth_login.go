@@ -5,96 +5,95 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 
 	"github.com/spf13/cobra"
-
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 )
 
 var (
-	cfg *config.Config
+	// log is used to log messages
 	log *slog.Logger
+	// login is used to login the user
+	login *Login
 )
 
-// NewCommand creates a new Cobra command for user login to the gophkeeper service.
-// The command accepts two flags: email and password.
-// If the email or password flags are not provided, the command will fail.
-//
-// The command performs the following steps:
-// 1. Retrieves the email and password from the command-line flags.
-// 2. Creates a new AuthClient using the provided configuration.
-// 3. Calls the Login method of the AuthClient with the email and password.
-// 4. If the login is successful, it saves the access token_cache to the token_cache storage.
-// 5. Prints the access token_cache to the console.
-//
-// Parameters:
-// - None.
-//
-// Return:
-// - A pointer to the Cobra command object.
-func NewCommand(newLog *slog.Logger, newCfg *config.Config) *cobra.Command {
-	cfg = newCfg
-	log = newLog
-
-	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "Logins a user in the gophkeeper service",
-		Run:   loginCmdRun,
-	}
-
-	cmd.Flags().StringP("email", "e", "", "User Email")
-	if err := cmd.MarkFlagRequired("email"); err != nil {
-		slog.Error("Error marking email as required", slog.String("error", err.Error()))
-	}
-	cmd.Flags().StringP("password", "p", "", "User password")
-	if err := cmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error marking password as required", slog.String("error", err.Error()))
-	}
-
-	return cmd
+type Login struct {
+	client app.AuthClient
 }
 
-// loginCmdRun is the main function for the login command. It handles user login to the gophkeeper service.
+
+// NewCommand creates a new Cobra command for logging in a user in the gophkeeper service.
+// It takes a logger and an authentication client as parameters and returns a configured Cobra command.
+// The command accepts email and password flags, logs in the user using the provided credentials,
+// saves the access token to the token cache, and prints it to the console.
 //
-// The function performs the following steps:
-// 1. Retrieves the email and password from the command-line flags.
-// 2. Creates a new AuthClient using the provided configuration.
-// 3. Calls the Login method of the AuthClient with the email and password.
-// 4. If the login is successful, it saves the access token_cache to the token_cache storage.
-// 5. Prints the access token_cache to the console.
+// Parameters:
+// - newLog: A pointer to a slog.Logger object used for logging messages.
+// - newClient: An implementation of the app.AuthClient interface for authenticating users.
+//
+// Return:
+// - A pointer to a configured Cobra command for logging in a user.
+func NewCommand(newLog *slog.Logger, newClient app.AuthClient) *cobra.Command {
+    log = newLog
+    login = &Login{client: newClient}
+
+    cmd := &cobra.Command{
+        Use:   "login",
+        Short: "Logins a user in the gophkeeper service",
+        Run:   loginCmdRun,
+    }
+
+    cmd.Flags().StringP("email", "e", "", "User Email")
+    if err := cmd.MarkFlagRequired("email"); err != nil {
+        slog.Error("Error marking email as required", slog.String("error", err.Error()))
+    }
+    cmd.Flags().StringP("password", "p", "", "User password")
+    if err := cmd.MarkFlagRequired("password"); err != nil {
+        slog.Error("Error marking password as required", slog.String("error", err.Error()))
+    }
+
+    return cmd
+}
+
+
+// loginCmdRun handles the execution of the login command.
+// It retrieves the email and password from command-line flags, logs in the user using the provided credentials,
+// saves the access token to the token cache, and prints it to the console.
 //
 // Parameters:
 // - cmd: A pointer to the Cobra command object.
-// - args: An array of strings representing the command-line arguments.
+// - args: An array of strings representing command-line arguments.
 //
 // Return:
-// - None.
+// - This function does not return any value.
 func loginCmdRun(cmd *cobra.Command, args []string) {
-	const op = "client.auth.login.run"
-	log.With("op", op)
+    const op = "client.auth.login.run"
+    log.With("op", op)
 
-	email, err := cmd.Flags().GetString("email")
-	if err != nil {
-		log.Error("Error while getting email", slog.String("error", err.Error()))
-	}
+    // Retrieve email from command-line flags
+    email, err := cmd.Flags().GetString("email")
+    if err != nil {
+        log.Error("Error while getting email", slog.String("error", err.Error()))
+    }
 
-	password, err := cmd.Flags().GetString("password")
-	if err != nil {
-		log.Error("Error while getting password", slog.String("error", err.Error()))
-	}
+    // Retrieve password from command-line flags
+    password, err := cmd.Flags().GetString("password")
+    if err != nil {
+        log.Error("Error while getting password", slog.String("error", err.Error()))
+    }
 
-	authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
+    // Login the user using the provided email and password
+    token, err := login.client.Login(context.Background(), email, password)
+    if err != nil {
+        log.Error("Error while login", slog.String("error", err.Error()))
+    }
 
-	token, err := authClient.Login(context.Background(), email, password)
-	if err != nil {
-		log.Error("Error while login", slog.String("error", err.Error()))
-	}
+    // Save the access token to the token cache
+    if err := token_cache.GetInstance().Save(token); err != nil {
+        log.Error("Failed to store access token_cache", slog.String("error", err.Error()))
+    }
 
-	if err := token_cache.GetInstance().Save(token); err != nil {
-		log.Error("Failed to store access token_cache", slog.String("error", err.Error()))
-	}
-
-	fmt.Printf("Access Token: %s\n", token)
+    // Print the access token to the console
+    fmt.Printf("Access Token: %s\n", token)
 }

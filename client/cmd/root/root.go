@@ -8,6 +8,7 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/client/cmd/auth"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep"
+	auth2 "github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 
 	"github.com/spf13/cobra"
@@ -47,13 +48,18 @@ func Execute() {
 //
 // The function returns a pointer to the initialized root command.
 func NewCommand() *cobra.Command {
+	log := logger.GetInstance().Log
+	cfg := config.GetInstance().Config
+
 	cmd := &cobra.Command{
 		Use:   "gophkeeper_client",
 		Short: "GophKeeper cli client",
 		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
 	}
 
-	cmd.AddCommand(auth.NewCommand(logger.GetInstance().Log, config.GetInstance().Config))
+	authClient := auth2.NewAuthClient(auth2.GetAuthConnection(log, cfg.Client))
+
+	cmd.AddCommand(auth.NewCommand(log, authClient))
 	cmd.AddCommand(keep.NewCommand())
 
 	return cmd

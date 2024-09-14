@@ -1,4 +1,4 @@
-package app
+package keeper
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -184,7 +185,7 @@ func GetKeeperConnection(
 	const op = "app.GetKeeperConnection"
 	log.With("op", op)
 
-	interceptor, err := NewAuthInterceptor(token, authMethods())
+	interceptor, err := auth.NewAuthInterceptor(token, authMethods())
 	if err != nil {
 		log.Error("Unable to create interceptor: ", slog.String("error", err.Error()))
 	}

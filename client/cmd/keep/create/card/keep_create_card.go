@@ -3,14 +3,15 @@ package card
 import (
 	"context"
 	"fmt"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"log/slog"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 )
@@ -143,7 +144,7 @@ func createCardCmdRun(cmd *cobra.Command, args []string) {
 
 	// Create a new Keeper client using the provided configuration and token_cache.
 	cfg := config.GetInstance().Config.Client
-	keeperClient := app.NewKeeperClient(app.GetKeeperConnection(log, cfg.Address, token))
+	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
 	// Send a request to the Keeper server to create the secret.
 	resp, err := keeperClient.CreateItem(context.Background(), &v1.CreateItemRequestV1{

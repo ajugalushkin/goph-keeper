@@ -3,12 +3,13 @@ package register
 import (
 	"context"
 	"fmt"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"log/slog"
+
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 
 	"github.com/spf13/cobra"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
@@ -18,22 +19,22 @@ import (
 // The "password" flag is required and specifies the user's password.
 // When the command is executed, the registerCmdRun function is called to handle the registration process.
 func NewCommand() *cobra.Command {
-    cmd := &cobra.Command{
-        Use:   "register",
-        Short: "Registers a user in the gophkeeper service",
-        Run:   registerCmdRun,
-    }
+	cmd := &cobra.Command{
+		Use:   "register",
+		Short: "Registers a user in the gophkeeper service",
+		Run:   registerCmdRun,
+	}
 
-    cmd.Flags().StringP("email", "e", "", "User Email")
-    if err := cmd.MarkFlagRequired("email"); err != nil {
-        slog.Error("Error setting email flag", slog.String("error", err.Error()))
-    }
-    cmd.Flags().StringP("password", "p", "", "User password")
-    if err := cmd.MarkFlagRequired("password"); err != nil {
-        slog.Error("Error setting password flag", slog.String("error", err.Error()))
-    }
+	cmd.Flags().StringP("email", "e", "", "User Email")
+	if err := cmd.MarkFlagRequired("email"); err != nil {
+		slog.Error("Error setting email flag", slog.String("error", err.Error()))
+	}
+	cmd.Flags().StringP("password", "p", "", "User password")
+	if err := cmd.MarkFlagRequired("password"); err != nil {
+		slog.Error("Error setting password flag", slog.String("error", err.Error()))
+	}
 
-    return cmd
+	return cmd
 }
 
 // registerCmdRun handles the execution of the 'register' command.
@@ -64,7 +65,7 @@ func registerCmdRun(cmd *cobra.Command, args []string) {
 	cfg := config.GetInstance().Config
 
 	// Create a new authentication client using the application configuration
-	authClient := app.NewAuthClient(app.GetAuthConnection(log, cfg.Client))
+	authClient := auth.NewAuthClient(auth.GetAuthConnection(log, cfg.Client))
 
 	// Register the user using the authentication client
 	err = authClient.Register(context.Background(), email, password)
