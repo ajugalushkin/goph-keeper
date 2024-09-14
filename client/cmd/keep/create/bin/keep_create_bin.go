@@ -8,26 +8,19 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
 
-var (
-	// keepCreateBin is a command to create a bin data
-	keepCreateBin = &cobra.Command{
-		Use:   "bin",
-		Short: "Create bin secret",
-		RunE:  keepCreateBinCmdRunE,
-	}
-
-	// log is used to log messages
-	log *slog.Logger
-
-	bin *Bin
-)
-
-// Bin is used to set client
-type Bin struct {
-	client app.KeeperClient
+var keepCreateBin = &cobra.Command{
+	Use:   "bin",
+	Short: "Create bin secret",
+	RunE:  keepCreateBinCmdRunE,
 }
+
+var client app.KeeperClient
 
 // NewCommand creates a new Cobra command for creating a bin secret.
 // It initializes the logger and client for the command and returns the command object.
@@ -56,7 +49,7 @@ func NewCommand() *cobra.Command {
 //     If no error occurs, it returns nil.
 func keepCreateBinCmdRunE(cmd *cobra.Command, args []string) error {
 	const op = "keep.create.bin"
-	log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Read the secret name from the command-line flags
 	name, err := cmd.Flags().GetString("name")
@@ -78,8 +71,16 @@ func keepCreateBinCmdRunE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("file_path is required")
 	}
 
+	if client == nil {
+		token, err := token_cache.GetToken().Load()
+		if err != nil {
+			return err
+		}
+		client = keeper.NewKeeperClient(keeper.GetKeeperConnection(log, config.GetConfig().Client.Address, token))
+	}
+
 	// Create the binary secret in the vault
-	resp, err := bin.client.CreateItemStream(context.Background(), name, filePath)
+	resp, err := client.CreateItemStream(context.Background(), name, filePath)
 	if err != nil {
 		log.Error("Error creating bin", slog.String("error", err.Error()))
 		return err
@@ -109,4 +110,8 @@ func binCmdFlags(cmd *cobra.Command) {
 
 func init() {
 	binCmdFlags(keepCreateBin)
+}
+
+func initClient(newClient app.KeeperClient) {
+	client = newClient
 }

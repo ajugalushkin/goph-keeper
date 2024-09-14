@@ -67,7 +67,7 @@ func TestRegisterCmdRun_MissingEmail(t *testing.T) {
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
-	
+
 	cmd := &cobra.Command{}
 	cmd.Flags().StringP("email", "e", "", "User Email")
 	cmd.Flags().StringP("password", "p", "password123", "User password")
