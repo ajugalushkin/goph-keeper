@@ -41,7 +41,7 @@ func NewCommand(log *slog.Logger, cfg config.Client) *cobra.Command {
 
 	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 
-	cmd.AddCommand(create.NewCommand())
+	cmd.AddCommand(create.NewCommand(log, keeperClient))
 	cmd.AddCommand(get.NewCommand())
 	cmd.AddCommand(del.NewCommand())
 	cmd.AddCommand(list.NewCommand())
