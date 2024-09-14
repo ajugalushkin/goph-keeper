@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
@@ -19,6 +20,8 @@ var loginCmd = &cobra.Command{
 	Short: "Logins a user in the gophkeeper service",
 	RunE:  authLoginCmdRunE,
 }
+
+var client app.AuthClient
 
 // NewCommand creates a new Cobra command for logging in a user in the gophkeeper service.
 // It takes a logger and an authentication client as parameters and returns a configured Cobra command.
@@ -69,7 +72,10 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("password is required")
 	}
 
-	client := auth.NewAuthClient(auth.GetAuthConnection(log, config.GetConfig().Client))
+	if client == nil {
+		client = auth.NewAuthClient(auth.GetAuthConnection(log, config.GetConfig().Client))
+	}
+
 	// Login the user using the provided email and password
 	token, err := client.Login(context.Background(), email, password)
 	if err != nil {
@@ -104,4 +110,8 @@ func loginCmdFlags(cmd *cobra.Command) {
 
 func init() {
 	loginCmdFlags(loginCmd)
+}
+
+func initClient(newClient app.AuthClient) {
+	client = newClient
 }
