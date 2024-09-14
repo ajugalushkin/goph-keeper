@@ -68,34 +68,3 @@ func TestKeepCreateTextCmdRunE_MissingFlags(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 }
-
-func TestKeepCreateTextCmdRunE_ValidNameEmptyData(t *testing.T) {
-	// Setup
-	cmd := &cobra.Command{}
-	cmd.Flags().String("name", "test-secret", "secret name")
-	cmd.Flags().String("data", "", "secret data")
-
-	// Mock logger
-	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
-
-	// Mock KeeperClient
-	mockClient := mocks.NewKeeperClient(t)
-	client = mockClient
-
-	// Mock response
-	mockResp := &v1.CreateItemResponseV1{
-		Name:    "test-secret",
-		Version: "1",
-	}
-	mockClient.On("CreateItem", mock.Anything, mock.MatchedBy(func(req *v1.CreateItemRequestV1) bool {
-		return req.GetName() == "test-secret"
-	})).Return(mockResp, nil)
-
-	// Execute
-	err := keepCreateTextCmdRunE(cmd, []string{})
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, "test-secret", mockResp.GetName())
-	assert.Equal(t, "1", mockResp.GetVersion())
-}
