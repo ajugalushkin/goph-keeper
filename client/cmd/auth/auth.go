@@ -33,7 +33,7 @@ func NewCommand(log *slog.Logger, client app.AuthClient) *cobra.Command {
 	}
 
 	cmd.AddCommand(login.NewCommand(log, client))
-	cmd.AddCommand(register.NewCommand())
+	cmd.AddCommand(register.NewCommand(log, client))
 
 	return cmd
 }
