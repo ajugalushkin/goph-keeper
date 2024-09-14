@@ -39,10 +39,7 @@ var (
 //
 // Returns:
 // - A pointer to the cobra.Command representing the 'register' command.
-func NewCommand(newLog *slog.Logger, newClient app.AuthClient) *cobra.Command {
-	log = newLog
-	register = &Register{client: newClient}
-
+func NewCommand() *cobra.Command {
 	return registerCmd
 }
 

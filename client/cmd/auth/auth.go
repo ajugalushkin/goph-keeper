@@ -1,15 +1,16 @@
 package auth
 
 import (
-	"log/slog"
-
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/cmd/auth/login"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/auth/register"
-	auth2 "github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 )
+
+var auth = &cobra.Command{
+	Use:   "auth",
+	Short: "Manage user registration, authentication and authorization",
+}
 
 // NewCommand creates a new cobra.Command for managing user authentication, registration, and authorization.
 //
@@ -27,16 +28,11 @@ import (
 // Finally, the function adds two subcommands to the returned cobra.Command:
 // - login.NewCommand(log, authClient)
 // - register.NewCommand()
-func NewCommand(log *slog.Logger, cfg config.Client) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "auth",
-		Short: "Manage user registration, authentication and authorization",
-	}
+func NewCommand() *cobra.Command {
+	return auth
+}
 
-	client := auth2.NewAuthClient(auth2.GetAuthConnection(log, cfg))
-
-	cmd.AddCommand(login.NewCommand(log, client))
-	cmd.AddCommand(register.NewCommand(log, client))
-
-	return cmd
+func init() {
+	auth.AddCommand(login.NewCommand())
+	auth.AddCommand(register.NewCommand())
 }

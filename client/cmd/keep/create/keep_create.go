@@ -1,15 +1,12 @@
 package create
 
 import (
-	"log/slog"
-
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/create/bin"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/create/card"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/create/creds"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/create/text"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 )
 
 // NewCommand creates a new cobra.Command for the "create" subcommand.
@@ -26,13 +23,13 @@ import (
 // - text.NewCommand()
 //
 // The function returns a pointer to the created cobra.Command.
-func NewCommand(log *slog.Logger, client app.KeeperClient) *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create secret",
 	}
 
-	cmd.AddCommand(bin.NewCommand(log, client))
+	cmd.AddCommand(bin.NewCommand())
 	cmd.AddCommand(card.NewCommand())
 	cmd.AddCommand(creds.NewCommand())
 	cmd.AddCommand(text.NewCommand())

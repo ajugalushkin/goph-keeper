@@ -22,13 +22,15 @@ import (
 var cfgFile string
 
 // RootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{}
+var rootCmd = &cobra.Command{
+	Use:   "gophkeeper_client",
+	Short: "GophKeeper cli client",
+	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+}
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	rootCmd = NewCommand()
-
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -46,25 +48,25 @@ func Execute() {
 // environment variables, and sets up logging.
 //
 // The function returns a pointer to the initialized root command.
-func NewCommand() *cobra.Command {
-	log := logger.GetInstance().Log
-	cfg := config.GetInstance().Config.Client
-
-	cmd := &cobra.Command{
-		Use:   "gophkeeper_client",
-		Short: "GophKeeper cli client",
-		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
-	}
-
-	cmd.AddCommand(auth.NewCommand(log, cfg))
-	cmd.AddCommand(keep.NewCommand(log, cfg))
-
-	return cmd
-}
+//func NewCommand() *cobra.Command {
+//	cmd := &cobra.Command{
+//		Use:   "gophkeeper_client",
+//		Short: "GophKeeper cli client",
+//		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+//	}
+//
+//	cmd.AddCommand(auth.NewCommand())
+//	cmd.AddCommand(keep.NewCommand())
+//
+//	return cmd
+//}
 
 // init initializes the root command and its persistent flags.
 // It also sets up the configuration file, environment variables, and logging.
 func init() {
+	rootCmd.AddCommand(auth.NewCommand())
+	rootCmd.AddCommand(keep.NewCommand())
+
 	// Initialize token_cache storage with a file-based storage using "token_cache.txt" as the file path.
 	token_cache.GetInstance()
 

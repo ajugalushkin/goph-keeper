@@ -9,8 +9,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	os "os"
-
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -49,9 +47,9 @@ func (_m *KeeperClient) CreateItem(ctx context.Context, item *v1.CreateItemReque
 	return r0, r1
 }
 
-// CreateItemStream provides a mock function with given fields: ctx, name, file, content
-func (_m *KeeperClient) CreateItemStream(ctx context.Context, name string, file *os.File, content []byte) (*v1.CreateItemResponseV1, error) {
-	ret := _m.Called(ctx, name, file, content)
+// CreateItemStream provides a mock function with given fields: ctx, name, filePath
+func (_m *KeeperClient) CreateItemStream(ctx context.Context, name string, filePath string) (*v1.CreateItemResponseV1, error) {
+	ret := _m.Called(ctx, name, filePath)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateItemStream")
@@ -59,19 +57,19 @@ func (_m *KeeperClient) CreateItemStream(ctx context.Context, name string, file 
 
 	var r0 *v1.CreateItemResponseV1
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *os.File, []byte) (*v1.CreateItemResponseV1, error)); ok {
-		return rf(ctx, name, file, content)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*v1.CreateItemResponseV1, error)); ok {
+		return rf(ctx, name, filePath)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *os.File, []byte) *v1.CreateItemResponseV1); ok {
-		r0 = rf(ctx, name, file, content)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *v1.CreateItemResponseV1); ok {
+		r0 = rf(ctx, name, filePath)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*v1.CreateItemResponseV1)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *os.File, []byte) error); ok {
-		r1 = rf(ctx, name, file, content)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, name, filePath)
 	} else {
 		r1 = ret.Error(1)
 	}

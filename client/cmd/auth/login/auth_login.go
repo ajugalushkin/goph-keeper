@@ -42,10 +42,7 @@ type Login struct {
 //
 // Return:
 // - A pointer to a configured Cobra command for logging in a user.
-func NewCommand(newLog *slog.Logger, newClient app.AuthClient) *cobra.Command {
-	log = newLog
-	login = &Login{client: newClient}
-
+func NewCommand() *cobra.Command {
 	return loginCmd
 }
 

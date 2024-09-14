@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"os"
 
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
@@ -21,8 +20,7 @@ type KeeperClient interface {
 	CreateItemStream(
 		ctx context.Context,
 		name string,
-		file *os.File,
-		content []byte,
+		filePath string,
 	) (*keeperv1.CreateItemResponseV1, error)
 	UpdateItem(
 		ctx context.Context,

@@ -6,11 +6,14 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
+	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
+	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -34,9 +37,30 @@ func (k *KeeperClient) CreateItem(
 func (k *KeeperClient) CreateItemStream(
 	ctx context.Context,
 	name string,
-	file *os.File,
-	content []byte,
+	filePath string,
 ) (*keeperv1.CreateItemResponseV1, error) {
+	stat, err := os.Stat(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	fileInfo := vaulttypes.Bin{
+		FileName: filepath.Base(filePath),
+		Size:     stat.Size(),
+	}
+
+	// Encrypt the secret content
+	content, err := secret.EncryptSecret(fileInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
 	stream, err := k.api.CreateItemStreamV1(context.Background())
 	if err != nil {
 		slog.Error("cannot upload file: ", slog.String("error", err.Error()))
