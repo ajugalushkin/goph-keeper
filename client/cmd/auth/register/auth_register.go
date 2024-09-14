@@ -8,27 +8,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
-// Register is used to register
-type Register struct {
-	client app.AuthClient
+var registerCmd = &cobra.Command{
+	Use:   "register",
+	Short: "Registers a user in the gophkeeper service",
+	RunE:  registerCmdRun,
 }
 
-var (
-	// registerCmd is the command to register a client
-	registerCmd = &cobra.Command{
-		Use:   "register",
-		Short: "Registers a user in the gophkeeper service",
-		RunE:  registerCmdRun,
-	}
-
-	// log is used to log messages
-	log *slog.Logger
-
-	// register is used to register
-	register *Register
-)
+var client app.AuthClient
 
 // NewCommand creates a new cobra.Command for registering a user in the gophkeeper service.
 // It initializes a new Register instance with the provided logger and authentication client.
@@ -54,7 +45,7 @@ func NewCommand() *cobra.Command {
 // - An error if any error occurs during the registration process. If no error occurs, it returns nil.
 func registerCmdRun(cmd *cobra.Command, args []string) error {
 	const op = "client.auth.register.run"
-	log.With("op", op)
+	log := logger.GetLogger().With("op", op)
 
 	// Retrieve the user's email from the command-line flag
 	email, err := cmd.Flags().GetString("email")
@@ -76,8 +67,12 @@ func registerCmdRun(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("password is required")
 	}
 
+	if client == nil {
+		client = auth.NewAuthClient(auth.GetAuthConnection(log, config.GetConfig().Client))
+	}
+
 	// Register the user using the authentication client
-	err = register.client.Register(context.Background(), email, password)
+	err = client.Register(context.Background(), email, password)
 	if err != nil {
 		log.Error("Error registering user", slog.String("error", err.Error()))
 		return err
@@ -105,4 +100,8 @@ func registerCmdFlags(cmd *cobra.Command) {
 
 func init() {
 	registerCmdFlags(registerCmd)
+}
+
+func initClient(newClient app.AuthClient) {
+	client = newClient
 }
