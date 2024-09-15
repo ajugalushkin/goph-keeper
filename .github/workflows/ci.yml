@@ -29,7 +29,7 @@ jobs:
           context: .
           file: ./server/cmd/Dockerfile
           push: true
-          tags: goph-keeper/repo:latest
+          tags: goph-keeper:latest
           secrets:
             GIT_AUTH_TOKEN=${{ secrets.CITOKEN }}
       - name: Run Docker Compose
