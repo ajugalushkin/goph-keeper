@@ -4,6 +4,9 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    env_file:
+      - ci.env
+      - .env
     build:
       context: ../
       dockerfile: ./server/cmd/Dockerfile
