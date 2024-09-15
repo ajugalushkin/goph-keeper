@@ -61,3 +61,15 @@ func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
 	require.Contains(t, err.Error(), "secret not found")
 	mockClient.AssertExpectations(t)
 }
+
+// Successfully reads secret name and path from command flags
+func TestKeepGetBinRunE_ReadsSecretNameAndPath(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	cmd.Flags().String("path", "/tmp", "secret path")
+
+	err := keepGetBinRunE(cmd, []string{})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+}
