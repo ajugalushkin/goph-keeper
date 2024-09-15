@@ -32,5 +32,17 @@ jobs:
           tags: alexangergalushkin/goph-keeper
       - name: Run Docker Compose
         run:  |
+          export POSTGRES_USER=postgres
+          export POSTGRES_PASSWORD=postgres
+          export POSTGRES_DB=postgres
+          export POSTGRES_APP_USER=praktikum
+          export POSTGRES_APP_PASS=pass
+          export POSTGRES_APP_DB=goph_keeper
+          export PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+          export PGADMIN_DEFAULT_PASSWORD=admin
+          export PGADMIN_PORT=7080
           export SERVER_CONFIG=/config/config.yaml
+          export MINIO_ROOT_USER=praktikum
+          export MINIO_ROOT_PASSWORD=pass1234567
+          export MINIO_DEFAULT_BUCKETS=vault
           docker compose -f ./docker/docker-compose.yaml -f ./docker/docker-compose.postgresql.yaml -f ./docker/docker-compose.gophkeeper.yaml -f ./docker/docker-compose.minio.yaml up -d
