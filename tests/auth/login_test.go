@@ -1,14 +1,16 @@
 package auth
 
 import (
-	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/tests/auth/suite"
+	"testing"
+	"time"
+
 	"github.com/brianvoe/gofakeit"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
+
+	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
+	"github.com/ajugalushkin/goph-keeper/tests/auth/suite"
 )
 
 const (
