@@ -1,16 +1,22 @@
 package text
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
+	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
 func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
@@ -57,4 +63,51 @@ func TestKeeperUpdateTextCmdRunE_MissingName(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Equal(t, "secret name cannot be empty", err.Error())
+}
+
+func TestKeeperUpdateTextCmdRunE_NonExistentSecretName(t *testing.T) {
+	// Arrange
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	// Set up the context and logger
+	name := "non-existent-secret"
+	data := "test-data"
+
+	// Mock dependencies
+	token_cache.InitTokenStorage("token.txt")
+	err := token_cache.GetToken().Save("test-token")
+	assert.NoError(t, err)
+
+	config.InitConfig(&config.Config{Client: config.Client{Address: "test-address"}})
+
+	mockClient := mocks.NewKeeperClient(t)
+
+	// Create a Text secret object with the provided data
+	text := vaulttypes.Text{
+		Data: data,
+	}
+
+	// Encrypt the secret data
+	content, err := secret.EncryptSecret(text)
+	assert.NoError(t, err)
+
+	mockClient.On(
+		"UpdateItem",
+		mock.Anything,
+		&keeperv1.UpdateItemRequestV1{Name: name, Content: content},
+	).Return(nil, fmt.Errorf("failed to update secret"))
+	initClient(mockClient)
+
+	// Create a command and set up flags
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", name, "secret name")
+	cmd.Flags().String("data", data, "secret data")
+
+	// Act
+	err = keeperUpdateTextCmdRunE(cmd, nil)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to update secret")
 }
