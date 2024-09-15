@@ -2,9 +2,6 @@ services:
   postgres:
     image: postgres:16
     restart: unless-stopped
-    env_file:
-      - ci.env
-      - .env
     healthcheck:
       test: [ "CMD", "pg_isready", "--quiet", "--dbname", "${POSTGRES_DB}", "--username", "${POSTGRES_USER}" ]
       start_period: 10s
@@ -34,9 +31,6 @@ services:
   pgadmin:
     image: dpage/pgadmin4:8.5
     restart: unless-stopped
-    env_file:
-      - ci.env
-      - .env
     healthcheck:
       test: [ "CMD", "wget", "-O", "-", "http://localhost:80/misc/ping" ]
       start_period: 10s
