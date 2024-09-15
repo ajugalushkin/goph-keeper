@@ -25,9 +25,9 @@ jobs:
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v6.7.0
-
         with:
-#          context: .
+          context: .
+          file: ./server/cmd
           push: true
           tags: goph-keeper/repo:latest
 
