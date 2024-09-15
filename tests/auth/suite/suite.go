@@ -2,8 +2,9 @@ package suite
 
 import (
 	"context"
-	"github.com/ajugalushkin/goph-keeper/server/config"
 	"testing"
+
+	"github.com/ajugalushkin/goph-keeper/server/config"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,7 +20,7 @@ type Suite struct {
 
 func New(t *testing.T) (context.Context, *Suite) {
 	t.Helper()
-	t.Parallel()
+	//t.Parallel()
 
 	cfg := config.MustLoadByPath("../../server/config/config.yaml")
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
