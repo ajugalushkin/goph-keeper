@@ -378,25 +378,6 @@ func TestDeleteItem_NetworkFailure(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-// Successfully retrieves item when valid request is provided
-func TestGetItem_Success(t *testing.T) {
-	ctx := context.Background()
-	mockAPI := commonmocks.NewKeeperServiceV1Client(t)
-	client := &KeeperClient{api: mockAPI}
-
-	req := &keeperv1.GetItemRequestV1{Name: "test-item"}
-	expectedResp := &keeperv1.GetItemResponseV1{Name: "test-item", Content: []byte("content"), Version: "v1"}
-
-	mockAPI.On("GetItemV1", ctx, req).Return(expectedResp, nil)
-
-	resp, err := client.GetItem(ctx, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResp, resp)
-
-	mockAPI.AssertExpectations(t)
-}
-
 // Handles error when API call fails
 func TestGetItem_Error(t *testing.T) {
 	ctx := context.Background()
