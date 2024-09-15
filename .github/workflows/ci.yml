@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -30,6 +30,7 @@ jobs:
           file: ./server/cmd/Dockerfile
           push: true
           tags: alexangergalushkin/goph-keeper
+
       - name: Run Docker Compose
         run:  |
           export POSTGRES_USER=postgres
@@ -46,3 +47,12 @@ jobs:
           export MINIO_ROOT_PASSWORD=pass1234567
           export MINIO_DEFAULT_BUCKETS=vault
           docker compose -f ./docker/docker-compose.yaml -f ./docker/docker-compose.postgresql.yaml -f ./docker/docker-compose.gophkeeper.yaml -f ./docker/docker-compose.minio.yaml up -d
+
+      - name: Run coverage
+          #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
+        run: go test ./...  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
