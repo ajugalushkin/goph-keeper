@@ -50,7 +50,7 @@ jobs:
 
       - name: Run coverage
           #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
-        run: go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+        run: go test -v -race -covermode=atomic -coverprofile=coverage.out
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
