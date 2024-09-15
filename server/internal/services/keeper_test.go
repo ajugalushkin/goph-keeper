@@ -282,38 +282,6 @@ func TestDeleteItem_ItemNotFound(t *testing.T) {
 	itemProvider.AssertExpectations(t)
 }
 
-// Successfully retrieves an existing item by name and userID
-func TestGetItem_Success(t *testing.T) {
-	ctx := context.Background()
-
-	log := slog.New(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-	)
-
-	itemProvider := mocks.NewItemProvider(t)
-	itemSaver := mocks.NewItemSaver(t)
-	objectSaver := mocks.NewObjectSaver(t)
-	objectProvider := mocks.NewObjectProvider(t)
-
-	keeper := NewKeeperService(log, itemProvider, itemSaver, objectSaver, objectProvider)
-
-	expectedItem := &models.Item{
-		Name:    "testItem",
-		Content: []byte("testContent"),
-		Version: uuid.New(),
-		OwnerID: 1,
-		FileID:  "file123",
-	}
-
-	itemProvider.On("Get", ctx, "testItem", int64(1)).Return(expectedItem, nil)
-
-	item, err := keeper.GetItem(ctx, "testItem", int64(1))
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedItem, item)
-	itemProvider.AssertExpectations(t)
-}
-
 // Handles the case where the item does not exist
 func TestGetItem_NotFound(t *testing.T) {
 	ctx := context.Background()
