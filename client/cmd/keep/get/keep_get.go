@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/get/bin"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
-
-	"github.com/spf13/cobra"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
@@ -59,6 +57,9 @@ func keepGetRunE(cmd *cobra.Command, args []string) error {
 		log.Error("Error reading secret name: ", slog.String("error", err.Error()))
 		return err
 	}
+	if name == "" {
+		return fmt.Errorf("name is required")
+	}
 
 	// If the Keeper client is not initialized, load the authentication token_cache from storage and create a new client.
 	if client == nil {
@@ -80,21 +81,8 @@ func keepGetRunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var respSecret vaulttypes.Vault
-	if resp == nil {
-		log.Error("Secret not found")
-		return fmt.Errorf("secret not found")
-	} else {
-		// Decrypt the retrieved secret content.
-		respSecret, err = secret.DecryptSecret(resp.GetContent())
-		if err != nil {
-			log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
-			return err
-		}
-	}
-
 	// Print the decrypted secret to the console.
-	fmt.Printf("%s\n", respSecret)
+	fmt.Printf("%s\n", *resp)
 	return nil
 }
 func getCmdFlags(cmd *cobra.Command) {
@@ -109,8 +97,8 @@ func getCmdFlags(cmd *cobra.Command) {
 // Returns:
 // - None
 func init() {
-    getCmdFlags(keepGet)
-    keepGet.AddCommand(bin.NewCommand())
+	getCmdFlags(keepGet)
+	keepGet.AddCommand(bin.NewCommand())
 }
 
 func initClient(newClient app.KeeperClient) {

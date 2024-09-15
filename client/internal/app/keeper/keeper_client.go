@@ -154,7 +154,7 @@ func (k *KeeperClient) DeleteItem(
 func (k *KeeperClient) GetItem(
 	ctx context.Context,
 	item *keeperv1.GetItemRequestV1,
-) (*keeperv1.GetItemResponseV1, error) {
+) (*vaulttypes.Vault, error) {
 	const op = "client.keeper.GetItem"
 
 	resp, err := k.api.GetItemV1(ctx, item)
@@ -162,7 +162,13 @@ func (k *KeeperClient) GetItem(
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return resp, nil
+	// Decrypt the retrieved secret content.
+	respSecret, err := secret.DecryptSecret(resp.GetContent())
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &respSecret, nil
 }
 
 func (k *KeeperClient) GetFile(

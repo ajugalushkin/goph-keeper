@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -33,7 +34,7 @@ type KeeperClient interface {
 	GetItem(
 		ctx context.Context,
 		item *keeperv1.GetItemRequestV1,
-	) (*keeperv1.GetItemResponseV1, error)
+	) (*vaulttypes.Vault, error)
 	GetFile(
 		ctx context.Context,
 		name string,
