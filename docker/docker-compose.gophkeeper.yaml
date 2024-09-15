@@ -7,7 +7,7 @@ services:
     build:
       context: ../
       dockerfile: ./server/cmd/Dockerfile
-    image: goph-keeper:v1.0
+    image: goph-keeper:latest
     container_name: goph-keeper
     hostname: goph-keeper
     ports:
