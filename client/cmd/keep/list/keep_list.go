@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
@@ -16,6 +17,8 @@ import (
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
+var client app.KeeperClient
+
 // NewCommand creates a new Cobra command for listing secrets.
 // The command is configured to use the "list" subcommand, with a short description "List secrets".
 // When the command is executed, the keepListRun function is called.
@@ -23,7 +26,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List secrets",
-		Run:   keepListRun,
+		RunE:  keepListRunE,
 	}
 }
 
@@ -37,28 +40,40 @@ func NewCommand() *cobra.Command {
 //
 // Return:
 // This function does not return any value.
-func keepListRun(cmd *cobra.Command, args []string) {
+func keepListRunE(cmd *cobra.Command, args []string) error {
 	const op = "keep_get"
 	log := logger.GetLogger().With("op", op)
 
-	token, err := token_cache.GetToken().Load()
-	if err != nil {
-		return
+	// If the Keeper client is not initialized, load the authentication token_cache from storage and create a new client.
+	if client == nil {
+		// Load the authentication token_cache from storage.
+		token, err := token_cache.GetToken().Load()
+		if err != nil {
+			return err
+		}
+		// Create a new Keeper client using the provided configuration and token_cache.
+		cfg := config.GetConfig().Client
+		client = keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	}
 
-	cfg := config.GetConfig().Client
-	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
-	resp, err := keeperClient.ListItems(context.Background(), &v1.ListItemsRequestV1{})
+	resp, err := client.ListItems(context.Background(), &v1.ListItemsRequestV1{})
 	if err != nil {
 		log.Error("Failed to list secret: ", slog.String("error", err.Error()))
+		return err
 	}
 
 	for _, info := range resp.GetSecrets() {
 		newSecret, err := secret.DecryptSecret(info.GetContent())
 		if err != nil {
 			log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
+			return err
 		}
 
 		fmt.Printf("%s\n", newSecret)
 	}
+	return nil
+}
+
+func initClient(newClient app.KeeperClient) {
+	client = newClient
 }

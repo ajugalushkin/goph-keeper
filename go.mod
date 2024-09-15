@@ -7,12 +7,12 @@ require (
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/bufbuild/protovalidate-go v0.6.4
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang/mock v1.1.1
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/matryer/is v1.4.1
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
