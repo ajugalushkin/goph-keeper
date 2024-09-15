@@ -1,10 +1,11 @@
 package update
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/update/card"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/update/creds"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep/update/text"
-	"github.com/spf13/cobra"
 )
 
 // NewCommand creates a new cobra.Command for the "update" subcommand.
