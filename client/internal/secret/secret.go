@@ -3,6 +3,7 @@ package secret
 import (
 	"bytes"
 	"encoding/gob"
+
 	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
 )
 

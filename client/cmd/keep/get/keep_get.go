@@ -11,6 +11,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
@@ -58,7 +59,8 @@ func keepGetRunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if name == "" {
-		return fmt.Errorf("name is required")
+		log.Error("Secret name is required")
+		return fmt.Errorf("secret name is required")
 	}
 
 	// If the Keeper client is not initialized, load the authentication token_cache from storage and create a new client.
@@ -81,8 +83,14 @@ func keepGetRunE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Decrypt the retrieved secret content.
+	respSecret, err := secret.DecryptSecret(resp.GetContent())
+	if err != nil {
+		return err
+	}
+
 	// Print the decrypted secret to the console.
-	fmt.Printf("%s\n", *resp)
+	fmt.Printf("%s\n", respSecret.String())
 	return nil
 }
 func getCmdFlags(cmd *cobra.Command) {
