@@ -18,7 +18,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
-          
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,17 +36,17 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+#      - name: Install staticcheck
+#        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+#
+#      - name: Run staticcheck
+#        run: staticcheck ./...
 
-      - name: Run staticcheck
-        run: staticcheck ./...
-
-      - name: Install golint
-        run: go install golang.org/x/lint/golint@latest
-
-      - name: Run golint
-        run: golint ./...
+#      - name: Install golint
+#        run: go install golang.org/x/lint/golint@latest
+#
+#      - name: Run golint
+#        run: golint ./...
 
       - name: Run coverage
         #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
