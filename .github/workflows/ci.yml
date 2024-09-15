@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v6.7.0
         with:
           context: .
-          file: ./server/cmd
+          file: ./server/cmd/Dockerfile
           push: true
           tags: goph-keeper/repo:latest
 
