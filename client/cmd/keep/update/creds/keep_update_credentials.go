@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
@@ -17,56 +18,34 @@ import (
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
+var keepUpdateCreds = &cobra.Command{
+	Use:   "creds",
+	Short: "Update creds secret",
+	RunE:  keepUpdateCredsRunE,
+}
+
+var client app.KeeperClient
+
 // NewCommand creates a new Cobra command for updating creds secret in the Goph-Keeper vault.
 // The command accepts three flags: --name, --login, and --password.
 // It validates the flags and calls the keepUpdateCredRun function to perform the update operation.
 func NewCommand() *cobra.Command {
-	const op = "keep update creds"
-
-	cmd := &cobra.Command{
-		Use:   "creds",
-		Short: "Update creds secret",
-		Run:   keepUpdateCredRun,
-	}
-
-	// Flag for specifying the secret name.
-	cmd.Flags().String("name", "", "Secret name")
-	if err := cmd.MarkFlagRequired("name"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// Flag for specifying the login.
-	cmd.Flags().String("login", "", "Login")
-	if err := cmd.MarkFlagRequired("login"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	// Flag for specifying the password.
-	cmd.Flags().String("password", "", "Password")
-	if err := cmd.MarkFlagRequired("password"); err != nil {
-		slog.Error("Error setting flag: ",
-			slog.String("op", op),
-			slog.String("error", err.Error()))
-	}
-
-	return cmd
+	return keepUpdateCreds
 }
 
-// keepUpdateCredRun is a function that updates a secret in the Goph-Keeper vault.
-// It reads the secret name, login, and password from command-line flags, encrypts the creds,
-// and sends an update request to the Goph-Keeper server.
+// keepUpdateCredsRunE is the entry point for updating a secret in the Goph-Keeper vault.
+// It reads the secret name, login, and password from command-line flags, creates a Credentials object,
+// encrypts the credentials, loads the authentication token, creates a Goph-Keeper client, sends an update request,
+// and prints a success message upon successful update.
 //
 // Parameters:
-// - cmd: A pointer to the Cobra command object.
-// - args: An array of command-line arguments.
+// - cmd: A pointer to the Cobra command object. This object represents the command and its associated flags.
+// - args: A slice of strings representing any additional arguments passed to the command.
 //
 // Return:
-// - This function does not return any value.
-func keepUpdateCredRun(cmd *cobra.Command, args []string) {
+//   - An error if any error occurs during the execution of the command.
+//     If no error occurs, it returns nil.
+func keepUpdateCredsRunE(cmd *cobra.Command, args []string) error {
 	const op = "keep update creds"
 	log := logger.GetLogger().With("op", op)
 
@@ -75,6 +54,10 @@ func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Error reading secret name: ",
 			slog.String("error", err.Error()))
+		return fmt.Errorf("error reading secret name")
+	}
+	if name == "" {
+		return fmt.Errorf("name is required")
 	}
 
 	// Read the login from the command-line flag.
@@ -82,6 +65,10 @@ func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Error reading login: ",
 			slog.String("error", err.Error()))
+		return fmt.Errorf("error reading login")
+	}
+	if login == "" {
+		return fmt.Errorf("login is required")
 	}
 
 	// Read the password from the command-line flag.
@@ -89,6 +76,10 @@ func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Error reading password: ",
 			slog.String("error", err.Error()))
+		return fmt.Errorf("error reading password")
+	}
+	if password == "" {
+		return fmt.Errorf("password is required")
 	}
 
 	// Create a Credentials object with the provided login and password.
@@ -102,32 +93,55 @@ func keepUpdateCredRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
-	// Load the authentication token_cache from the token_cache storage.
-	token, err := token_cache.GetToken().Load()
-	if err != nil {
-		return
+	// If the Keeper client is not initialized, load the authentication token_cache from storage and create a new client.
+	if client == nil {
+		// Load the authentication token_cache from storage.
+		token, err := token_cache.GetToken().Load()
+		if err != nil {
+			return err
+		}
+		// Create a new Keeper client using the provided configuration and token_cache.
+		cfg := config.GetConfig().Client
+		client = keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	}
-
-	// Get the Goph-Keeper client configuration.
-	cfg := config.GetConfig().Client
-
-	// Create a new Goph-Keeper client using the provided configuration and authentication token_cache.
-	keeperClient := keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
-
 	// Send an update request to the Goph-Keeper server with the secret name and encrypted content.
-	resp, err := keeperClient.UpdateItem(context.Background(), &v1.UpdateItemRequestV1{
+	resp, err := client.UpdateItem(context.Background(), &v1.UpdateItemRequestV1{
 		Name:    name,
 		Content: content,
 	})
 	if err != nil {
 		log.Error("Failed to update secret: ",
 			slog.String("error", err.Error()))
-		return
+		return err
 	}
 
 	// Print a success message with the updated secret name and version.
 	fmt.Printf("Secret %s version %v updated successfully\n", resp.GetName(), resp.GetVersion())
+	return nil
+}
+
+// updateCredsCmdFlags sets up command-line flags for updating a secret in the Goph-Keeper vault.
+// The function accepts a pointer to a Cobra command object and adds three flags: --name, --login, and --password.
+// These flags are used to provide the secret name, login, and password for updating the secret in the vault.
+//
+// Parameters:
+// - cmd: A pointer to the Cobra command object. This object represents the command and its associated flags.
+//
+// Return:
+// - This function does not return any value. It modifies the provided Cobra command object by adding the required flags.
+func updateCredsCmdFlags(cmd *cobra.Command) {
+	cmd.Flags().String("name", "", "Secret name")
+	cmd.Flags().String("login", "", "Login")
+	cmd.Flags().String("password", "", "Password")
+}
+
+func init() {
+	updateCredsCmdFlags(keepUpdateCreds)
+}
+
+func initClient(newClient app.KeeperClient) {
+	client = newClient
 }
