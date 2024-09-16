@@ -27,8 +27,14 @@ jobs:
         with:
           go-version: 'stable'
 
-      - uses: mscno/setup-goose@v1
-        run: goose up
+      - name: Install goose migrate
+        run: |
+          curl -fsSL \
+          https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
+          sh
+
+      - name: Run migrations
+        run: make goose-up
 
       - name: Run coverage
 #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
