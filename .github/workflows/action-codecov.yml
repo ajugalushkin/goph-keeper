@@ -34,7 +34,7 @@ jobs:
           sh
 
       - name: Run migrations
-        run: make goose-up
+        run: goose -dir ./server/migrations postgres postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable up
 
       - name: Run coverage
 #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
