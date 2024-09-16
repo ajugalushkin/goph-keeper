@@ -28,7 +28,7 @@ jobs:
           go-version: 'stable'
 
       - uses: mscno/setup-goose@v1
-        run: make goose-up
+        run: goose up
 
       - name: Run coverage
 #        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
