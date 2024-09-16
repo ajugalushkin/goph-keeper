@@ -57,7 +57,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 
 	go func() {
 		if err := baseServer.Serve(lis); err != nil {
-			log.Error("error serving server: %v", err)
+			log.Error("error serving server: ", slog.String("err", err.Error()))
 		}
 	}()
 
@@ -66,13 +66,13 @@ func New(t *testing.T) (context.Context, *Suite) {
 			return lis.Dial()
 		}), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error("error connecting to server: %v", err)
+		log.Error("error connecting to server: ", slog.String("err", err.Error()))
 	}
 
 	closer := func() {
 		err := lis.Close()
 		if err != nil {
-			log.Error("error closing listener: %v", err)
+			log.Error("error closing listener: ", slog.String("err", err.Error()))
 		}
 		baseServer.Stop()
 	}
