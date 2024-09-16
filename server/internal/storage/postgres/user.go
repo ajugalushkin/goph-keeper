@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pkg/errors"
@@ -114,7 +113,7 @@ func (s *UserStorage) User(
 	err = row.Scan(&user.ID, &user.Email, &user.PasswordHash)
 	if err != nil {
 		// If no rows were returned, return storage.ErrUserNotFound.
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return models.User{}, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
 		}
 		// If any other error occurred, return it.

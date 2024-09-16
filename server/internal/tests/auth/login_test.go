@@ -152,7 +152,7 @@ func TestLogin_FailCases(t *testing.T) {
 			name:        "Login with Non-Matching Password",
 			email:       gofakeit.Email(),
 			password:    randomFakePassword(),
-			expectedErr: "invalid email or password",
+			expectedErr: "invalid creds",
 		},
 	}
 
@@ -175,5 +175,12 @@ func TestLogin_FailCases(t *testing.T) {
 }
 
 func randomFakePassword() string {
-	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
+	return gofakeit.Password(
+		true,
+		true,
+		true,
+		true,
+		false,
+		passDefaultLen,
+	)
 }
