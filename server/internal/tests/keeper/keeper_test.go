@@ -52,6 +52,13 @@ func TestCreateItem_CreateItem_HappyPath(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, nameExpected, resp.GetName())
+
+	respGet, err := st.KeeperClient.GetItemV1(ctx, &keeperv1.GetItemRequestV1{
+		Name: nameExpected,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, nameExpected, respGet.GetName())
+	assert.Equal(t, resp.GetVersion(), respGet.GetVersion())
 }
 
 //func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
