@@ -25,6 +25,28 @@ type UserStorage interface {
 	) (uid int64, err error)
 }
 
+//go:generate mockery --name VaultStorage
+type VaultStorage interface {
+	Create(
+		ctx context.Context,
+		item *models.Item,
+	) (*models.Item, error)
+	Update(ctx context.Context, item *models.Item) (*models.Item, error)
+	Delete(
+		ctx context.Context,
+		item *models.Item,
+	) error
+	Get(
+		ctx context.Context,
+		name string,
+		userID int64,
+	) (*models.Item, error)
+	List(
+		ctx context.Context,
+		userID int64,
+	) ([]*models.Item, error)
+}
+
 //go:generate mockery --name MinioStorage
 type MinioStorage interface {
 	Create(

@@ -1,17 +1,26 @@
 package keeper
 
 import (
+	"context"
 	"io"
+	"log/slog"
+	"net"
 	"os"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/ajugalushkin/goph-keeper/client/secret"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	keephandlerv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/keeper/v1"
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage/mocks"
 	"github.com/ajugalushkin/goph-keeper/server/internal/tests/keeper/suite"
 )
 
@@ -292,4 +301,131 @@ func TestUpdateItem_UpdateItem_EmptyNameOrEmptyContent(t *testing.T) {
 		Content: []byte(""),
 	})
 	require.ErrorContains(t, err, "empty secret content")
+}
+
+func TestCreateItem_CreateItem_EmptyNameOrEmptyContent(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	data := Item{
+		Name:     nameExpected,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	content, err := secret.EncryptSecret(data)
+	require.NoError(t, err)
+
+	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
+		Name:    "",
+		Content: content,
+	})
+	require.ErrorContains(t, err, "empty secret name")
+
+	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
+		Name:    nameExpected,
+		Content: []byte(""),
+	})
+	require.ErrorContains(t, err, "empty secret content")
+}
+
+func TestDeleteItem_DeleteItem_ErrUserNotFound(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	_, err := st.KeeperClient.DeleteItemV1(ctx, &keeperv1.DeleteItemRequestV1{
+		Name: nameExpected,
+	})
+	require.ErrorContains(t, err, "secret not found")
+}
+
+func TestCRUDItem_EmptyUserID(t *testing.T) {
+	buffer := 101024 * 1024
+	lis := bufconn.Listen(buffer)
+
+	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	baseServer := grpc.NewServer()
+
+	mockMinio := mocks.NewMinioStorage(t)
+	vaultStorage := mocks.NewVaultStorage(t)
+
+	serviceKeeper := services.NewKeeperService(
+		log,
+		vaultStorage,
+		vaultStorage,
+		mockMinio,
+		mockMinio,
+	)
+	keephandlerv1.Register(baseServer, serviceKeeper)
+
+	go func() {
+		if err := baseServer.Serve(lis); err != nil {
+			log.Error("error serving server: ", slog.String("err", err.Error()))
+		}
+	}()
+
+	cc, err := grpc.NewClient("localhost:8080",
+		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+			return lis.Dial()
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Error(
+			"Unable to connect to server: ",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	closer := func() {
+		err := lis.Close()
+		if err != nil {
+			log.Error("error closing listener: ", slog.String("err", err.Error()))
+		}
+		baseServer.Stop()
+	}
+	defer closer()
+
+	KeeperClient := keeperv1.NewKeeperServiceV1Client(cc)
+
+	expectedName := gofakeit.Name()
+
+	data := Item{
+		Name:     expectedName,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	content, err := secret.EncryptSecret(data)
+	require.NoError(t, err)
+
+	_, err = KeeperClient.CreateItemV1(context.Background(), &keeperv1.CreateItemRequestV1{
+		Name:    expectedName,
+		Content: content,
+	})
+	assert.ErrorContains(t, err, "empty user id")
+
+	_, err = KeeperClient.UpdateItemV1(context.Background(), &keeperv1.UpdateItemRequestV1{
+		Name:    expectedName,
+		Content: content,
+	})
+	assert.ErrorContains(t, err, "empty user id")
+
+	_, err = KeeperClient.DeleteItemV1(context.Background(), &keeperv1.DeleteItemRequestV1{
+		Name: expectedName,
+	})
+	assert.ErrorContains(t, err, "empty user id")
+
+	_, err = KeeperClient.GetItemV1(context.Background(), &keeperv1.GetItemRequestV1{
+		Name: expectedName,
+	})
+	assert.ErrorContains(t, err, "empty user id")
+
+	_, err = KeeperClient.ListItemsV1(context.Background(), &keeperv1.ListItemsRequestV1{})
+	assert.ErrorContains(t, err, "empty user id")
 }
