@@ -9,8 +9,11 @@ jobs:
       postgres:
         image: postgres
         env:
+          POSTGRES_USER: praktikum
           POSTGRES_PASSWORD: pass
-          POSTGRES_DB: postgres
+          POSTGRES_DB: goph_keeper
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
