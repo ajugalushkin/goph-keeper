@@ -24,6 +24,7 @@ jobs:
         image: lazybit/minio
         ports:
           - 9000:9000
+          - 9001:9001
         env:
           MINIO_ROOT_USER: praktikum
           MINIO_ROOT_PASSWORD: pass1234567
