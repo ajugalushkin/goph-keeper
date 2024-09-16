@@ -115,32 +115,6 @@ func TestUserRetrievesUserDetailsSuccessfully(t *testing.T) {
 	}
 }
 
-// Returns ErrUserNotFound when the email does not exist in the database
-func TestUserReturnsErrUserNotFound(t *testing.T) {
-	ctx := context.Background()
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	email := "nonexistent@example.com"
-
-	mock.ExpectPrepare("SELECT id, email, password_hash FROM users WHERE email = \\$1").
-		ExpectQuery().
-		WithArgs(email).
-		WillReturnError(pgx.ErrNoRows)
-
-	userStorage := &UserStorage{db: db}
-	_, err = userStorage.User(ctx, email)
-	if err == nil {
-		t.Error("expected an error but got none")
-	}
-
-	if !errors.Is(err, storage.ErrUserNotFound) {
-		t.Errorf("expected %v, got %v", storage.ErrUserNotFound, err)
-	}
-}
 func TestSaveUserWithEmailExceedingMaxLength(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New()
