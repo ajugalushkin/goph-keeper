@@ -215,3 +215,31 @@ func TestCreateItemStream_CreateItem_HappyPath(t *testing.T) {
 		require.NoError(t, err)
 	}
 }
+
+func TestCreateItem_CreateItem_ErrItemConflict(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	data := Item{
+		Name:     nameExpected,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	content, err := secret.EncryptSecret(data)
+	require.NoError(t, err)
+
+	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
+		Name:    nameExpected,
+		Content: content,
+	})
+	require.NoError(t, err)
+
+	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
+		Name:    nameExpected,
+		Content: content,
+	})
+	assert.ErrorContains(t, err, "item already exists")
+}
