@@ -243,3 +243,25 @@ func TestCreateItem_CreateItem_ErrItemConflict(t *testing.T) {
 	})
 	assert.ErrorContains(t, err, "item already exists")
 }
+
+func TestUpdateItem_UpdateItem_ErrUserNotFound(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	data := Item{
+		Name:     nameExpected,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	content, err := secret.EncryptSecret(data)
+	require.NoError(t, err)
+
+	_, err = st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
+		Name:    nameExpected,
+		Content: content,
+	})
+	require.ErrorContains(t, err, "secret not found")
+}
