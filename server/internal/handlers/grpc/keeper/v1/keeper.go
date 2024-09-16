@@ -7,13 +7,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/ajugalushkin/goph-keeper/server/internal/services"
-
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/ajugalushkin/goph-keeper/server/interceptors"
 
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
@@ -100,7 +100,7 @@ func (s *serverAPI) CreateItemV1(
 	}
 
 	// Retrieve the user ID from the context.
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
@@ -150,7 +150,7 @@ func (s *serverAPI) CreateItemStreamV1(
 	log.Printf("receive an upload-file request for %s", nameItem)
 
 	ctx := stream.Context()
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok || userID == 0 {
 		return logError(status.Errorf(codes.Unauthenticated, "empty user id"))
 	}
@@ -242,7 +242,7 @@ func (s *serverAPI) UpdateItemV1(
 	}
 
 	// Retrieve the user ID from the context.
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
@@ -283,7 +283,7 @@ func (s *serverAPI) DeleteItemV1(
 	}
 
 	// Retrieve the user ID from the context.
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
@@ -332,7 +332,7 @@ func (s *serverAPI) GetItemV1(
 		return nil, status.Error(codes.InvalidArgument, "secret name is empty")
 	}
 
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}
@@ -377,7 +377,7 @@ func (s *serverAPI) GetItemStreamV1(
 	name := req.GetName()
 
 	ctx := stream.Context()
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok || userID == 0 {
 		return logError(status.Errorf(codes.Unauthenticated, "op: %s, empty user id", op))
 	}
@@ -433,7 +433,7 @@ func (s *serverAPI) ListItemsV1(
 	ctx context.Context,
 	req *keeperv1.ListItemsRequestV1,
 ) (*keeperv1.ListItemsResponseV1, error) {
-	userID, ok := ctx.Value(services.ContextKeyUserID).(int64)
+	userID, ok := ctx.Value(interceptors.ContextKeyUserID).(int64)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "empty user id")
 	}

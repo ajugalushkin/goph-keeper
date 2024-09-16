@@ -8,3 +8,4 @@ ignore:
   - "server/internal/handlers/grpc/auth/v1/mocks"
   - "server/internal/handlers/grpc/keeper/v1/mocks"
   - "server/internal/storage/mocks"
+  - "server/internal/tests"

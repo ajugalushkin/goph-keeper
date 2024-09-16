@@ -11,9 +11,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
-	"github.com/ajugalushkin/goph-keeper/client/internal/secret"
-	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
+	"github.com/ajugalushkin/goph-keeper/client/interceptors"
+	"github.com/ajugalushkin/goph-keeper/client/secret"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -204,7 +204,7 @@ func GetKeeperConnection(
 	const op = "app.GetKeeperConnection"
 	log.With("op", op)
 
-	interceptor, err := auth.NewAuthInterceptor(token, authMethods())
+	interceptor, err := interceptors.NewAuthInterceptor(token, authMethods())
 	if err != nil {
 		log.Error("Unable to create interceptor: ", slog.String("error", err.Error()))
 	}

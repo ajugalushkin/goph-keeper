@@ -1,6 +1,8 @@
 package vaulttypes
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Credentials пара логин пароль
 type Credentials struct {

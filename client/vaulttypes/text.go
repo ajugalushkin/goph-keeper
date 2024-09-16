@@ -1,6 +1,8 @@
 package vaulttypes
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Text struct {
 	Data string

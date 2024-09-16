@@ -1,6 +1,8 @@
 package vaulttypes
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Card данные банковской карты
 type Card struct {

@@ -1,4 +1,4 @@
-package services
+package interceptors
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
 // Creates an AuthInterceptor instance with valid logger, JWT manager, and accessible methods
@@ -17,11 +19,7 @@ func TestNewAuthInterceptor_ValidInputs(t *testing.T) {
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 	)
 
-	jwtManager := &JWTManager{
-		log:           log,
-		secretKey:     "test_secret",
-		tokenDuration: time.Hour,
-	}
+	jwtManager := services.NewJWTManager(log, "test_secret", time.Hour)
 	accessibleMethods := []string{"/test.Method"}
 
 	interceptor := NewAuthInterceptor(log, jwtManager, accessibleMethods)
@@ -43,7 +41,7 @@ func TestLogsStartOfUnaryInterceptorWithMethodName(t *testing.T) {
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 	)
 
-	jwtManager := &JWTManager{}
+	jwtManager := &services.JWTManager{}
 	accessibleMethods := []string{"/test.Service/Method"}
 	interceptor := NewAuthInterceptor(log, jwtManager, accessibleMethods)
 

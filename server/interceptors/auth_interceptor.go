@@ -1,4 +1,4 @@
-package services
+package interceptors
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
 type key int
@@ -22,7 +24,7 @@ const (
 
 type AuthInterceptor struct {
 	log               *slog.Logger
-	jwtManager        TokenManager
+	jwtManager        services.TokenManager
 	accessibleMethods []string
 }
 
@@ -38,7 +40,7 @@ type AuthInterceptor struct {
 // - A pointer to a new AuthInterceptor instance.
 func NewAuthInterceptor(
 	log *slog.Logger,
-	jwtManager TokenManager,
+	jwtManager services.TokenManager,
 	accessibleMethods []string,
 ) *AuthInterceptor {
 	return &AuthInterceptor{

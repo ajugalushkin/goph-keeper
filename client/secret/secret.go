@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/vaulttypes"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 )
 
 // Data is a struct used for encoding and decoding Vault data using Gob encoding.
