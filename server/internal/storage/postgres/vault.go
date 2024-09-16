@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/ajugalushkin/goph-keeper/server/internal/dto/models"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage"
 )
@@ -77,12 +79,12 @@ func (v *VaultStorage) Create(
 // - An error if the operation fails, which can be storage.ErrItemNotFound if the item does not exist.
 func (v *VaultStorage) Update(ctx context.Context, item *models.Item) (*models.Item, error) {
 	SQLQuery := `
-        UPDATE secrets
-        SET version = uuid_generate_v4(), content = ($1)
-        WHERE owner_id = ($2) AND name = ($3)
+        UPDATE vaults
+        SET version = ($1), content = ($2)
+        WHERE owner_id = ($3) AND name = ($4)
         RETURNING version`
 
-	row := v.db.QueryRowContext(ctx, SQLQuery, item.Content, item.OwnerID, item.Name)
+	row := v.db.QueryRowContext(ctx, SQLQuery, uuid.UUID{}, item.Content, item.OwnerID, item.Name)
 	err := row.Scan(&item.Version)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

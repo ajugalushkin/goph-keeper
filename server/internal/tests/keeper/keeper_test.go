@@ -31,7 +31,7 @@ func (i Item) String() string {
 	return "ITEM DATA"
 }
 
-func TestCreateItem_CreateItem_HappyPath(t *testing.T) {
+func TestCRUDItem_CRUDItem_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
 	defer st.Closer()
 
@@ -59,6 +59,29 @@ func TestCreateItem_CreateItem_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, nameExpected, respGet.GetName())
 	assert.Equal(t, resp.GetVersion(), respGet.GetVersion())
+
+	dataUpd := Item{
+		Name:     nameExpected,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	contentUpd, err := secret.EncryptSecret(dataUpd)
+	require.NoError(t, err)
+
+	respUpd, err := st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
+		Name:    nameExpected,
+		Content: contentUpd,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, nameExpected, respUpd.GetName())
+
+	respGet, err = st.KeeperClient.GetItemV1(ctx, &keeperv1.GetItemRequestV1{
+		Name: nameExpected,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, nameExpected, respGet.GetName())
+	assert.Equal(t, respUpd.GetVersion(), respGet.GetVersion())
 }
 
 //func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
