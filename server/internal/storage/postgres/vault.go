@@ -84,7 +84,7 @@ func (v *VaultStorage) Update(ctx context.Context, item *models.Item) (*models.I
         WHERE owner_id = ($3) AND name = ($4)
         RETURNING version`
 
-	row := v.db.QueryRowContext(ctx, SQLQuery, uuid.UUID{}, item.Content, item.OwnerID, item.Name)
+	row := v.db.QueryRowContext(ctx, SQLQuery, uuid.New(), item.Content, item.OwnerID, item.Name)
 	err := row.Scan(&item.Version)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

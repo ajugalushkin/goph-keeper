@@ -265,3 +265,31 @@ func TestUpdateItem_UpdateItem_ErrUserNotFound(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "secret not found")
 }
+
+func TestUpdateItem_UpdateItem_EmptyNameOrEmptyContent(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	data := Item{
+		Name:     nameExpected,
+		Email:    gofakeit.Email(),
+		Password: suite.RandomFakePassword(),
+	}
+
+	content, err := secret.EncryptSecret(data)
+	require.NoError(t, err)
+
+	_, err = st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
+		Name:    "",
+		Content: content,
+	})
+	require.ErrorContains(t, err, "empty secret name")
+
+	_, err = st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
+		Name:    nameExpected,
+		Content: []byte(""),
+	})
+	require.ErrorContains(t, err, "empty secret content")
+}
