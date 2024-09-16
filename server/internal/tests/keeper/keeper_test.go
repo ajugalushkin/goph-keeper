@@ -90,6 +90,34 @@ func TestCRUDItem_CRUDItem_HappyPath(t *testing.T) {
 	assert.Equal(t, nameExpected, respDel.GetName())
 }
 
+func TestListItem_ListItem_HappyPath(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	for i := 0; i < 5; i++ {
+		nameExpected := gofakeit.Name()
+
+		data := Item{
+			Name:     nameExpected,
+			Email:    gofakeit.Email(),
+			Password: suite.RandomFakePassword(),
+		}
+
+		content, err := secret.EncryptSecret(data)
+		require.NoError(t, err)
+
+		resp, err := st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
+			Name:    nameExpected,
+			Content: content,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, nameExpected, resp.GetName())
+	}
+
+	_, err := st.KeeperClient.ListItemsV1(ctx, &keeperv1.ListItemsRequestV1{})
+	require.NoError(t, err)
+}
+
 //func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
 //	ctx, st := suite.New(t)
 //
