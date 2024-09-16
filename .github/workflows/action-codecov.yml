@@ -9,12 +9,8 @@ jobs:
       postgres:
         image: postgres
         env:
-#          POSTGRES_HOST: localhost
-#          POSTGRES_USER: praktikum
-#          POSTGRES_PASSWORD: pass
-#          POSTGRES_DB: goph_keeper
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: praktikum
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
