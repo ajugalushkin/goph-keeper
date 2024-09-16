@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/bufbuild/protovalidate-go"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -88,15 +87,12 @@ func (s *serverAPI) CreateItemV1(
 	ctx context.Context,
 	req *keeperv1.CreateItemRequestV1,
 ) (*keeperv1.CreateItemResponseV1, error) {
-	// Create a new validator instance.
-	validator, err := protovalidate.New()
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
 	// Validate the input request.
-	if err := validator.Validate(req); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "empty secret name")
+	}
+	if len(req.GetContent()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty secret content")
 	}
 
 	// Retrieve the user ID from the context.
