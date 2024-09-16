@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"io"
+	"os"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
@@ -118,119 +120,98 @@ func TestListItem_ListItem_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 }
 
-//func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
-//	ctx, st := suite.New(t)
-//
-//	email := gofakeit.Email()
-//	pass := randomFakePassword()
-//
-//	respReg, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
-//		Email:    email,
-//		Password: pass,
-//	})
-//	require.NoError(t, err)
-//	require.NotEmpty(t, respReg.GetUserId())
-//
-//	respReg, err = st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
-//		Email:    email,
-//		Password: pass,
-//	})
-//	require.Error(t, err)
-//	assert.Empty(t, respReg.GetUserId())
-//	assert.ErrorContains(t, err, "user already exists")
-//}
+func TestCreateItemStream_CreateItem_HappyPath(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
 
-//func TestRegister_FailCases(t *testing.T) {
-//	ctx, st := suite.New(t)
-//
-//	tests := []struct {
-//		name        string
-//		email       string
-//		password    string
-//		expectedErr string
-//	}{
-//		{
-//			name:        "Register with Empty Password",
-//			email:       gofakeit.Email(),
-//			password:    "",
-//			expectedErr: "validation error:\n - password: value length must be at least 8 characters [string.min_len]",
-//		},
-//		{
-//			name:        "Register with Empty Email",
-//			email:       "",
-//			password:    randomFakePassword(),
-//			expectedErr: "validation error:\n - email: value is empty, which is not a valid email address [string.email_empty]",
-//		},
-//		{
-//			name:        "Register with Both Empty",
-//			email:       "",
-//			password:    "",
-//			expectedErr: "validation error:\n - email: value is empty, which is not a valid email address [string.email_empty]",
-//		},
-//	}
-//
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			_, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
-//				Email:    tt.email,
-//				Password: tt.password,
-//			})
-//			require.Error(t, err)
-//			require.Contains(t, err.Error(), tt.expectedErr)
-//
-//		})
-//	}
-//}
+	fileName := "test_bin.txt"
+	temp, err := os.CreateTemp("", fileName)
+	require.NoError(t, err)
+	defer temp.Close()
 
-//func TestLogin_FailCases(t *testing.T) {
-//	ctx, st := suite.New(t)
-//
-//	tests := []struct {
-//		name        string
-//		email       string
-//		password    string
-//		expectedErr string
-//	}{
-//		{
-//			name:        "Login with Empty Password",
-//			email:       gofakeit.Email(),
-//			password:    "",
-//			expectedErr: "validation error:\n - password: value length must be at least 8 characters [string.min_len]",
-//		},
-//		{
-//			name:        "Login with Empty Email",
-//			email:       "",
-//			password:    randomFakePassword(),
-//			expectedErr: "validation error:\n - email: value is empty, which is not a valid email address [string.email_empty]",
-//		},
-//		{
-//			name:        "Login with Both Empty Email and Password",
-//			email:       "",
-//			password:    "",
-//			expectedErr: "validation error:\n - email: value is empty, which is not a valid email address [string.email_empty]",
-//		},
-//		{
-//			name:        "Login with Non-Matching Password",
-//			email:       gofakeit.Email(),
-//			password:    randomFakePassword(),
-//			expectedErr: "invalid email or password",
-//		},
-//	}
-//
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			_, err := st.AuthClient.RegisterV1(ctx, &authv1.RegisterRequestV1{
-//				Email:    gofakeit.Email(),
-//				Password: randomFakePassword(),
-//			})
-//			require.NoError(t, err)
-//
-//			_, err = st.AuthClient.LoginV1(ctx, &authv1.LoginRequestV1{
-//				Email:    tt.email,
-//				Password: tt.password,
-//			})
-//			require.Error(t, err)
-//			require.Contains(t, err.Error(), tt.expectedErr)
-//		})
-//	}
-//}
+	_, err = temp.WriteString(gofakeit.Letter())
+	require.NoError(t, err)
+
+	stat, err := temp.Stat()
+	require.NoError(t, err)
+
+	fileInfo := vaulttypes.Bin{
+		FileName: fileName,
+		Size:     stat.Size(),
+	}
+
+	content, err := secret.EncryptSecret(fileInfo)
+	require.NoError(t, err)
+
+	req := &keeperv1.CreateItemStreamRequestV1{
+		Data: &keeperv1.CreateItemStreamRequestV1_Info{
+			Info: &keeperv1.CreateItemStreamRequestV1_FileInfo{
+				Name:    fileName,
+				Content: content,
+			},
+		},
+	}
+
+	stream, err := st.KeeperClient.CreateItemStreamV1(ctx)
+	err = stream.Send(req)
+	require.NoError(t, err)
+
+	buffer := make([]byte, 1024)
+
+	for {
+		n, err := temp.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			require.NoError(t, err)
+		}
+
+		req := &keeperv1.CreateItemStreamRequestV1{
+			Data: &keeperv1.CreateItemStreamRequestV1_ChunkData{
+				ChunkData: buffer[:n],
+			},
+		}
+
+		err = stream.Send(req)
+		require.NoError(t, err)
+	}
+
+	resp, err := stream.CloseAndRecv()
+	require.NoError(t, err)
+
+	require.NoError(t, err)
+	assert.Equal(t, fileName, resp.GetName())
+
+	streamGet, err := st.KeeperClient.GetItemStreamV1(ctx,
+		&keeperv1.GetItemRequestV1{Name: fileName})
+	require.NoError(t, err)
+
+	recGet, err := streamGet.Recv()
+	require.NoError(t, err)
+
+	respSecret, err := secret.DecryptSecret(recGet.GetContent())
+	require.NoError(t, err)
+
+	fileInfoGet := respSecret.(vaulttypes.Bin)
+	assert.Equal(t, fileInfo.FileName, fileInfoGet.FileName)
+	assert.Equal(t, fileInfo.Size, fileInfoGet.Size)
+
+	newFile, err := os.CreateTemp("", fileInfoGet.FileName)
+	require.NoError(t, err)
+	defer newFile.Close()
+
+	for {
+		req, err := streamGet.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			require.NoError(t, err)
+		}
+		chunk := req.GetChunkData()
+
+		_, err = newFile.Write(chunk)
+		require.NoError(t, err)
+	}
+}

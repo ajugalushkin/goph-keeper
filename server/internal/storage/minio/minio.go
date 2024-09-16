@@ -34,7 +34,7 @@ type FileStorage struct {
 func NewMinioStorage(
 	cfg config.Minio,
 ) (*FileStorage, error) {
-	ctx := context.Background()
+	//ctx := context.Background()
 
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.Username, cfg.Password, ""),
@@ -44,16 +44,16 @@ func NewMinioStorage(
 		return nil, err
 	}
 
-	exists, err := client.BucketExists(ctx, cfg.Bucket)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		err := client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{})
-		if err != nil {
-			return nil, err
-		}
-	}
+	//exists, err := client.BucketExists(ctx, cfg.Bucket)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if !exists {
+	//	err := client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{})
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	return &FileStorage{
 		mc:  client,
