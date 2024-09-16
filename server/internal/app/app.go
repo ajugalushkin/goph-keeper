@@ -1,10 +1,11 @@
 package app
 
 import (
-	"github.com/ajugalushkin/goph-keeper/server/config"
 	"log/slog"
 
-	grpcapp "github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
+	"github.com/ajugalushkin/goph-keeper/server/config"
+	"github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
+
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
@@ -25,45 +26,45 @@ type App struct {
 //
 // Finally, it returns a new App instance containing the initialized GrpcServer.
 func New(
-    log *slog.Logger,
-    cfg *config.Config,
+	log *slog.Logger,
+	cfg *config.Config,
 ) *App {
 
-    userStorage, err := postgres.NewUserStorage(cfg.Storage.Path)
-    if err != nil {
-        panic(err)
-    }
+	userStorage, err := postgres.NewUserStorage(cfg.Storage.Path)
+	if err != nil {
+		panic(err)
+	}
 
-    vaultStorage, err := postgres.NewVaultStorage(cfg.Storage.Path)
-    if err != nil {
-        panic(err)
-    }
+	vaultStorage, err := postgres.NewVaultStorage(cfg.Storage.Path)
+	if err != nil {
+		panic(err)
+	}
 
-    minioStorage, err := minio.NewMinioStorage(cfg.Minio)
-    if err != nil {
-        panic(err)
-    }
+	minioStorage, err := minio.NewMinioStorage(cfg.Minio)
+	if err != nil {
+		panic(err)
+	}
 
-    jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
+	jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
 
-    serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
-    serviceKeeper := services.NewKeeperService(
-        log,
-        vaultStorage,
-        vaultStorage,
-        minioStorage,
-        minioStorage,
-    )
+	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
+	serviceKeeper := services.NewKeeperService(
+		log,
+		vaultStorage,
+		vaultStorage,
+		minioStorage,
+		minioStorage,
+	)
 
-    grpcApp := grpcapp.New(
-        log,
-        serviceAuth,
-        serviceKeeper,
-        jwtManager,
-        cfg.GRPC.Address,
-    )
+	grpcApp := grpcapp.New(
+		log,
+		serviceAuth,
+		serviceKeeper,
+		jwtManager,
+		cfg.GRPC.Address,
+	)
 
-    return &App{
-        GRPCSrv: grpcApp,
-    }
+	return &App{
+		GRPCSrv: grpcApp,
+	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	authv1 "github.com/ajugalushkin/goph-keeper/gen/auth/v1"
-	"github.com/ajugalushkin/goph-keeper/tests/auth/suite"
+	"github.com/ajugalushkin/goph-keeper/server/internal/tests/auth/suite"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 
 func TestLogin_Login_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
+	defer st.Closer()
 
 	email := gofakeit.Email()
 	pass := randomFakePassword()

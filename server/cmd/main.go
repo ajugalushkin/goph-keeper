@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/ajugalushkin/goph-keeper/server/config"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/app"
 )
 
@@ -19,38 +19,38 @@ var (
 // It initializes the application configuration, sets up a logger, starts the gRPC server,
 // and handles graceful shutdowns.
 func main() {
-    cfg := config.MustLoad()
+	cfg := config.MustLoad()
 
-    // Set up a logger based on the application environment.
-    log := setupLogger(cfg.Env)
+	// Set up a logger based on the application environment.
+	log := setupLogger(cfg.Env)
 
-    // Log the start of the application with its environment, build version, and build date.
-    log.Info(
-        "starting application",
-        slog.String("env", cfg.Env),
-        slog.String("build version", buildVersion),
-        slog.String("build date", buildDate),
-    )
+	// Log the start of the application with its environment, build version, and build date.
+	log.Info(
+		"starting application",
+		slog.String("env", cfg.Env),
+		slog.String("build version", buildVersion),
+		slog.String("build date", buildDate),
+	)
 
-    // Create a new application instance with the configured logger and configuration.
-    application := app.New(log, cfg)
+	// Create a new application instance with the configured logger and configuration.
+	application := app.New(log, cfg)
 
-    // Run the gRPC server in a separate goroutine.
-    go application.GRPCSrv.MustRun()
+	// Run the gRPC server in a separate goroutine.
+	go application.GRPCSrv.MustRun()
 
-    // Set up a channel to receive OS signals for graceful shutdown.
-    stop := make(chan os.Signal, 1)
-    signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	// Set up a channel to receive OS signals for graceful shutdown.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-    // Wait for a signal to stop the application.
-    sign := <-stop
-    log.Info("stopping application", slog.String("signal", sign.String()))
+	// Wait for a signal to stop the application.
+	sign := <-stop
+	log.Info("stopping application", slog.String("signal", sign.String()))
 
-    // Stop the gRPC server.
-    application.GRPCSrv.Stop()
+	// Stop the gRPC server.
+	application.GRPCSrv.Stop()
 
-    // Log the successful stop of the application.
-    log.Info("application stopped")
+	// Log the successful stop of the application.
+	log.Info("application stopped")
 }
 
 // setupLogger initializes and configures a slog.Logger based on the provided environment.
@@ -64,22 +64,22 @@ func main() {
 // Returns:
 // - *slog.Logger: A configured slog.Logger instance.
 func setupLogger(Env string) *slog.Logger {
-    const (
-        envDev  = "dev"
-        envProd = "prod"
-    )
+	const (
+		envDev  = "dev"
+		envProd = "prod"
+	)
 
-    var log *slog.Logger
+	var log *slog.Logger
 
-    switch Env {
-    case envDev:
-        log = slog.New(
-            slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-        )
-    case envProd:
-        log = slog.New(
-            slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
-        )
-    }
-    return log
+	switch Env {
+	case envDev:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+	return log
 }
