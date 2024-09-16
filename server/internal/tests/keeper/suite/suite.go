@@ -2,6 +2,7 @@ package suite
 
 import (
 	"context"
+	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
 	"log/slog"
 	"net"
 	"os"
@@ -22,7 +23,6 @@ import (
 	authhandlerv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/auth/v1"
 	keephandlerv1 "github.com/ajugalushkin/goph-keeper/server/internal/handlers/grpc/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
-	"github.com/ajugalushkin/goph-keeper/server/internal/storage/mocks"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
 )
 
@@ -69,11 +69,11 @@ func New(t *testing.T) (context.Context, *Suite) {
 		panic(err)
 	}
 
-	minioStorage := mocks.NewMinioStorage(t)
-	//minioStorage, err := minio.NewMinioStorage(cfg.Minio)
-	//if err != nil {
-	//	panic(err)
-	//}
+	//minioStorage := mocks.NewMinioStorage(t)
+	minioStorage, err := minio.NewMinioStorage(cfg.Minio)
+	if err != nil {
+		panic(err)
+	}
 
 	serviceKeeper := services.NewKeeperService(
 		log,
