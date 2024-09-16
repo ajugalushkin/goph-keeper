@@ -82,6 +82,12 @@ func TestCRUDItem_CRUDItem_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, nameExpected, respGet.GetName())
 	assert.Equal(t, respUpd.GetVersion(), respGet.GetVersion())
+
+	respDel, err := st.KeeperClient.DeleteItemV1(ctx, &keeperv1.DeleteItemRequestV1{
+		Name: nameExpected,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, nameExpected, respDel.GetName())
 }
 
 //func TestRegisterLogin_DuplicatedRegistration(t *testing.T) {
