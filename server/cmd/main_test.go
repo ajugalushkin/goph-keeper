@@ -23,11 +23,6 @@ func TestSetupLogger_DevEnvironment(t *testing.T) {
 	if !ok {
 		t.Fatalf("Expected a TextHandler, but got %T", handler)
 	}
-
-	//options := textHandler.GetOptions()
-	//if options.Level != expectedLogLevel {
-	//	t.Fatalf("Expected log level %v, but got %v", expectedLogLevel, options.Level)
-	//}
 }
 
 func TestSetupLogger_Prod(t *testing.T) {
@@ -48,9 +43,4 @@ func TestSetupLogger_Prod(t *testing.T) {
 	if !ok {
 		t.Fatalf("unexpected handler type: %T", handler)
 	}
-
-	//options := textHandler.Opts()
-	//if options.Level != expectedLogLevel {
-	//	t.Errorf("unexpected log level: got %v, want %v", options.Level, expectedLogLevel)
-	//}
 }

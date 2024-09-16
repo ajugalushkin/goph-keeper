@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ajugalushkin/goph-keeper/server/config"
+	config2 "github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/app"
 )
 
@@ -15,11 +15,16 @@ var (
 	buildDate    = "N/A"
 )
 
+var application *app.App
+var cfg *config2.Config
+
 // main is the entry point of the Goph-Keeper server application.
 // It initializes the application configuration, sets up a logger, starts the gRPC server,
 // and handles graceful shutdowns.
 func main() {
-	cfg := config.MustLoad()
+	if cfg == nil {
+		cfg = config2.MustLoad()
+	}
 
 	// Set up a logger based on the application environment.
 	log := setupLogger(cfg.Env)
@@ -33,7 +38,9 @@ func main() {
 	)
 
 	// Create a new application instance with the configured logger and configuration.
-	application := app.New(log, cfg)
+	if application == nil {
+		application = app.New(log, cfg)
+	}
 
 	// Run the gRPC server in a separate goroutine.
 	go application.GRPCSrv.MustRun()
@@ -82,4 +89,12 @@ func setupLogger(Env string) *slog.Logger {
 		)
 	}
 	return log
+}
+
+func initApp(newApp *app.App) {
+	application = newApp
+}
+
+func initConfig(newCfg *config2.Config) {
+	cfg = newCfg
 }

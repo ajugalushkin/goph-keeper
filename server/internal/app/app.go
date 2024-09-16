@@ -5,7 +5,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/app/grpc"
-
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/minio"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"

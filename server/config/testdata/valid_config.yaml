@@ -1,0 +1,5 @@
+env: "prod"
+grpc:
+  address: "localhost:50051"
+token:
+  secret: "mysecret"
