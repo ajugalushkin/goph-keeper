@@ -6,7 +6,7 @@ token:
   ttl: 10h
   secret: secret_key
 storage:
-  path: postgres://praktikum:pass@localhost:5432/goph_keeper
+  path: postgres://postgres:postgres@postgres:5432/praktikum
 minio:
   endpoint: minio:9000
   username: praktikum
