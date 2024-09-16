@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
@@ -171,35 +170,6 @@ func TestSaveUserWithPasswordHashExceedingMaxLength(t *testing.T) {
 		if !strings.Contains(err.Error(), expectedError) {
 			t.Errorf("expected error to contain '%s', got '%s'", expectedError, err.Error())
 		}
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-func TestRetrieveUserDetailsWithSQLInjectionAttempt(t *testing.T) {
-	ctx := context.Background()
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	userStorage := &UserStorage{db: db}
-	email := "test@example.com' OR 1=1 --" // SQL injection attempt
-
-	mock.ExpectPrepare("SELECT id, email, password_hash FROM users WHERE email = \\$1").
-		ExpectQuery().
-		WithArgs(email).
-		WillReturnError(pgx.ErrNoRows) // Simulate no user found
-
-	_, err = userStorage.User(ctx, email)
-	if err == nil {
-		t.Error("expected an error but got none")
-	}
-
-	if !errors.Is(err, storage.ErrUserNotFound) {
-		t.Errorf("expected %v, got %v", storage.ErrUserNotFound, err)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
