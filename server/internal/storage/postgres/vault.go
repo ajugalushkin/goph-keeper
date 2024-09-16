@@ -177,5 +177,8 @@ func (v *VaultStorage) List(
 		}
 		secrets = append(secrets, secret)
 	}
+	if len(secrets) == 0 {
+		return nil, storage.ErrItemNotFound
+	}
 	return secrets, nil
 }

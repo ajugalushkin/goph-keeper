@@ -338,6 +338,11 @@ func TestDeleteItem_DeleteItem_ErrUserNotFound(t *testing.T) {
 	nameExpected := gofakeit.Name()
 
 	_, err := st.KeeperClient.DeleteItemV1(ctx, &keeperv1.DeleteItemRequestV1{
+		Name: "",
+	})
+	require.ErrorContains(t, err, "empty secret name")
+
+	_, err = st.KeeperClient.DeleteItemV1(ctx, &keeperv1.DeleteItemRequestV1{
 		Name: nameExpected,
 	})
 	require.ErrorContains(t, err, "secret not found")
@@ -428,4 +433,29 @@ func TestCRUDItem_EmptyUserID(t *testing.T) {
 
 	_, err = KeeperClient.ListItemsV1(context.Background(), &keeperv1.ListItemsRequestV1{})
 	assert.ErrorContains(t, err, "empty user id")
+}
+
+func TestListItem_ListItem_ErrUserNotFound(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	_, err := st.KeeperClient.ListItemsV1(ctx, &keeperv1.ListItemsRequestV1{})
+	require.ErrorContains(t, err, "failed to list secrets")
+}
+
+func TestGetItem_GetItem_ErrUserNotFound(t *testing.T) {
+	ctx, st := suite.New(t)
+	defer st.Closer()
+
+	nameExpected := gofakeit.Name()
+
+	_, err := st.KeeperClient.GetItemV1(ctx, &keeperv1.GetItemRequestV1{
+		Name: "",
+	})
+	require.ErrorContains(t, err, "secret name is empty")
+
+	_, err = st.KeeperClient.GetItemV1(ctx, &keeperv1.GetItemRequestV1{
+		Name: nameExpected,
+	})
+	require.ErrorContains(t, err, "failed to get item")
 }
