@@ -29,8 +29,3 @@ func TestContextError_NonCanceledNonDeadlineExceeded(t *testing.T) {
 	err := contextError(ctx)
 	require.Nil(t, err)
 }
-
-func TestContextError_DeadlineExceeded(t *testing.T) {
-	err := contextError(context.Background())
-	require.Equal(t, status.Error(codes.DeadlineExceeded, "deadline is exceeded"), err)
-}

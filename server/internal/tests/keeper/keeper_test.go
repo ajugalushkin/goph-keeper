@@ -129,7 +129,7 @@ func TestListItem_ListItem_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCreateItemStream_CreateItem_HappyPath(t *testing.T) {
+func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
 	defer st.Closer()
 
@@ -223,6 +223,12 @@ func TestCreateItemStream_CreateItem_HappyPath(t *testing.T) {
 		_, err = newFile.Write(chunk)
 		require.NoError(t, err)
 	}
+
+	respDel, err := st.KeeperClient.DeleteItemV1(ctx, &keeperv1.DeleteItemRequestV1{
+		Name: fileName,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, fileInfo.FileName, respDel.Name)
 }
 
 func TestCreateItem_CreateItem_ErrItemConflict(t *testing.T) {
