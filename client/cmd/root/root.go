@@ -2,16 +2,13 @@ package root
 
 import (
 	"errors"
-	"log/slog"
-	"os"
-	"strings"
-
 	"github.com/ajugalushkin/goph-keeper/client/cmd/auth"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"log/slog"
+	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
@@ -112,18 +109,18 @@ func initConfig() {
 		slog.Info("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
 	}
 
-	// Enable automatic population of environment variables.
-	viper.AutomaticEnv()
-	// Replace hyphens with underscores and periods with underscores in environment variable keys.
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-
-	// Bind each flag to its corresponding configuration key.
-	rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
-		key := strings.ReplaceAll(flag.Name, "-", ".")
-		if err := viper.BindPFlag(key, flag); err != nil {
-			slog.Error("Error parsing flag: ", slog.String("error", err.Error()))
-		}
-	})
+	//// Enable automatic population of environment variables.
+	//viper.AutomaticEnv()
+	//// Replace hyphens with underscores and periods with underscores in environment variable keys.
+	//viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
+	//
+	//// Bind each flag to its corresponding configuration key.
+	//rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
+	//	key := strings.ReplaceAll(flag.Name, "-", ".")
+	//	if err := viper.BindPFlag(key, flag); err != nil {
+	//		slog.Error("Error parsing flag: ", slog.String("error", err.Error()))
+	//	}
+	//})
 
 	// Initialize the configuration and logger instances.
 	config.GetConfig()
