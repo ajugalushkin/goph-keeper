@@ -4,6 +4,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/config"
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 	"github.com/ajugalushkin/goph-keeper/server/internal/storage/postgres"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"strings"
@@ -41,6 +42,22 @@ func TestNew_NilConfig(t *testing.T) {
 	}()
 
 	New(slog.New(slog.NewTextHandler(os.Stdout, nil)), nil) // passing nil config
+}
+
+func TestInitAuthService_Success(t *testing.T) {
+	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	cfg := &config.Config{
+		Storage: config.Storage{Path: "postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable"},
+		Minio:   config.Minio{Endpoint: "localhost:9000"}, // valid Minio configuration for testing
+	}
+	jwtManager := services.NewJWTManager(log, "test_secret", time.Hour)
+
+	defer func() {
+		r := recover()
+		require.Empty(t, r)
+	}()
+
+	initAuthService(log, cfg, jwtManager)
 }
 
 func TestInitAuthService_UserStorageInitFailure(t *testing.T) {
@@ -91,6 +108,29 @@ func TestInitKeeperService_NilLogger(t *testing.T) {
 	}()
 
 	initKeeperService(nil, cfg)
+}
+
+func TestInitAuthService_NilJWTManager(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("initAuthService should panic with nil JWT manager")
+		} else if err, ok := r.(error); !ok || err.Error() != "JWT manager is nil" {
+			t.Errorf("initAuthService should panic with 'JWT manager is nil' error, but got: %v", r)
+		}
+	}()
+
+	initAuthService(
+		slog.New(slog.NewTextHandler(os.Stdout, nil)),
+		&config.Config{
+			Storage: config.Storage{Path: "postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable"},
+			Token: config.Token{
+				TTL:    time.Hour,
+				Secret: "secret",
+			},
+		},
+		nil, // passing nil JWT manager
+	)
 }
 
 func TestInitKeeperService_InvalidStoragePath(t *testing.T) {

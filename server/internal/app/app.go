@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/ajugalushkin/goph-keeper/server/config"
@@ -58,7 +59,7 @@ func initAuthService(
 	}
 
 	if jwtManager == nil {
-		panic("JWT manager is nil")
+		panic(fmt.Errorf("JWT manager is nil"))
 	}
 
 	return services.NewAuthService(
