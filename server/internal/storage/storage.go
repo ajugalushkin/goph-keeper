@@ -10,7 +10,6 @@ import (
 var (
 	ErrUserExists   = errors.New("already exists")
 	ErrUserNotFound = errors.New("user not found")
-	ErrUserConflict = errors.New("user conflict")
 	ErrItemConflict = errors.New("item conflict")
 	ErrItemNotFound = errors.New("item not found")
 )

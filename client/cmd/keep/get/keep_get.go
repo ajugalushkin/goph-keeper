@@ -108,7 +108,3 @@ func init() {
 	getCmdFlags(keepGet)
 	keepGet.AddCommand(bin.NewCommand())
 }
-
-func initClient(newClient app.KeeperClient) {
-	client = newClient
-}

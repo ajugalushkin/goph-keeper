@@ -133,7 +133,3 @@ func textCmdFlags(cmd *cobra.Command) {
 func init() {
 	textCmdFlags(keepCreateText)
 }
-
-func initClient(newClient app.KeeperClient) {
-	client = newClient
-}

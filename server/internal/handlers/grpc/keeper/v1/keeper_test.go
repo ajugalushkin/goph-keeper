@@ -31,8 +31,6 @@ func TestContextError_NonCanceledNonDeadlineExceeded(t *testing.T) {
 }
 
 func TestContextError_DeadlineExceeded(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), 0)
-
-	err := contextError(ctx)
+	err := contextError(context.Background())
 	require.Equal(t, status.Error(codes.DeadlineExceeded, "deadline is exceeded"), err)
 }

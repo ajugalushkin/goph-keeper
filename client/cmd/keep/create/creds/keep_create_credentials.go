@@ -132,7 +132,3 @@ func credsCmdFlags(cmd *cobra.Command) {
 func init() {
 	credsCmdFlags(keepCreateCreds)
 }
-
-func initClient(newClient app.KeeperClient) {
-	client = newClient
-}

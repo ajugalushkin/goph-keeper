@@ -14,7 +14,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	os.Mkdir("test", 0777)
+	err := os.Mkdir("test", 0777)
+	if err != nil {
+		return
+	}
 	newConfig := testCfg.Config{
 		Env:     "dev",
 		Storage: testCfg.Storage{Path: "postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable"},

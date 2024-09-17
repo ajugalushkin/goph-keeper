@@ -149,7 +149,3 @@ func cardCmdFlags(cmd *cobra.Command) {
 func init() {
 	cardCmdFlags(keepCreateCard)
 }
-
-func initClient(newClient app.KeeperClient) {
-	client = newClient
-}
