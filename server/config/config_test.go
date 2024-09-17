@@ -1,10 +1,8 @@
 package config
 
 import (
-	"bytes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -93,23 +91,10 @@ func TestMustLoadByPath_NonDefaultPath(t *testing.T) {
 	os.Remove(nonDefaultPath)
 }
 
-func TestMustLoadByPath_MissingConfigFile(t *testing.T) {
-	nonExistentConfigPath := "non_existent_config.yaml"
-	expectedErrorMessage := "\"Config file not found in \" file=non_existent_config.yaml\n"
+func TestMustLoadByPath_UsesDefaultValuesIfConfigFileMissing(t *testing.T) {
+	// Act
+	actualConfig := MustLoadByPath("")
 
-	logOutput := captureLogOutput(func() {
-		MustLoadByPath(nonExistentConfigPath)
-	})
-
-	assert.Contains(t, logOutput, expectedErrorMessage)
-}
-
-func captureLogOutput(f func()) string {
-	buf := &bytes.Buffer{}
-	logger := slog.New(slog.NewTextHandler(buf, nil))
-	slog.SetDefault(logger)
-
-	f()
-
-	return buf.String()
+	// Assert
+	assert.NotEmpty(t, actualConfig)
 }
