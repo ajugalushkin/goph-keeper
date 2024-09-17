@@ -28,32 +28,11 @@ func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *App {
-
-	userStorage, err := postgres.NewUserStorage(cfg.Storage.Path)
-	if err != nil {
-		panic(err)
-	}
-
-	vaultStorage, err := postgres.NewVaultStorage(cfg.Storage.Path)
-	if err != nil {
-		panic(err)
-	}
-
-	minioStorage, err := minio.NewMinioStorage(cfg.Minio)
-	if err != nil {
-		panic(err)
-	}
-
 	jwtManager := services.NewJWTManager(log, cfg.Token.Secret, cfg.Token.TTL)
 
-	serviceAuth := services.NewAuthService(log, userStorage, userStorage, jwtManager)
-	serviceKeeper := services.NewKeeperService(
-		log,
-		vaultStorage,
-		vaultStorage,
-		minioStorage,
-		minioStorage,
-	)
+	serviceAuth := initAuthService(log, cfg, jwtManager)
+
+	serviceKeeper := initKeeperService(log, cfg)
 
 	grpcApp := grpcapp.New(
 		log,
@@ -66,4 +45,41 @@ func New(
 	return &App{
 		GRPCSrv: grpcApp,
 	}
+}
+
+func initAuthService(
+	log *slog.Logger,
+	cfg *config.Config,
+	jwtManager *services.JWTManager,
+) *services.Auth {
+	userStorage, err := postgres.NewUserStorage(cfg.Storage.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	return services.NewAuthService(
+		log,
+		userStorage,
+		userStorage,
+		jwtManager,
+	)
+}
+
+func initKeeperService(log *slog.Logger, cfg *config.Config) *services.Keeper {
+	vaultStorage, err := postgres.NewVaultStorage(cfg.Storage.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	minioStorage, err := minio.NewMinioStorage(cfg.Minio)
+	if err != nil {
+		panic(err)
+	}
+	return services.NewKeeperService(
+		log,
+		vaultStorage,
+		vaultStorage,
+		minioStorage,
+		minioStorage,
+	)
 }

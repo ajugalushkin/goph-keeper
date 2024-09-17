@@ -229,6 +229,10 @@ func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, fileInfo.FileName, respDel.Name)
+
+	_, err = st.KeeperClient.GetItemStreamV1(ctx,
+		&keeperv1.GetItemRequestV1{Name: fileName})
+	require.NoError(t, err)
 }
 
 func TestCreateItem_CreateItem_ErrItemConflict(t *testing.T) {
