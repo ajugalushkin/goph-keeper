@@ -57,6 +57,10 @@ func initAuthService(
 		panic(err)
 	}
 
+	if jwtManager == nil {
+		panic("JWT manager is nil")
+	}
+
 	return services.NewAuthService(
 		log,
 		userStorage,
