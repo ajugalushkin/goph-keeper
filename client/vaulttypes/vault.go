@@ -25,6 +25,9 @@ type container struct {
 }
 
 func EncodeVault(vault Vault) ([]byte, error) {
+	if vault == nil {
+		return nil, errors.New("cannot encode nil vault")
+	}
 	data, err := json.Marshal(vault)
 	if err != nil {
 		return nil, err

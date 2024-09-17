@@ -28,3 +28,15 @@ func TestDecodeVaultWithEmptyData(t *testing.T) {
 		t.Fatalf("expected error, got nil")
 	}
 }
+
+func TestDecodeVaultWithUnknownSecretType(t *testing.T) {
+	data := []byte(`{"type":"unknown","data":"unknown data"}`)
+	_, err := DecodeVault(data)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+	expectedError := "unknown secret type"
+	if err.Error() != expectedError {
+		t.Errorf("expected error: %s, got error: %s", expectedError, err.Error())
+	}
+}

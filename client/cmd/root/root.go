@@ -34,30 +34,6 @@ func Execute() {
 	}
 }
 
-// NewCommand creates and initializes a new root command for the GophKeeper client.
-// The root command is responsible for managing authentication and secret keeping operations.
-// It includes subcommands for authentication and secret keeping.
-//
-// The root command supports a persistent flag for specifying the client configuration file path.
-// The flag can be accessed using "--config" or "-c".
-//
-// The function initializes the token cache storage, reads the client configuration from a file,
-// environment variables, and sets up logging.
-//
-// The function returns a pointer to the initialized root command.
-//func NewCommand() *cobra.Command {
-//	cmd := &cobra.Command{
-//		Use:   "gophkeeper_client",
-//		Short: "GophKeeper cli client",
-//		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
-//	}
-//
-//	cmd.AddCommand(auth.NewCommand())
-//	cmd.AddCommand(keep.NewCommand())
-//
-//	return cmd
-//}
-
 // init initializes the root command and its persistent flags.
 // It also sets up the configuration file, environment variables, and logging.
 func init() {
