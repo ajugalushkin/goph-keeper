@@ -2,13 +2,12 @@ package root
 
 import (
 	"bytes"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
 
 func TestInit_TokenStorageWithFileBasedStorageWhenFileDoesNotExist(t *testing.T) {
@@ -68,4 +67,17 @@ func Test_ExecuteParticularCommandDynamically(t *testing.T) {
 
 	}
 
+}
+
+func TestInitConfig_WithNonExistentConfigFile(t *testing.T) {
+	// Arrange
+	nonExistentFilePath := "nonexistent_config.yaml"
+	os.Setenv("CLIENT_CONFIG", nonExistentFilePath)
+	defer os.Unsetenv("CLIENT_CONFIG")
+
+	// Act
+	initConfig()
+
+	// Assert
+	assert.Equal(t, nonExistentFilePath, viper.ConfigFileUsed(), "Config file path should match the CLIENT_CONFIG environment variable")
 }
