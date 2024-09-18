@@ -74,8 +74,7 @@ func initConfig() {
 	// Attempt to read the configuration file.
 	if err := viper.ReadInConfig(); err != nil {
 		// If the error is not a ConfigFileNotFoundError, log it as an error.
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if !errors.As(err, &configFileNotFoundError) {
+		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			slog.Error("Error reading config file: ", slog.String("error", err.Error()))
 		}
 		// Log a message indicating that the config file was not found.
@@ -84,19 +83,6 @@ func initConfig() {
 		// Log a message indicating that the config file was successfully used.
 		slog.Info("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
 	}
-
-	//// Enable automatic population of environment variables.
-	//viper.AutomaticEnv()
-	//// Replace hyphens with underscores and periods with underscores in environment variable keys.
-	//viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-	//
-	//// Bind each flag to its corresponding configuration key.
-	//rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
-	//	key := strings.ReplaceAll(flag.Name, "-", ".")
-	//	if err := viper.BindPFlag(key, flag); err != nil {
-	//		slog.Error("Error parsing flag: ", slog.String("error", err.Error()))
-	//	}
-	//})
 
 	// Initialize the configuration and logger instances.
 	config.GetConfig()

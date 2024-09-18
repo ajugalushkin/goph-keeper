@@ -2,6 +2,7 @@ package del
 
 import (
 	"errors"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
@@ -42,7 +43,8 @@ func TestKeepDeleteCmdRunE_NonExistentSecret(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	token_cache.InitTokenStorage("test_data/test_token.txt")
-	token_cache.GetToken().Save("mock-token")
+	err := token_cache.GetToken().Save("mock-token")
+	require.NoError(t, err)
 
 	mockKeeperClient := mocks.NewKeeperClient(t)
 	mockKeeperClient.On(
@@ -54,7 +56,7 @@ func TestKeepDeleteCmdRunE_NonExistentSecret(t *testing.T) {
 	initClient(mockKeeperClient)
 
 	// Execute
-	err := keepDeleteCmdRunE(cmd, args)
+	err = keepDeleteCmdRunE(cmd, args)
 
 	// Verify
 	assert.Error(t, err)

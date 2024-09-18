@@ -82,7 +82,7 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	err = cmd.Flags().Set("password", password)
 	require.NoError(t, err)
 
-	err := authLoginCmdRunE(cmd, nil)
+	err = authLoginCmdRunE(cmd, nil)
 	require.Error(t, err)
 	require.EqualError(t, err, "password is required")
 }

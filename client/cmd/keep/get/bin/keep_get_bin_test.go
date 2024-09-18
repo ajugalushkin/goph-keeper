@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +19,7 @@ func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
 		Env: "dev",
 	})
 
-	cmd := &cobra.Command{}
+	cmd := NewCommand()
 	err := cmd.Flags().Set("name", "")
 	require.NoError(t, err)
 	err = cmd.Flags().Set("path", "/tmp")
@@ -28,7 +27,7 @@ func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
 
 	err = keepGetBinRunE(cmd, nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "error reading secret name")
+	require.Contains(t, err.Error(), "secret name is required")
 }
 func TestKeepGetBinRunE_SecretPathNotProvided(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
