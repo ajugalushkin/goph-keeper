@@ -3,17 +3,28 @@ package login
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
-
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
-	"github.com/ajugalushkin/goph-keeper/client/internal/config"
-	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
+
+func TestMain(m *testing.M) {
+	err := os.Mkdir("test", 0777)
+	if err != nil {
+		return
+	}
+
+	exitcode := m.Run()
+
+	os.RemoveAll("test")
+	os.Exit(exitcode)
+}
 
 func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	// Arrange
@@ -28,7 +39,7 @@ func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	mockAuthClient.On("Login", context.Background(), email, password).Return(expectedToken, nil).Maybe()
 	initClient(mockAuthClient)
 
-	token_cache.InitTokenStorage("./test_data/test_save_token.txt")
+	token_cache.InitTokenStorage("./test/test_save_token.txt")
 	assert.NoError(t, token_cache.GetToken().Save(expectedToken))
 
 	cmd := NewCommand()

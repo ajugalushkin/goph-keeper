@@ -18,6 +18,18 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
+func TestMain(m *testing.M) {
+	err := os.Mkdir("test", 0777)
+	if err != nil {
+		return
+	}
+
+	exitcode := m.Run()
+
+	os.RemoveAll("test")
+	os.Exit(exitcode)
+}
+
 // Handles error when secret name flag is missing or invalid
 func TestKeepDeleteCmdRunE_MissingNameFlag(t *testing.T) {
 	// Setup
@@ -42,7 +54,7 @@ func TestKeepDeleteCmdRunE_NonExistentSecret(t *testing.T) {
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	token_cache.InitTokenStorage("test_data/test_token.txt")
+	token_cache.InitTokenStorage("test/test_token.txt")
 	err := token_cache.GetToken().Save("mock-token")
 	require.NoError(t, err)
 
@@ -70,7 +82,7 @@ func TestKeepDeleteCmdRunE_EmptyTokenCache(t *testing.T) {
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	token_cache.InitTokenStorage("test_data/empty_token.txt")
+	token_cache.InitTokenStorage("test/empty_token.txt")
 
 	mockKeeperClient := mocks.NewKeeperClient(t)
 	mockKeeperClient.On(
