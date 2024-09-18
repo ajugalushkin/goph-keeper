@@ -20,6 +20,7 @@ func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
 	})
 
 	cmd := NewCommand()
+	getBinCmdFlags(cmd)
 	err := cmd.Flags().Set("name", "")
 	require.NoError(t, err)
 	err = cmd.Flags().Set("path", "/tmp")
@@ -35,6 +36,7 @@ func TestKeepGetBinRunE_SecretPathNotProvided(t *testing.T) {
 	})
 
 	cmd := NewCommand()
+	getBinCmdFlags(cmd)
 	err := cmd.Flags().Set("name", "test-secret")
 	require.NoError(t, err)
 	err = cmd.Flags().Set("path", "")
@@ -51,6 +53,7 @@ func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
 	})
 
 	cmd := NewCommand()
+	getBinCmdFlags(cmd)
 	err := cmd.Flags().Set("name", "non-existent-secret")
 	require.NoError(t, err)
 	err = cmd.Flags().Set("path", "/tmp")
