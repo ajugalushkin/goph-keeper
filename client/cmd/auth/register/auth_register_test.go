@@ -23,13 +23,10 @@ func TestRegisterCmdRun_EmptyPassword(t *testing.T) {
 	cmd := &cobra.Command{}
 	registerCmdFlags(cmd)
 	err := cmd.Flags().Set("email", "test@example.com")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	err = cmd.Flags().Set("password", "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Act
 	err = registerCmdRun(cmd, nil)

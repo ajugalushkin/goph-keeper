@@ -3,6 +3,7 @@ package bin
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"log/slog"
 	"os"
 	"testing"
@@ -112,7 +113,7 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 	// Create a new command and set the flags
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
-	err := cmd.Flags().Set("token", invalidToken)
+	err := token_cache.GetToken().Save(invalidToken)
 	require.NoError(t, err)
 
 	// Act

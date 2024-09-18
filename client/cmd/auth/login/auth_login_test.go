@@ -77,8 +77,10 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	email := "test@example.com"
 	password := ""
 
-	cmd.Flags().Set("email", email)
-	cmd.Flags().Set("password", password)
+	err := cmd.Flags().Set("email", email)
+	require.NoError(t, err)
+	err = cmd.Flags().Set("password", password)
+	require.NoError(t, err)
 
 	err := authLoginCmdRunE(cmd, nil)
 	require.Error(t, err)

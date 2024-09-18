@@ -21,10 +21,12 @@ func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
 	})
 
 	cmd := &cobra.Command{}
-	cmd.Flags().Set("name", "")
-	cmd.Flags().Set("path", "/tmp")
+	err := cmd.Flags().Set("name", "")
+	require.NoError(t, err)
+	err = cmd.Flags().Set("path", "/tmp")
+	require.NoError(t, err)
 
-	err := keepGetBinRunE(cmd, nil)
+	err = keepGetBinRunE(cmd, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error reading secret name")
 }
@@ -34,10 +36,12 @@ func TestKeepGetBinRunE_SecretPathNotProvided(t *testing.T) {
 	})
 
 	cmd := NewCommand()
-	cmd.Flags().Set("name", "test-secret")
-	cmd.Flags().Set("path", "")
+	err := cmd.Flags().Set("name", "test-secret")
+	require.NoError(t, err)
+	err = cmd.Flags().Set("path", "")
+	require.NoError(t, err)
 
-	err := keepGetBinRunE(cmd, nil)
+	err = keepGetBinRunE(cmd, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret path is required")
 }
@@ -48,15 +52,17 @@ func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
 	})
 
 	cmd := NewCommand()
-	cmd.Flags().Set("name", "non-existent-secret")
-	cmd.Flags().Set("path", "/tmp")
+	err := cmd.Flags().Set("name", "non-existent-secret")
+	require.NoError(t, err)
+	err = cmd.Flags().Set("path", "/tmp")
+	require.NoError(t, err)
 
 	mockClient := mocks.NewKeeperClient(t)
 	mockClient.On("GetFile", mock.Anything, "non-existent-secret").Return(nil, fmt.Errorf("secret not found"))
 
 	initClient(mockClient)
 
-	err := keepGetBinRunE(cmd, nil)
+	err = keepGetBinRunE(cmd, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret not found")
 	mockClient.AssertExpectations(t)
