@@ -1,15 +1,12 @@
 package login
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
@@ -17,18 +14,6 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
-
-func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
-	t.Helper()
-
-	buf := new(bytes.Buffer)
-	c.SetOut(buf)
-	c.SetErr(buf)
-	c.SetArgs(args)
-
-	err := c.Execute()
-	return strings.TrimSpace(buf.String()), err
-}
 
 func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	// Arrange
@@ -62,6 +47,30 @@ func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	assert.Nil(t, err)
 	mockAuthClient.AssertExpectations(t)
 	fmt.Printf("Access Token: %s\n", expectedToken)
+}
+
+func TestAuthLoginCmdRunE_Error(t *testing.T) {
+	// Arrange
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	email := "test@example.com"
+	password := "testpassword"
+
+	cmd := NewCommand()
+	loginCmdFlags(cmd)
+
+	err := cmd.Flags().Set("email", email)
+	require.NoError(t, err)
+	err = cmd.Flags().Set("password", password)
+	require.NoError(t, err)
+
+	// Act
+	err = authLoginCmdRunE(cmd, nil)
+
+	// Assert
+	assert.Error(t, err)
 }
 
 func TestAuthLoginCmdRunE_EmptyEmail(t *testing.T) {
