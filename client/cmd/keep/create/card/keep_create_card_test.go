@@ -2,6 +2,7 @@ package card
 
 import (
 	"context"
+	"errors"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
@@ -213,4 +214,57 @@ func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
 
 	err = createCardCmdRunE(cmd, []string{})
 	assert.NoError(t, err)
+}
+
+func TestCreateCardCmdRunE_Error(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := NewCommand()
+	cardCmdFlags(cmd)
+
+	name := "test_secret"
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	cardNumber := "1234567890123456"
+	err = cmd.Flags().Set("number", cardNumber)
+	require.NoError(t, err)
+
+	date := "12/24"
+	err = cmd.Flags().Set("date", date)
+	require.NoError(t, err)
+
+	code := "123"
+	err = cmd.Flags().Set("code", code)
+	require.NoError(t, err)
+
+	holder := "John Doe"
+	err = cmd.Flags().Set("holder", holder)
+	require.NoError(t, err)
+
+	token_cache.InitTokenStorage("./test/token.txt")
+
+	card := vaulttypes.Card{
+		Number:       cardNumber,
+		ExpiryDate:   date,
+		SecurityCode: code,
+		Holder:       holder,
+	}
+
+	// Encrypt the card details.
+	content, err := secret.EncryptSecret(card)
+	require.NoError(t, err)
+
+	mockClient := mocks.NewKeeperClient(t)
+	mockClient.On("CreateItem", context.Background(), &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	}).Return(&v1.CreateItemResponseV1{
+		Name:    name,
+		Version: "1",
+	}, errors.New("Internal server error"))
+	initClient(mockClient)
+
+	err = createCardCmdRunE(cmd, []string{})
+	assert.Error(t, err)
 }
