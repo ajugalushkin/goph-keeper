@@ -1,7 +1,12 @@
 package card
 
 import (
+	"context"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	"github.com/ajugalushkin/goph-keeper/client/secret"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
+	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
@@ -130,7 +135,7 @@ func TestCreateCardCmdRunE_FailsToReadHolderFlag(t *testing.T) {
 	assert.Error(t, err, "card holder is required")
 }
 
-func TestCreateCardCmdRunE_SucceedsWhenAllFlagsAreProvided(t *testing.T) {
+func TestCreateCardCmdRunE_ErrorWhenAllFlagsAreProvided(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := NewCommand()
@@ -155,4 +160,57 @@ func TestCreateCardCmdRunE_SucceedsWhenAllFlagsAreProvided(t *testing.T) {
 
 	err = createCardCmdRunE(cmd, []string{})
 	assert.Error(t, err)
+}
+
+func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := NewCommand()
+	cardCmdFlags(cmd)
+
+	name := "test_secret"
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	cardNumber := "1234567890123456"
+	err = cmd.Flags().Set("number", cardNumber)
+	require.NoError(t, err)
+
+	date := "12/24"
+	err = cmd.Flags().Set("date", date)
+	require.NoError(t, err)
+
+	code := "123"
+	err = cmd.Flags().Set("code", code)
+	require.NoError(t, err)
+
+	holder := "John Doe"
+	err = cmd.Flags().Set("holder", holder)
+	require.NoError(t, err)
+
+	token_cache.InitTokenStorage("./test/token.txt")
+
+	card := vaulttypes.Card{
+		Number:       cardNumber,
+		ExpiryDate:   date,
+		SecurityCode: code,
+		Holder:       holder,
+	}
+
+	// Encrypt the card details.
+	content, err := secret.EncryptSecret(card)
+	require.NoError(t, err)
+
+	mockClient := mocks.NewKeeperClient(t)
+	mockClient.On("CreateItem", context.Background(), &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	}).Return(&v1.CreateItemResponseV1{
+		Name:    name,
+		Version: "1",
+	}, nil)
+	initClient(mockClient)
+
+	err = createCardCmdRunE(cmd, []string{})
+	assert.NoError(t, err)
 }
