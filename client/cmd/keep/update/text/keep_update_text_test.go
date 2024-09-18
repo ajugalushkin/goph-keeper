@@ -19,6 +19,18 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
+func TestMain(m *testing.M) {
+	err := os.Mkdir("test", 0777)
+	if err != nil {
+		return
+	}
+
+	exitcode := m.Run()
+
+	os.RemoveAll("test")
+	os.Exit(exitcode)
+}
+
 func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
@@ -29,7 +41,7 @@ func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
 	data := "test-data"
 
 	// Mock dependencies
-	token_cache.InitTokenStorage("test_data/token.txt")
+	token_cache.InitTokenStorage("test/token.txt")
 	err := token_cache.GetToken().Save("test-token")
 	assert.NoError(t, err)
 
