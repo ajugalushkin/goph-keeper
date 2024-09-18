@@ -29,7 +29,10 @@ func execute(args string) string {
 	rootCmd.SetOut(actual)
 	rootCmd.SetErr(actual)
 	rootCmd.SetArgs(strings.Split(args, " "))
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		return ""
+	}
 
 	return actual.String()
 }

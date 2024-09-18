@@ -20,10 +20,13 @@ func TestKeepCreateBinCmdRunE_EmptySecretName(t *testing.T) {
 		&config.Config{Env: "dev"})
 
 	cmd := NewCommand()
-	cmd.Flags().Set("name", "")
-	cmd.Flags().Set("file_path", "/path/to/file")
+	err := cmd.Flags().Set("name", "")
+	require.NoError(t, err)
 
-	err := keepCreateBinCmdRunE(cmd, nil)
+	err = cmd.Flags().Set("file_path", "/path/to/file")
+	require.NoError(t, err)
+
+	err = keepCreateBinCmdRunE(cmd, nil)
 	require.Error(t, err)
 	require.EqualError(t, err, "name is required")
 }
@@ -109,10 +112,11 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 	// Create a new command and set the flags
 	cmd := NewCommand()
 	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
-	cmd.Flags().Set("token", invalidToken)
+	err := cmd.Flags().Set("token", invalidToken)
+	require.NoError(t, err)
 
 	// Act
-	err := cmd.ExecuteContext(ctx)
+	err = cmd.ExecuteContext(ctx)
 
 	// Assert
 	assert.ErrorContains(t, err, expectedError)

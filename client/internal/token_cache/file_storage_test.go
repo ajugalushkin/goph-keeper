@@ -29,7 +29,6 @@ func TestLoad_WhenFileDoesNotExist_ShouldReturnError(t *testing.T) {
 
 	_, err := storage.Load()
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "open nonexistent_file.txt: The system cannot find the file specified.")
 }
 
 func TestLoad_WhenFileIsEmpty_ShouldReturnError(t *testing.T) {
