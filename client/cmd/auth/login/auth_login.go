@@ -55,21 +55,19 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 
 	// Retrieve email from command-line flags
 	email, err := cmd.Flags().GetString("email")
-	if err != nil {
-		log.Error("Error while getting email", slog.String("error", err.Error()))
+	if err != nil || email == "" {
+		if err != nil {
+			log.Error("Error while getting email", slog.String("error", err.Error()))
+		}
 		return errors.New("error while getting email")
-	}
-	if email == "" {
-		return fmt.Errorf("email is required")
 	}
 
 	// Retrieve password from command-line flags
 	password, err := cmd.Flags().GetString("password")
-	if err != nil {
-		log.Error("Error while getting password", slog.String("error", err.Error()))
-		return err
-	}
-	if password == "" {
+	if err != nil || password == "" {
+		if err != nil {
+			log.Error("Error while getting password", slog.String("error", err.Error()))
+		}
 		return fmt.Errorf("password is required")
 	}
 

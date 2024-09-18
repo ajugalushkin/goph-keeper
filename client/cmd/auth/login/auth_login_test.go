@@ -3,13 +3,11 @@ package login
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
-
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
@@ -78,7 +76,7 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := &cobra.Command{}
+	cmd := NewCommand()
 	loginCmdFlags(cmd)
 
 	email := "test@example.com"
