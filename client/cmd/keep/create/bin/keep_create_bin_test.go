@@ -2,6 +2,7 @@ package bin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"log/slog"
@@ -105,7 +106,7 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 
 	// Mock the keeper client
 	mockClient := mocks.NewKeeperClient(t)
-	mockClient.On("CreateItemStream", ctx, name, filePath).Return(nil, fmt.Errorf(expectedError))
+	mockClient.On("CreateItemStream", ctx, name, filePath).Return(nil, errors.New(expectedError))
 
 	// Initialize the command with the mock client
 	initClient(mockClient)

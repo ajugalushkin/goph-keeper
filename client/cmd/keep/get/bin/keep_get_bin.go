@@ -20,11 +20,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
-var keepGetBin = &cobra.Command{
-	Use:   "bin",
-	Short: "Get secret",
-	RunE:  keepGetBinRunE,
-}
+var keepGetBin = NewCommand()
 
 var client app.KeeperClient
 
@@ -35,7 +31,11 @@ var client app.KeeperClient
 // If either flag is not provided, an error will be logged.
 // The command runs the keepGetBinRun function to handle the retrieval process.
 func NewCommand() *cobra.Command {
-	return keepGetBin
+	return &cobra.Command{
+		Use:   "bin",
+		Short: "Get secret",
+		RunE:  keepGetBinRunE,
+	}
 }
 
 // keepGetBinRunE is a function that handles the retrieval of a secret file from the goph-keeper service.

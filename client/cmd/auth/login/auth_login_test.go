@@ -34,6 +34,7 @@ func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	assert.NoError(t, token_cache.GetToken().Save(expectedToken))
 
 	cmd := NewCommand()
+	loginCmdFlags(cmd)
 
 	err := cmd.Flags().Set("email", email)
 	require.NoError(t, err)
@@ -54,9 +55,8 @@ func TestAuthLoginCmdRunE_EmptyEmail(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := &cobra.Command{}
+	cmd := NewCommand()
 	loginCmdFlags(cmd)
-
 	err := cmd.Flags().Set("email", "")
 	require.NoError(t, err)
 
@@ -65,8 +65,15 @@ func TestAuthLoginCmdRunE_EmptyEmail(t *testing.T) {
 
 	err = authLoginCmdRunE(cmd, nil)
 	require.Error(t, err)
-	require.EqualError(t, err, "email is required")
+
+	loginCmd := NewCommand()
+
+	loginCmd.SetArgs([]string{"password", "testpassword"})
+
+	err = authLoginCmdRunE(loginCmd, nil)
+	require.Error(t, err)
 }
+
 func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
@@ -83,6 +90,16 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	err = authLoginCmdRunE(cmd, nil)
+	require.Error(t, err)
+	require.EqualError(t, err, "password is required")
+
+	loginCmd := NewCommand()
+	loginCmdFlags(loginCmd)
+
+	err = loginCmd.Flags().Set("email", email)
+	require.NoError(t, err)
+
+	err = authLoginCmdRunE(loginCmd, nil)
 	require.Error(t, err)
 	require.EqualError(t, err, "password is required")
 }

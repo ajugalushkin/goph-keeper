@@ -2,6 +2,7 @@ package login
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -15,11 +16,7 @@ import (
 )
 
 // loginCmd is the command line for login
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Logins a user in the gophkeeper service",
-	RunE:  authLoginCmdRunE,
-}
+var loginCmd = NewCommand()
 
 var client app.AuthClient
 
@@ -35,7 +32,11 @@ var client app.AuthClient
 // Return:
 // - A pointer to a configured Cobra command for logging in a user.
 func NewCommand() *cobra.Command {
-	return loginCmd
+	return &cobra.Command{
+		Use:   "login",
+		Short: "Logins a user in the gophkeeper service",
+		RunE:  authLoginCmdRunE,
+	}
 }
 
 // authLoginCmdRunE is the main function for the login command. It handles the user authentication process.
@@ -56,7 +57,7 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 	email, err := cmd.Flags().GetString("email")
 	if err != nil {
 		log.Error("Error while getting email", slog.String("error", err.Error()))
-		return err
+		return errors.New("error while getting email")
 	}
 	if email == "" {
 		return fmt.Errorf("email is required")

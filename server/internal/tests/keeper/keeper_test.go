@@ -32,9 +32,7 @@ type Item struct {
 
 // Type возвращает тип хранимой информации
 func (i Item) Type() vaulttypes.VaultType {
-	var data vaulttypes.VaultType
-	data = "item"
-	return data
+	return vaulttypes.VaultType("item")
 }
 
 // String функция отображения приватной информации
@@ -162,6 +160,8 @@ func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 	}
 
 	stream, err := st.KeeperClient.CreateItemStreamV1(ctx)
+	require.NoError(t, err)
+
 	err = stream.Send(req)
 	require.NoError(t, err)
 

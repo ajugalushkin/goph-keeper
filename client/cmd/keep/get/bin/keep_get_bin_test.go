@@ -2,14 +2,14 @@ package bin
 
 import (
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
+	"github.com/stretchr/testify/mock"
 	"log/slog"
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
