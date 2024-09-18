@@ -13,11 +13,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
-var registerCmd = &cobra.Command{
-	Use:   "register",
-	Short: "Registers a user in the gophkeeper service",
-	RunE:  registerCmdRun,
-}
+var registerCmd = NewCommand()
 
 var client app.AuthClient
 
@@ -31,7 +27,11 @@ var client app.AuthClient
 // Returns:
 // - A pointer to the cobra.Command representing the 'register' command.
 func NewCommand() *cobra.Command {
-	return registerCmd
+	return &cobra.Command{
+		Use:   "register",
+		Short: "Registers a user in the gophkeeper service",
+		RunE:  registerCmdRun,
+	}
 }
 
 // registerCmdRun handles the registration process for a user in the gophkeeper service.
@@ -49,21 +49,19 @@ func registerCmdRun(cmd *cobra.Command, args []string) error {
 
 	// Retrieve the user's email from the command-line flag
 	email, err := cmd.Flags().GetString("email")
-	if err != nil {
-		log.Error("Error getting email", slog.String("error", err.Error()))
-		return err
-	}
-	if email == "" {
+	if err != nil || email == "" {
+		if err != nil {
+			log.Error("Error getting email", slog.String("error", err.Error()))
+		}
 		return fmt.Errorf("email is required")
 	}
 
 	// Retrieve the user's password from the command-line flag
 	password, err := cmd.Flags().GetString("password")
-	if err != nil {
-		log.Error("Error getting password", slog.String("error", err.Error()))
-		return err
-	}
-	if password == "" {
+	if err != nil || password == "" {
+		if err != nil {
+			log.Error("Error getting password", slog.String("error", err.Error()))
+		}
 		return fmt.Errorf("password is required")
 	}
 

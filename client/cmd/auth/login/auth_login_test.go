@@ -1,12 +1,15 @@
 package login
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
@@ -14,6 +17,18 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
+
+func execute(t *testing.T, c *cobra.Command, args ...string) (string, error) {
+	t.Helper()
+
+	buf := new(bytes.Buffer)
+	c.SetOut(buf)
+	c.SetErr(buf)
+	c.SetArgs(args)
+
+	err := c.Execute()
+	return strings.TrimSpace(buf.String()), err
+}
 
 func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	// Arrange
