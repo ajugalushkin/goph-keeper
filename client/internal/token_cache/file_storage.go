@@ -2,7 +2,6 @@ package token_cache
 
 import (
 	"io"
-	"log/slog"
 	"os"
 	"sync"
 )
@@ -44,11 +43,7 @@ func (s *FileStorage) Save(accessToken string) error {
 		return err
 	}
 
-	defer func() {
-		if err = file.Close(); err != nil {
-			slog.Error("Error closing file: ", slog.String("error", err.Error()))
-		}
-	}()
+	defer file.Close()
 
 	_, err = file.WriteString(accessToken)
 	return err
@@ -58,14 +53,18 @@ func (s *FileStorage) Save(accessToken string) error {
 func (s *FileStorage) Load() (string, error) {
 	file, err := os.Open(s.Path)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-	defer func() {
-		if err = file.Close(); err != nil {
-			slog.Error("Error closing file: ", slog.String("error", err.Error()))
-		}
-	}()
+	defer file.Close()
 
 	b, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	if len(b) == 0 {
+		return "", io.EOF
+	}
+
 	return string(b), err
 }
