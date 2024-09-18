@@ -18,7 +18,9 @@ func InitTokenStorage(path string) {
 func GetToken() Storage {
 	once.Do(
 		func() {
-			storage = newFileStorage("token_cache.txt")
+			if storage == nil {
+				storage = newFileStorage("token_cache.txt")
+			}
 		})
 
 	return storage

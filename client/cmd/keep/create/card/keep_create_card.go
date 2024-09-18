@@ -17,11 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var keepCreateCard = &cobra.Command{
-	Use:   "card",
-	Short: "Create card secret",
-	RunE:  createCardCmdRunE,
-}
+var keepCreateCard = NewCommand()
 
 var client app.KeeperClient
 
@@ -31,7 +27,11 @@ var client app.KeeperClient
 // the Keeper server to create the secret, and prints a success message with the created
 // secret's name and version.
 func NewCommand() *cobra.Command {
-	return keepCreateCard
+	return &cobra.Command{
+		Use:   "card",
+		Short: "Create card secret",
+		RunE:  createCardCmdRunE,
+	}
 }
 
 // createCardCmdRunE is the entry point for creating a card secret in the Keeper vault.
@@ -50,38 +50,45 @@ func createCardCmdRunE(cmd *cobra.Command, args []string) error {
 
 	// Read the required flags for creating a card secret.
 	name, err := cmd.Flags().GetString("name")
-	if err != nil {
-		log.Error("Error reading secret name: ",
-			slog.String("error", err.Error()))
-		return err
+	if err != nil || name == "" {
+		if err != nil {
+			log.Error("Error reading secret name: ", slog.String("error", err.Error()))
+		}
+		return fmt.Errorf("name is required")
 	}
 
 	number, err := cmd.Flags().GetString("number")
-	if err != nil {
-		log.Error("Error reading card number: ",
-			slog.String("error", err.Error()))
-		return err
+	if err != nil || number == "" {
+		if err != nil {
+			log.Error("Error reading card number: ", slog.String("error", err.Error()))
+		}
+		return fmt.Errorf("card number is required")
 	}
 
 	date, err := cmd.Flags().GetString("date")
-	if err != nil {
-		log.Error("Error reading card expiry date: ",
-			slog.String("error", err.Error()))
-		return err
+	if err != nil || date == "" {
+		if err != nil {
+			log.Error("Error reading card expiry date: ", slog.String("error", err.Error()))
+		}
+		return fmt.Errorf("expiry date is required")
 	}
 
 	code, err := cmd.Flags().GetString("code")
-	if err != nil {
-		log.Error("Error reading card security code: ",
-			slog.String("error", err.Error()))
-		return err
+	if err != nil || code == "" {
+		if err != nil {
+			log.Error("Error reading card security code: ",
+				slog.String("error", err.Error()))
+		}
+		return fmt.Errorf("security code is required")
 	}
 
 	holder, err := cmd.Flags().GetString("holder")
-	if err != nil {
-		log.Error("Error reading card holder: ",
-			slog.String("error", err.Error()))
-		return err
+	if err != nil || holder == "" {
+		if err != nil {
+			log.Error("Error reading card holder: ",
+				slog.String("error", err.Error()))
+		}
+		return fmt.Errorf("card holder is required")
 	}
 
 	// Create a Card object from the provided details.
