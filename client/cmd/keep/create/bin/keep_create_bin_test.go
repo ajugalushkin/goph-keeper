@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"log/slog"
 	"os"
 	"testing"
@@ -22,6 +23,8 @@ func TestKeepCreateBinCmdRunE_EmptySecretName(t *testing.T) {
 		&config.Config{Env: "dev"})
 
 	cmd := NewCommand()
+	binCmdFlags(cmd)
+
 	err := cmd.Flags().Set("name", "")
 	require.NoError(t, err)
 
@@ -37,6 +40,7 @@ func TestKeepCreateBinCmdRunE_EmptyFilePath(t *testing.T) {
 		&config.Config{Env: "dev"})
 
 	cmd := NewCommand()
+	binCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test-secret")
 	require.NoError(t, err)
@@ -76,6 +80,7 @@ func TestKeepCreateBinCmdRunE_NonExistentFilePath(t *testing.T) {
 	initClient(clientMock)
 
 	cmd := NewCommand()
+	binCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test-secret")
 	require.NoError(t, err)
@@ -113,6 +118,8 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 
 	// Create a new command and set the flags
 	cmd := NewCommand()
+	binCmdFlags(cmd)
+
 	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
 	err := token_cache.GetToken().Save(invalidToken)
 	require.NoError(t, err)
@@ -123,4 +130,60 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 	// Assert
 	assert.ErrorContains(t, err, expectedError)
 	mockClient.AssertExpectations(t)
+}
+
+func TestKeepCreateBinCmdRunE_ClientNil(t *testing.T) {
+	// Arrange
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	ctx := context.Background()
+	name := "test-secret"
+	filePath := "test-file.bin"
+
+	// Create a new command and set the flags
+	cmd := NewCommand()
+	binCmdFlags(cmd)
+
+	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
+
+	// Act
+	err := cmd.ExecuteContext(ctx)
+
+	// Assert
+	assert.Error(t, err)
+}
+
+func TestKeepCreateBinCmdRunE_Success(t *testing.T) {
+	// Arrange
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	ctx := context.Background()
+	name := "test-secret"
+	filePath := "test-file.bin"
+
+	// Mock the keeper client
+	mockClient := mocks.NewKeeperClient(t)
+	mockClient.On("CreateItemStream", ctx, name, filePath).Return(&v1.CreateItemResponseV1{
+		Name:    name,
+		Version: "1",
+	}, nil)
+
+	// Initialize the command with the mock client
+	initClient(mockClient)
+
+	// Create a new command and set the flags
+	cmd := NewCommand()
+	binCmdFlags(cmd)
+
+	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
+
+	// Act
+	err := cmd.ExecuteContext(ctx)
+
+	// Assert
+	assert.NoError(t, err)
 }

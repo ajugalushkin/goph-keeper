@@ -14,11 +14,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
 
-var keepCreateBin = &cobra.Command{
-	Use:   "bin",
-	Short: "Create bin secret",
-	RunE:  keepCreateBinCmdRunE,
-}
+var keepCreateBin = NewCommand()
 
 var client app.KeeperClient
 
@@ -32,7 +28,11 @@ var client app.KeeperClient
 // Return:
 // - A pointer to the Cobra command object for creating a bin secret.
 func NewCommand() *cobra.Command {
-	return keepCreateBin
+	return &cobra.Command{
+		Use:   "bin",
+		Short: "Create bin secret",
+		RunE:  keepCreateBinCmdRunE,
+	}
 }
 
 // keepCreateBinCmdRunE is the entry point for the "bin" command in the "keep create" command group.
@@ -53,21 +53,19 @@ func keepCreateBinCmdRunE(cmd *cobra.Command, args []string) error {
 
 	// Read the secret name from the command-line flags
 	name, err := cmd.Flags().GetString("name")
-	if err != nil {
-		log.Error("Error reading secret name ", slog.String("error", err.Error()))
-		return err
-	}
-	if name == "" {
+	if err != nil || len(name) == 0 {
+		if err != nil {
+			log.Error("Error reading secret name ", slog.String("error", err.Error()))
+		}
 		return fmt.Errorf("name is required")
 	}
 
 	// Read the file path from the command-line flags
 	filePath, err := cmd.Flags().GetString("file_path")
-	if err != nil {
-		log.Error("Error reading file path ", slog.String("error", err.Error()))
-		return err
-	}
-	if filePath == "" {
+	if err != nil || len(filePath) == 0 {
+		if err != nil {
+			log.Error("Error reading file path ", slog.String("error", err.Error()))
+		}
 		return fmt.Errorf("file_path is required")
 	}
 
