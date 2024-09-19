@@ -63,7 +63,7 @@ func keepListRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, info := range resp.GetSecrets() {
-		newSecret, err := secret.Decrypt(info.GetContent())
+		newSecret, err := secret.NewCryptographer().Decrypt(info.GetContent())
 		if err != nil {
 			log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
 			return err

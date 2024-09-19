@@ -199,7 +199,7 @@ func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 	recGet, err := streamGet.Recv()
 	require.NoError(t, err)
 
-	respSecret, err := secret.Decrypt(recGet.GetContent())
+	respSecret, err := secret.NewCryptographer().Decrypt(recGet.GetContent())
 	require.NoError(t, err)
 
 	fileInfoGet := respSecret.(vaulttypes.Bin)
