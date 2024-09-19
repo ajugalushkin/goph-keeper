@@ -10,3 +10,4 @@ ignore:
   - "server/internal/storage/mocks"
   - "server/internal/tests"
   - "client/secret/mocks"
+  - "client/tests"
