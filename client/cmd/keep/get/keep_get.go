@@ -113,7 +113,3 @@ func init() {
 	getCmdFlags(keepGet)
 	keepGet.AddCommand(bin.NewCommand())
 }
-
-func initCipher(newCipher secret.Cipher) {
-	cipher = newCipher
-}
