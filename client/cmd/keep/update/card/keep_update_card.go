@@ -21,6 +21,7 @@ import (
 var keepUpdateCard = NewCommand()
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 // NewCommand returns a Cobra command for updating a card secret in the Keeper service.
 // The command accepts flags for the secret name, card number, expiry date, security code, and holder.
@@ -104,8 +105,12 @@ func keeperUpdateCardCmdRunE(cmd *cobra.Command, args []string) error {
 		Holder:       holder,
 	}
 
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+
 	// Encrypt the secret
-	content, err := secret.NewCryptographer().Encrypt(card)
+	content, err := cipher.Encrypt(card)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))
@@ -165,4 +170,8 @@ func init() {
 
 func initClient(newClient app.KeeperClient) {
 	client = newClient
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }

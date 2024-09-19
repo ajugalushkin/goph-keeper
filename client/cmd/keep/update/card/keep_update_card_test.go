@@ -1,6 +1,9 @@
 package card
 
 import (
+	"context"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
+	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"log/slog"
 	"os"
 	"testing"
@@ -13,6 +16,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	mockCipher "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 )
 
 func TestKeeperUpdateCardCmdRunE_MissingNameFlag(t *testing.T) {
@@ -251,4 +255,55 @@ func TestKeeperUpdateCardCmdRunE_EmptySecurityCode(t *testing.T) {
 
 	// Verify that the mock client was not called
 	mockClient.AssertNotCalled(t, "UpdateItem", mock.Anything, mock.Anything)
+}
+
+func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	newMockCipher := mockCipher.NewCipher(t)
+
+	card := vaulttypes.Card{
+		Number:       "1234567890123456",
+		ExpiryDate:   "12/24",
+		SecurityCode: "123",
+		Holder:       "John Doe",
+	}
+
+	content := []byte("encrypted_data")
+	newMockCipher.On("Encrypt", card).Return(content, nil)
+	initCipher(newMockCipher)
+
+	// Set up the mock Keeper client
+	mockClient := mocks.NewKeeperClient(t)
+	mockClient.On("UpdateItem", context.Background(), &v1.UpdateItemRequestV1{
+		Name:    "test_secret",
+		Content: content,
+	}).Return(&v1.UpdateItemResponseV1{
+		Name:    "test_secret",
+		Version: "1",
+	}, nil)
+	initClient(mockClient)
+
+	// Create a Cobra command and set the flags
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
+
+	// Run the command with empty security code
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
+	assert.NoError(t, err)
 }
