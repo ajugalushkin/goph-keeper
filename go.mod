@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240717164558-a6c49f84cc0f.2
+	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/bufbuild/protovalidate-go v0.6.4
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -12,7 +13,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/matryer/is v1.4.1
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
@@ -26,9 +26,13 @@ require (
 )
 
 require (
+	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
+	github.com/chzyer/test v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/fatih/color v1.14.1 // indirect
+	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
@@ -41,6 +45,8 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect

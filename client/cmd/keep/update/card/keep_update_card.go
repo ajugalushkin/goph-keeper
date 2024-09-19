@@ -18,11 +18,7 @@ import (
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-var keepUpdateCard = &cobra.Command{
-	Use:   "card",
-	Short: "Update card secret",
-	RunE:  keeperUpdateCardCmdRunE,
-}
+var keepUpdateCard = NewCommand()
 
 var client app.KeeperClient
 
@@ -31,7 +27,11 @@ var client app.KeeperClient
 // It then creates a Card struct, encrypts the secret, and sends an update request to the Keeper service.
 // If any error occurs during the process, it logs the error and returns.
 func NewCommand() *cobra.Command {
-	return keepUpdateCard
+	return &cobra.Command{
+		Use:   "card",
+		Short: "Update card secret",
+		RunE:  keeperUpdateCardCmdRunE,
+	}
 }
 
 // keeperUpdateCardCmdRun is the function that handles the "card" command for updating a card secret.

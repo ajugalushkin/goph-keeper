@@ -23,18 +23,27 @@ func TestKeeperUpdateCardCmdRunE_MissingNameFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := &cobra.Command{}
-	cmd.Flags().String("number", "1234567890123456", "")
-	cmd.Flags().String("date", "12/24", "")
-	cmd.Flags().String("code", "123", "")
-	cmd.Flags().String("holder", "John Doe", "")
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
 
 	// Run the command with missing name flag
-	err := keeperUpdateCardCmdRunE(cmd, []string{})
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
 
 	// Verify the expected error
 	assert.Error(t, err)
-	assert.EqualError(t, err, "required flag(s) \"name\" not set")
+	assert.EqualError(t, err, "invalid secret name")
 
 	// Verify that the mock client was not called
 	mockClient.AssertNotCalled(t, "UpdateItem", mock.Anything, mock.Anything)
@@ -43,19 +52,27 @@ func TestKeeperUpdateCardCmdRunE_MissingNumberFlag(t *testing.T) {
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := &cobra.Command{}
-	cmd.SetArgs([]string{})
-	cmd.Flags().String("name", "test-secret", "")
-	cmd.Flags().String("date", "12/25", "")
-	cmd.Flags().String("code", "123", "")
-	cmd.Flags().String("holder", "John Doe", "")
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
 
 	// Act
-	err := keeperUpdateCardCmdRunE(cmd, nil)
+	err = keeperUpdateCardCmdRunE(cmd, nil)
 
 	// Assert
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "error reading card number")
+	assert.Contains(t, err.Error(), "invalid card number")
 }
 
 func TestKeeperUpdateCardCmdRunE_MissingExpiryDateFlag(t *testing.T) {
@@ -66,15 +83,23 @@ func TestKeeperUpdateCardCmdRunE_MissingExpiryDateFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := &cobra.Command{}
-	cmd.Flags().String("name", "test-secret", "")
-	cmd.Flags().String("number", "1234567890123456", "")
-	cmd.Flags().String("date", "", "")
-	cmd.Flags().String("code", "123", "")
-	cmd.Flags().String("holder", "John Doe", "")
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
 
 	// Run the command with missing expiry date flag
-	err := keeperUpdateCardCmdRunE(cmd, []string{})
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
 
 	// Verify the expected error
 	assert.Error(t, err)
@@ -92,15 +117,23 @@ func TestKeeperUpdateCardCmdRunE_MissingSecurityCodeFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := &cobra.Command{}
-	cmd.Flags().String("name", "test-secret", "")
-	cmd.Flags().String("number", "1234567890123456", "")
-	cmd.Flags().String("date", "12/24", "")
-	cmd.Flags().String("code", "", "")
-	cmd.Flags().String("holder", "John Doe", "")
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
 
 	// Run the command with missing security code flag
-	err := keeperUpdateCardCmdRunE(cmd, []string{})
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
 
 	// Verify the expected error
 	assert.Error(t, err)
@@ -118,15 +151,23 @@ func TestKeeperUpdateCardCmdRunE_MissingHolderFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := &cobra.Command{}
-	cmd.Flags().String("name", "test-secret", "")
-	cmd.Flags().String("number", "1234567890123456", "")
-	cmd.Flags().String("date", "12/24", "")
-	cmd.Flags().String("code", "123", "")
-	cmd.Flags().String("holder", "", "")
+	cmd := NewCommand()
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
 
 	// Run the command with missing holder flag
-	err := keeperUpdateCardCmdRunE(cmd, []string{})
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
 
 	// Verify the expected error
 	assert.Error(t, err)

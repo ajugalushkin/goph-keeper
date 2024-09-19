@@ -19,10 +19,14 @@ import (
 var cfgFile string
 
 // RootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "gophkeeper_client",
-	Short: "GophKeeper cli client",
-	Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+var rootCmd = NewCommand()
+
+func NewCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "gophkeeper_client",
+		Short: "GophKeeper cli client",
+		Long:  "GophKeeper cli client allows keep and return secrets in/from Keeper server.",
+	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
