@@ -71,4 +71,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-cli-${{ matrix.os }}-${{ matrix.version }}
-          path: ./client
+          path: client
