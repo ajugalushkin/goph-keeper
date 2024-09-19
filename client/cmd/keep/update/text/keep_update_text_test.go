@@ -101,7 +101,7 @@ func TestKeeperUpdateTextCmdRunE_NonExistentSecretName(t *testing.T) {
 	}
 
 	// Encrypt the secret data
-	content, err := secret.EncryptSecret(text)
+	content, err := secret.NewCryptographer().Encrypt(text)
 	assert.NoError(t, err)
 
 	mockClient.On(

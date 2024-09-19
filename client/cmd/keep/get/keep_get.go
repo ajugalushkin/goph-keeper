@@ -25,6 +25,7 @@ var keepGet = &cobra.Command{
 }
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 // NewCommand creates a new Cobra command for retrieving a secret from the goph-keeper service.
 // The command is named "get" and is used to interact with the secret storage system.
@@ -84,7 +85,11 @@ func keepGetRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Decrypt the retrieved secret content.
-	respSecret, err := secret.DecryptSecret(resp.GetContent())
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+	// Decrypt the retrieved secret content using the provided cipher.
+	respSecret, err := cipher.Decrypt(resp.GetContent())
 	if err != nil {
 		return err
 	}
@@ -107,4 +112,8 @@ func getCmdFlags(cmd *cobra.Command) {
 func init() {
 	getCmdFlags(keepGet)
 	keepGet.AddCommand(bin.NewCommand())
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }

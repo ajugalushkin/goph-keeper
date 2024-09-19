@@ -7,7 +7,7 @@ import (
 // Decodes valid creds data correctly
 func TestDecodeVaultWithValidCredentials(t *testing.T) {
 	data := []byte(`{"type":"creds","data":{"Login":"user","Password":"pass"}}`)
-	vault, err := DecodeVault(data)
+	vault, err := Deserialise(data)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -23,7 +23,7 @@ func TestDecodeVaultWithValidCredentials(t *testing.T) {
 // Handles empty input data gracefully
 func TestDecodeVaultWithEmptyData(t *testing.T) {
 	data := []byte(``)
-	_, err := DecodeVault(data)
+	_, err := Deserialise(data)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}
@@ -31,7 +31,7 @@ func TestDecodeVaultWithEmptyData(t *testing.T) {
 
 func TestDecodeVaultWithUnknownSecretType(t *testing.T) {
 	data := []byte(`{"type":"unknown","data":"unknown data"}`)
-	_, err := DecodeVault(data)
+	_, err := Deserialise(data)
 	if err == nil {
 		t.Fatalf("expected error, got nil")
 	}

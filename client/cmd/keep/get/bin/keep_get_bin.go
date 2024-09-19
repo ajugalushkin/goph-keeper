@@ -3,6 +3,7 @@ package bin
 import (
 	"context"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	"io"
 	"log/slog"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
-	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 
 	"github.com/spf13/cobra"
 
@@ -100,7 +100,7 @@ func keepGetBinRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Decrypt the secret file content
-	respSecret, err := secret.DecryptSecret(req.GetContent())
+	respSecret, err := secret.NewCryptographer().Decrypt(req.GetContent())
 	if err != nil {
 		log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
 		return err

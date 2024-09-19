@@ -50,7 +50,7 @@ func (k *KeeperClient) CreateItemStream(
 	}
 
 	// Encrypt the secret content
-	content, err := secret.EncryptSecret(fileInfo)
+	content, err := secret.NewCryptographer().Encrypt(fileInfo)
 	if err != nil {
 		return nil, err
 	}

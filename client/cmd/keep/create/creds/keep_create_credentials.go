@@ -72,8 +72,8 @@ func createCredentialsCmdRunE(cmd *cobra.Command, args []string) error {
 		Password: password,
 	}
 
-	// Encrypt the credentials using the secret.EncryptSecret function.
-	content, err := secret.EncryptSecret(credentials)
+	// Encrypt the credentials using the secret.Encrypt function.
+	content, err := secret.NewCryptographer().Encrypt(credentials)
 	if err != nil {
 		log.Error("Failed to secret secret: ", slog.String("error", err.Error()))
 		return err

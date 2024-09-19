@@ -72,7 +72,7 @@ func keeperUpdateTextCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Encrypt the secret data
-	content, err := secret.EncryptSecret(text)
+	content, err := secret.NewCryptographer().Encrypt(text)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))

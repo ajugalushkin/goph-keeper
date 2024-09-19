@@ -24,7 +24,7 @@ type container struct {
 	Data json.RawMessage `json:"data"`
 }
 
-func EncodeVault(vault Vault) ([]byte, error) {
+func Serialise(vault Vault) ([]byte, error) {
 	if vault == nil {
 		return nil, errors.New("cannot encode nil vault")
 	}
@@ -38,7 +38,7 @@ func EncodeVault(vault Vault) ([]byte, error) {
 	})
 }
 
-func DecodeVault(data []byte) (Vault, error) {
+func Deserialise(data []byte) (Vault, error) {
 	var c container
 	if err := json.Unmarshal(data, &c); err != nil {
 		return nil, err

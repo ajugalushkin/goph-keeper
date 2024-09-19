@@ -89,7 +89,7 @@ func keepUpdateCredsRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Encrypt the creds using the encryptSecret function.
-	content, err := secret.EncryptSecret(credentials)
+	content, err := secret.NewCryptographer().Encrypt(credentials)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))

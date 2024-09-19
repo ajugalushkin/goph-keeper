@@ -52,7 +52,7 @@ func TestCRUDItem_CRUDItem_HappyPath(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	resp, err := st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
@@ -75,7 +75,7 @@ func TestCRUDItem_CRUDItem_HappyPath(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	contentUpd, err := secret.EncryptSecret(dataUpd)
+	contentUpd, err := secret.NewCryptographer().Encrypt(dataUpd)
 	require.NoError(t, err)
 
 	respUpd, err := st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
@@ -112,7 +112,7 @@ func TestListItem_ListItem_HappyPath(t *testing.T) {
 			Password: suite.RandomFakePassword(),
 		}
 
-		content, err := secret.EncryptSecret(data)
+		content, err := secret.NewCryptographer().Encrypt(data)
 		require.NoError(t, err)
 
 		resp, err := st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
@@ -147,7 +147,7 @@ func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 		Size:     stat.Size(),
 	}
 
-	content, err := secret.EncryptSecret(fileInfo)
+	content, err := secret.NewCryptographer().Encrypt(fileInfo)
 	require.NoError(t, err)
 
 	req := &keeperv1.CreateItemStreamRequestV1{
@@ -199,7 +199,7 @@ func TestCRUDItemStream_CRUDItem_HappyPath(t *testing.T) {
 	recGet, err := streamGet.Recv()
 	require.NoError(t, err)
 
-	respSecret, err := secret.DecryptSecret(recGet.GetContent())
+	respSecret, err := secret.Decrypt(recGet.GetContent())
 	require.NoError(t, err)
 
 	fileInfoGet := respSecret.(vaulttypes.Bin)
@@ -247,7 +247,7 @@ func TestCreateItem_CreateItem_ErrItemConflict(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
@@ -275,7 +275,7 @@ func TestUpdateItem_UpdateItem_ErrUserNotFound(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	_, err = st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
@@ -297,7 +297,7 @@ func TestUpdateItem_UpdateItem_EmptyNameOrEmptyContent(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	_, err = st.KeeperClient.UpdateItemV1(ctx, &keeperv1.UpdateItemRequestV1{
@@ -325,7 +325,7 @@ func TestCreateItem_CreateItem_EmptyNameOrEmptyContent(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	_, err = st.KeeperClient.CreateItemV1(ctx, &keeperv1.CreateItemRequestV1{
@@ -416,7 +416,7 @@ func TestCRUDItem_EmptyUserID(t *testing.T) {
 		Password: suite.RandomFakePassword(),
 	}
 
-	content, err := secret.EncryptSecret(data)
+	content, err := secret.NewCryptographer().Encrypt(data)
 	require.NoError(t, err)
 
 	_, err = KeeperClient.CreateItemV1(context.Background(), &keeperv1.CreateItemRequestV1{

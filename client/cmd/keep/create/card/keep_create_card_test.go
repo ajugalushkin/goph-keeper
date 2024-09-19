@@ -199,7 +199,7 @@ func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
 	}
 
 	// Encrypt the card details.
-	content, err := secret.EncryptSecret(card)
+	content, err := secret.NewCryptographer().Encrypt(card)
 	require.NoError(t, err)
 
 	mockClient := mocks.NewKeeperClient(t)
@@ -252,7 +252,7 @@ func TestCreateCardCmdRunE_Error(t *testing.T) {
 	}
 
 	// Encrypt the card details.
-	content, err := secret.EncryptSecret(card)
+	content, err := secret.NewCryptographer().Encrypt(card)
 	require.NoError(t, err)
 
 	mockClient := mocks.NewKeeperClient(t)

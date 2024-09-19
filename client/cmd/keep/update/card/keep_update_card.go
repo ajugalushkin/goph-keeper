@@ -105,7 +105,7 @@ func keeperUpdateCardCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Encrypt the secret
-	content, err := secret.EncryptSecret(card)
+	content, err := secret.NewCryptographer().Encrypt(card)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))

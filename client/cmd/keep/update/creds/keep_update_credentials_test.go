@@ -101,7 +101,7 @@ func TestKeepUpdateCredsRunE_SuccessfulFlagRead(t *testing.T) {
 		Password: "testPassword",
 	}
 
-	content, err := secret.EncryptSecret(credentials)
+	content, err := secret.NewCryptographer().Encrypt(credentials)
 	assert.NoError(t, err)
 
 	mockClient.On("UpdateItem", context.Background(), &v1.UpdateItemRequestV1{
