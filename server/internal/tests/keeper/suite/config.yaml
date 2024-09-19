@@ -1,0 +1,15 @@
+env: "dev"  #dev, prod
+grpc:
+  address: ":8080"
+  timeout: 1h
+token:
+  ttl: 10h
+  secret: secret_key
+storage:
+  path: postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable
+minio:
+  endpoint: localhost:9000
+  username: praktikum
+  password: pass1234567
+  ssl: false
+  bucket: vault

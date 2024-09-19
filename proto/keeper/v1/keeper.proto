@@ -4,18 +4,19 @@ option go_package = "/keeper/v1";
 
 package keeper.v1;
 
-import "buf/validate/validate.proto";
-
 service KeeperServiceV1{
   rpc CreateItemV1(CreateItemRequestV1) returns(CreateItemResponseV1);
-  rpc CreateItemStreamV1(stream CreateItemStreamRequestV1) returns(CreateItemStreamResponseV1);
+  rpc CreateItemStreamV1(stream CreateItemStreamRequestV1) returns(CreateItemResponseV1);
+  rpc UpdateItemV1(UpdateItemRequestV1) returns(UpdateItemResponseV1);
+  rpc DeleteItemV1(DeleteItemRequestV1) returns(DeleteItemResponseV1);
   rpc GetItemV1(GetItemRequestV1) returns(GetItemResponseV1);
+  rpc GetItemStreamV1(GetItemRequestV1) returns(stream GetItemStreamResponseV1);
   rpc ListItemsV1(ListItemsRequestV1) returns (ListItemsResponseV1);
 }
 
 message CreateItemRequestV1 {
-  string name = 1 [(buf.validate.field).required = true];
-  bytes content = 2 [(buf.validate.field).required = true];
+  string name = 1;
+  bytes content = 2;
 }
 
 message CreateItemResponseV1 {
@@ -26,7 +27,7 @@ message CreateItemResponseV1 {
 message CreateItemStreamRequestV1 {
   message FileInfo {
     string name = 1;
-    string type = 2;
+    bytes content = 2;
   }
   oneof data {
     FileInfo info = 1;
@@ -34,9 +35,22 @@ message CreateItemStreamRequestV1 {
   };
 }
 
-message CreateItemStreamResponseV1 {
+message UpdateItemRequestV1 {
   string name = 1;
-  uint32 size = 2;
+  bytes content = 2;
+}
+
+message UpdateItemResponseV1 {
+  string name = 1;
+  string version = 2;
+}
+
+message DeleteItemRequestV1 {
+  string name = 1;
+}
+
+message DeleteItemResponseV1 {
+  string name = 1;
 }
 
 message GetItemRequestV1{
@@ -47,6 +61,11 @@ message GetItemResponseV1 {
   string name = 1;
   bytes content = 2;
   string version = 3;
+}
+
+message GetItemStreamResponseV1{
+  bytes chunk_data = 1;
+  bytes content = 2;
 }
 
 message ListItemsRequestV1 {

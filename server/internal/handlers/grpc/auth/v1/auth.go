@@ -13,6 +13,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/server/internal/services"
 )
 
+//go:generate mockery --name Auth
 type Auth interface {
 	Login(
 		ctx context.Context,
@@ -31,12 +32,30 @@ type serverAPI struct {
 	auth Auth
 }
 
+// Register registers the gRPC server for the AuthServiceV1 with the provided gRPC server and Auth implementation.
+//
+// gRPC: The gRPC server to register the AuthServiceV1 server.
+// auth: An implementation of the Auth interface that provides the necessary functionality for the AuthServiceV1.
 func Register(gRPC *grpc.Server, auth Auth) {
 	v1.RegisterAuthServiceV1Server(gRPC, &serverAPI{
 		auth: auth,
 	})
 }
 
+// RegisterV1 handles the registration of a new user.
+//
+// It accepts a gRPC context and a RegisterRequestV1 containing the user's email and password.
+// The function performs the following steps:
+// 1. Validates the input using protovalidate.
+// 2. Calls the RegisterNewUser method of the Auth interface to register the new user.
+// 3. Returns a RegisterResponseV1 containing the user's ID if successful, or an error if any step fails.
+//
+// Parameters:
+// ctx (context.Context): The gRPC context for the request.
+// req (*v1.RegisterRequestV1): The request containing the user's email and password.
+//
+// Return:
+// (*v1.RegisterResponseV1, error): A pointer to the RegisterResponseV1 containing the user's ID, or an error if any step fails.
 func (s *serverAPI) RegisterV1(
 	ctx context.Context,
 	req *v1.RegisterRequestV1,
@@ -60,6 +79,20 @@ func (s *serverAPI) RegisterV1(
 	return &v1.RegisterResponseV1{UserId: user}, nil
 }
 
+// LoginV1 handles the login process for an existing user.
+//
+// It accepts a gRPC context and a LoginRequestV1 containing the user's email and password.
+// The function performs the following steps:
+// 1. Validates the input using protovalidate.
+// 2. Calls the Login method of the Auth interface to authenticate the user.
+// 3. Returns a LoginResponseV1 containing the user's token_cache if successful, or an error if any step fails.
+//
+// Parameters:
+// ctx (context.Context): The gRPC context for the request.
+// req (*v1.LoginRequestV1): The request containing the user's email and password.
+//
+// Return:
+// (*v1.LoginResponseV1, error): A pointer to the LoginResponseV1 containing the user's token_cache, or an error if any step fails.
 func (s *serverAPI) LoginV1(
 	ctx context.Context,
 	req *v1.LoginRequestV1,
@@ -75,7 +108,7 @@ func (s *serverAPI) LoginV1(
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredentials) {
-			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
+			return nil, status.Error(codes.InvalidArgument, "invalid creds")
 		}
 
 		if errors.Is(err, services.ErrUserNotFound) {
