@@ -105,6 +105,6 @@ func loadFixture(t *testing.T, fixture string) string {
 
 func runBinary(args []string) ([]byte, error) {
 	cmd := exec.Command(binaryPath, args...)
-	cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
+	//cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
 	return cmd.CombinedOutput()
 }
