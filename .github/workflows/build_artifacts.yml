@@ -8,17 +8,16 @@ jobs:
 
     strategy:
       matrix:
-#        os: [ macos-latest, ubuntu-latest, windows-latest ]
-        version: [ a, b, c ]
-        os: [ darwin, linux, windows ]
+        GOOS: [ darwin, linux, windows ]
+        GOARCH: [ arm64, 386 ]
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.GOOS }}
 
     steps:
       - name: Build
-        run: GOOS=${{ matrix.os }} GOARCH=arm64 go build -C client -o bin/client-cli-${{ matrix.os }}-${{ matrix.version }} main.go
+        run: GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -C client -o client-cli-${{ matrix.os }}-${{ matrix.GOARCH }} main.go
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: client-cli-${{ matrix.os }}-${{ matrix.version }}
-          path: bin
+          name: client-cli-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+#          path: bin
