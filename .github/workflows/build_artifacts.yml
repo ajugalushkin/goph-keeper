@@ -8,10 +8,9 @@ jobs:
 
     strategy:
       matrix:
-        GOOS: [ darwin, linux, windows ]
-        GOARCH: [ arm64, 386 ]
+        os: [macos-latest, windows-latest, ubuntu-latest]
 
-    runs-on: ${{ matrix.GOOS }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -22,9 +21,11 @@ jobs:
           go-version: 'stable'
       - name: Build
         run: |
-          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -C client -o bin/client-cli-${{ matrix.GOOS }}-${{ matrix.GOARCH }} main.go
+          GOOS=darwin GOARCH=amd64 go build -C client -o bin-macos-latest/client-cli-darwin-amd64 main.go
+          GOOS=linux GOARCH=amd64 go build -C client -o bin-ubuntu-latest/client-cli-linux-amd64 main.go
+          GOOS=windows GOARCH=amd64 go build -C client -o bin-windows-latest/client-cli-windows-amd64 main.go
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: assets-for-download
-          path: bin
+          name: assets-for-download-${{ matrix.os }}
+          path: bin-${{ matrix.os }}
