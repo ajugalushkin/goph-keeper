@@ -6,6 +6,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
+	mockSecret "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/spf13/cobra"
@@ -265,6 +266,100 @@ func TestCreateCardCmdRunE_Error(t *testing.T) {
 		Version: "1",
 	}, errors.New("Internal server error"))
 	initClient(mockClient)
+
+	err = createCardCmdRunE(cmd, []string{})
+	assert.Error(t, err)
+}
+
+func TestCreateCardCmdRunE_Error2(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cardCmdFlags(cmd)
+
+	name := "test_secret"
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	cardNumber := "1234567890123456"
+	err = cmd.Flags().Set("number", cardNumber)
+	require.NoError(t, err)
+
+	date := "12/24"
+	err = cmd.Flags().Set("date", date)
+	require.NoError(t, err)
+
+	code := "123"
+	err = cmd.Flags().Set("code", code)
+	require.NoError(t, err)
+
+	holder := "John Doe"
+	err = cmd.Flags().Set("holder", holder)
+	require.NoError(t, err)
+
+	token_cache.InitTokenStorage("./test/token.txt")
+
+	card := vaulttypes.Card{
+		Number:       cardNumber,
+		ExpiryDate:   date,
+		SecurityCode: code,
+		Holder:       holder,
+	}
+
+	// Encrypt the card details.
+	content, err := secret.NewCryptographer().Encrypt(card)
+	require.NoError(t, err)
+
+	mockClient := mocks.NewKeeperClient(t)
+	mockClient.On("CreateItem", context.Background(), &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	}).Return(nil, nil)
+	initClient(mockClient)
+
+	err = createCardCmdRunE(cmd, []string{})
+	assert.Error(t, err)
+}
+
+func TestCreateCardCmdRunE_Error3(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cardCmdFlags(cmd)
+
+	name := "test_secret"
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	cardNumber := "1234567890123456"
+	err = cmd.Flags().Set("number", cardNumber)
+	require.NoError(t, err)
+
+	date := "12/24"
+	err = cmd.Flags().Set("date", date)
+	require.NoError(t, err)
+
+	code := "123"
+	err = cmd.Flags().Set("code", code)
+	require.NoError(t, err)
+
+	holder := "John Doe"
+	err = cmd.Flags().Set("holder", holder)
+	require.NoError(t, err)
+
+	token_cache.InitTokenStorage("./test/token.txt")
+
+	card := vaulttypes.Card{
+		Number:       cardNumber,
+		ExpiryDate:   date,
+		SecurityCode: code,
+		Holder:       holder,
+	}
+
+	// Encrypt the card details.
+	mockCipher := mockSecret.NewCipher(t)
+	mockCipher.On("Encrypt", card).Return(nil, errors.New("Internal server error"))
+	initCipher(mockCipher)
 
 	err = createCardCmdRunE(cmd, []string{})
 	assert.Error(t, err)

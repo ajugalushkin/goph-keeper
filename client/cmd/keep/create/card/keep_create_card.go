@@ -2,6 +2,7 @@ package card
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -24,6 +25,7 @@ var keepCreateCard = &cobra.Command{
 }
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 // NewCommand creates a Cobra command for creating a card secret.
 // The command accepts flags for specifying the secret name, card number, expiry date,
@@ -100,7 +102,10 @@ func createCardCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Encrypt the card details.
-	content, err := secret.NewCryptographer().Encrypt(card)
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+	content, err := cipher.Encrypt(card)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))
@@ -129,7 +134,7 @@ func createCardCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 	if resp == nil {
 		log.Error("No response received from Keeper server")
-		return err
+		return errors.New("error creating secret")
 	}
 
 	// Print a success message with the created secret's name and version.
@@ -159,4 +164,8 @@ func init() {
 
 func initClient(newClient app.KeeperClient) {
 	client = newClient
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }
