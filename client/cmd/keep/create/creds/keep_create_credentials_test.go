@@ -1,6 +1,7 @@
 package creds
 
 import (
+	"errors"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
@@ -137,4 +138,73 @@ func TestCreateCredsSuccess(t *testing.T) {
 	err = createCredentialsCmdRunE(cmd, []string{})
 	require.NoError(t, err)
 	assert.Equal(t, name, resp.Name)
+}
+
+func TestCreateCredsError(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	name := gofakeit.Name()
+	login := gofakeit.Email()
+	password := gofakeit.Password(true, true, true, true, false, 8)
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", name, "name flag")
+	cmd.Flags().String("login", login, "login flag")
+	cmd.Flags().String("password", password, "password flag")
+
+	mockClient := mocks.NewKeeperClient(t)
+
+	credentials := vaulttypes.Credentials{
+		Login:    login,
+		Password: password,
+	}
+
+	content, err := secret.NewCryptographer().Encrypt(credentials)
+	require.NoError(t, err)
+
+	resp := &v1.CreateItemResponseV1{
+		Name:    name,
+		Version: "1",
+	}
+
+	mockClient.On("CreateItem", mock.Anything, &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	}).Return(resp, errors.New("expected error"))
+	initClient(mockClient)
+
+	err = createCredentialsCmdRunE(cmd, []string{})
+	require.Error(t, err)
+}
+
+func TestCreateCredsError2(t *testing.T) {
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	name := gofakeit.Name()
+	login := gofakeit.Email()
+	password := gofakeit.Password(true, true, true, true, false, 8)
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", name, "name flag")
+	cmd.Flags().String("login", login, "login flag")
+	cmd.Flags().String("password", password, "password flag")
+
+	mockClient := mocks.NewKeeperClient(t)
+
+	credentials := vaulttypes.Credentials{
+		Login:    login,
+		Password: password,
+	}
+
+	content, err := secret.NewCryptographer().Encrypt(credentials)
+	require.NoError(t, err)
+
+	mockClient.On("CreateItem", mock.Anything, &v1.CreateItemRequestV1{
+		Name:    name,
+		Content: content,
+	}).Return(nil, nil)
+	initClient(mockClient)
+
+	err = createCredentialsCmdRunE(cmd, []string{})
+	require.Error(t, err)
 }

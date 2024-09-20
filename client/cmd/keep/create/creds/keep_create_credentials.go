@@ -2,6 +2,7 @@ package creds
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -104,7 +105,7 @@ func createCredentialsCmdRunE(cmd *cobra.Command, args []string) error {
 	// Check if the response from the Keeper client is nil.
 	if resp == nil {
 		log.Error("Failed to create secret: No response received")
-		return err
+		return errors.New("failed to create secret: No response received")
 	}
 
 	// Print a success message with the name and version of the newly created secret.
