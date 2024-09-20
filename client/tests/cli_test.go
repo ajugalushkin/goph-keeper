@@ -36,7 +36,7 @@ func TestClientRegisterLoginCli(t *testing.T) {
 			output, err := runBinary(tt.args)
 
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("failed to run binary: %v", err.Error())
 			}
 
 			if *update {
