@@ -18,18 +18,6 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-func TestMain(m *testing.M) {
-	err := os.Mkdir("test", 0777)
-	if err != nil {
-		return
-	}
-
-	exitcode := m.Run()
-
-	os.RemoveAll("test")
-	os.Exit(exitcode)
-}
-
 // Handles error when secret name flag is missing or invalid
 func TestKeepDeleteCmdRunE_MissingNameFlag(t *testing.T) {
 	// Setup
@@ -113,4 +101,30 @@ func TestKeepDeleteCmdRunE_EmptyNameFlag(t *testing.T) {
 	// Verify
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error reading secret name")
+}
+
+func TestKeepDeleteCmdRunE_Success(t *testing.T) {
+	// Arrange
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	args := []string{}
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	token_cache.InitTokenStorage("test/empty_token.txt")
+
+	mockKeeperClient := mocks.NewKeeperClient(t)
+	mockKeeperClient.On(
+		"DeleteItem",
+		mock.Anything,
+		&keeperv1.DeleteItemRequestV1{Name: "test-secret"},
+	).Return(nil, nil)
+
+	initClient(mockKeeperClient)
+
+	// Execute
+	err := keepDeleteCmdRunE(cmd, args)
+
+	// Verify
+	assert.NoError(t, err)
 }
