@@ -8,6 +8,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/secret"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
@@ -22,7 +23,7 @@ import (
 func TestCreateCardCmdRunE_FailsToReadSecretNameFlag(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("number", "1234567890123456")
@@ -45,7 +46,7 @@ func TestCreateCardCmdRunE_FailsToReadSecretNameFlag(t *testing.T) {
 func TestCreateCardCmdRunE_FailsToReadCardNumberFlag(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -73,7 +74,7 @@ func TestCreateCardCmdRunE_FailsToReadCardNumberFlag(t *testing.T) {
 func TestCreateCardCmdRunE_FailsToReadExpiryDateFlag(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -95,7 +96,7 @@ func TestCreateCardCmdRunE_FailsToReadExpiryDateFlag(t *testing.T) {
 func TestCreateCardCmdRunE_FailsToReadCodeFlag(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -117,7 +118,7 @@ func TestCreateCardCmdRunE_FailsToReadCodeFlag(t *testing.T) {
 func TestCreateCardCmdRunE_FailsToReadHolderFlag(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -139,7 +140,7 @@ func TestCreateCardCmdRunE_FailsToReadHolderFlag(t *testing.T) {
 func TestCreateCardCmdRunE_ErrorWhenAllFlagsAreProvided(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -166,7 +167,7 @@ func TestCreateCardCmdRunE_ErrorWhenAllFlagsAreProvided(t *testing.T) {
 func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	name := "test_secret"
@@ -219,7 +220,7 @@ func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
 func TestCreateCardCmdRunE_Error(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	cardCmdFlags(cmd)
 
 	name := "test_secret"

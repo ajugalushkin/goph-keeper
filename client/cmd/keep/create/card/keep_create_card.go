@@ -17,7 +17,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var keepCreateCard = NewCommand()
+var keepCreateCard = &cobra.Command{
+	Use:   "card",
+	Short: "Create card secret",
+	RunE:  createCardCmdRunE,
+}
 
 var client app.KeeperClient
 
@@ -27,11 +31,7 @@ var client app.KeeperClient
 // the Keeper server to create the secret, and prints a success message with the created
 // secret's name and version.
 func NewCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "card",
-		Short: "Create card secret",
-		RunE:  createCardCmdRunE,
-	}
+	return keepCreateCard
 }
 
 // createCardCmdRunE is the entry point for creating a card secret in the Keeper vault.

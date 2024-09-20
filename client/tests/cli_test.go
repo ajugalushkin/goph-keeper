@@ -54,6 +54,50 @@ func TestClientRegisterLoginCli(t *testing.T) {
 	}
 }
 
+func TestClientKeepCreateCli(t *testing.T) {
+	email := gofakeit.Email()
+	password := gofakeit.Password(true, true, true, true, false, 8)
+
+	tests := []struct {
+		name    string
+		args    []string
+		fixture string
+	}{
+		{"start keep",
+			[]string{"keep"}, "keep-no-args.golden"},
+		{"start auth register",
+			[]string{"auth", "register", "--email", email, "--password", password}, "register.golden"},
+		{"start auth login",
+			[]string{"auth", "login", "--email", email, "--password", password}, "login.golden"},
+		//{"start auth register",
+		//	[]string{"auth", "register", "--email", email, "--password", password}, "register.golden"},
+		//{"start auth login",
+		//	[]string{"auth", "login", "--email", email, "--password", password}, "login.golden"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output, err := runBinary(tt.args)
+
+			if err != nil {
+				t.Fatalf("failed to run binary: %v", err.Error())
+			}
+
+			if *update {
+				writeFixture(t, tt.fixture, output)
+			}
+
+			actual := string(output)
+
+			expected := loadFixture(t, tt.fixture)
+
+			if !reflect.DeepEqual(actual, expected) {
+				t.Fatalf("actual = %s, expected = %s", actual, expected)
+			}
+		})
+	}
+}
+
 func TestMain(m *testing.M) {
 	err := os.Chdir("..")
 	if err != nil {
@@ -104,6 +148,6 @@ func loadFixture(t *testing.T, fixture string) string {
 
 func runBinary(args []string) ([]byte, error) {
 	cmd := exec.Command(binaryPath, args...)
-	//cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
+	cmd.Env = append(os.Environ(), "GOCOVERDIR=.coverdata")
 	return cmd.CombinedOutput()
 }

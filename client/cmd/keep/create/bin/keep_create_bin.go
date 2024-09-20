@@ -14,7 +14,11 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 )
 
-var keepCreateBin = NewCommand()
+var keepCreateBin = &cobra.Command{
+	Use:   "bin",
+	Short: "Create bin secret",
+	RunE:  keepCreateBinCmdRunE,
+}
 
 var client app.KeeperClient
 
@@ -28,11 +32,7 @@ var client app.KeeperClient
 // Return:
 // - A pointer to the Cobra command object for creating a bin secret.
 func NewCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "bin",
-		Short: "Create bin secret",
-		RunE:  keepCreateBinCmdRunE,
-	}
+	return keepCreateBin
 }
 
 // keepCreateBinCmdRunE is the entry point for the "bin" command in the "keep create" command group.

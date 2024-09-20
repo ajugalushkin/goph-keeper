@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
 	"testing"
@@ -22,7 +23,7 @@ func TestKeepCreateBinCmdRunE_EmptySecretName(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "")
@@ -39,7 +40,7 @@ func TestKeepCreateBinCmdRunE_EmptyFilePath(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test-secret")
@@ -79,7 +80,7 @@ func TestKeepCreateBinCmdRunE_NonExistentFilePath(t *testing.T) {
 	).Return(nil, fmt.Errorf("open /non/existent/path: no such file or directory")).Maybe()
 	initClient(clientMock)
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test-secret")
@@ -117,15 +118,20 @@ func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a new command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
-	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
-	err := token_cache.GetToken().Save(invalidToken)
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("file_path", filePath)
+	require.NoError(t, err)
+
+	err = token_cache.GetToken().Save(invalidToken)
 	require.NoError(t, err)
 
 	// Act
-	err = cmd.ExecuteContext(ctx)
+	err = keepCreateBinCmdRunE(cmd, nil)
 
 	// Assert
 	assert.ErrorContains(t, err, expectedError)
@@ -138,18 +144,17 @@ func TestKeepCreateBinCmdRunE_ClientNil(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	ctx := context.Background()
 	name := "test-secret"
 	filePath := "test-file.bin"
 
 	// Create a new command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
 	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
 
 	// Act
-	err := cmd.ExecuteContext(ctx)
+	err := keepCreateBinCmdRunE(cmd, nil)
 
 	// Assert
 	assert.Error(t, err)
@@ -176,13 +181,17 @@ func TestKeepCreateBinCmdRunE_Success(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a new command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	binCmdFlags(cmd)
 
-	cmd.SetArgs([]string{"--name", name, "--file_path", filePath})
+	err := cmd.Flags().Set("name", name)
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("file_path", filePath)
+	require.NoError(t, err)
 
 	// Act
-	err := cmd.ExecuteContext(ctx)
+	err = keepCreateBinCmdRunE(cmd, nil)
 
 	// Assert
 	assert.NoError(t, err)

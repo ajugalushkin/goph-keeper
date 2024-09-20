@@ -61,11 +61,10 @@ goose-down:		## Roll back the version by 1
 	goose -dir ./server/migrations postgres ${DATABASE_URL} down
 
 test: build-with-coverage
-#	@rm -fr .coverdata
-#	@mkdir -p .coverdata
-#	@go test ./...
-#	@go tool covdata percent -i=.coverdata
+	@rm -fr .coverdata
+	@mkdir -p .coverdata
 	@go test ./...  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
+	@go tool covdata percent -i=.coverdata
 
 #check-coverage: test
 #	@go tool covdata textfmt -i=.coverdata -o profile.txt

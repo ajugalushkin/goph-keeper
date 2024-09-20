@@ -27,7 +27,7 @@ func TestKeeperUpdateCardCmdRunE_MissingNameFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("number", "1234567890123456")
@@ -56,7 +56,7 @@ func TestKeeperUpdateCardCmdRunE_MissingNumberFlag(t *testing.T) {
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -87,7 +87,7 @@ func TestKeeperUpdateCardCmdRunE_MissingExpiryDateFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -121,7 +121,7 @@ func TestKeeperUpdateCardCmdRunE_MissingSecurityCodeFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -155,7 +155,7 @@ func TestKeeperUpdateCardCmdRunE_MissingHolderFlag(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
@@ -285,7 +285,7 @@ func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
 	initClient(mockClient)
 
 	// Create a Cobra command and set the flags
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	updateCardCmdFlags(cmd)
 
 	err := cmd.Flags().Set("name", "test_secret")
