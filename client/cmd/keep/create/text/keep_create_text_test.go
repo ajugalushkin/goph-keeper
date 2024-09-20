@@ -1,6 +1,7 @@
 package text
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
+	mockSecret "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -27,7 +29,7 @@ func TestKeepCreateTextCmdRunE_Success(t *testing.T) {
 
 	// Mock KeeperClient
 	mockClient := mocks.NewKeeperClient(t)
-	client = mockClient
+	initClient(mockClient)
 
 	// Mock response
 	mockResp := &v1.CreateItemResponseV1{
@@ -64,6 +66,76 @@ func TestKeepCreateTextCmdRunE_MissingFlags(t *testing.T) {
 
 	// Execute with missing data flag
 	err = keepCreateTextCmdRunE(cmd, []string{})
+
+	// Assert
+	assert.Error(t, err)
+}
+
+func TestKeepCreateTextCmdRunE_Error(t *testing.T) {
+	// Setup
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	cmd.Flags().String("data", "test-data", "secret data")
+
+	// Mock logger
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	// Mock KeeperClient
+	mockClient := mocks.NewKeeperClient(t)
+	initClient(mockClient)
+
+	// Mock response
+	mockResp := &v1.CreateItemResponseV1{
+		Name:    "test-secret",
+		Version: "1",
+	}
+	mockClient.On("CreateItem", mock.Anything, mock.Anything).Return(mockResp, errors.New("test error"))
+
+	// Execute
+	err := keepCreateTextCmdRunE(cmd, []string{})
+
+	// Assert
+	assert.Error(t, err)
+}
+
+func TestKeepCreateTextCmdRunE_Error2(t *testing.T) {
+	// Setup
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	cmd.Flags().String("data", "test-data", "secret data")
+
+	// Mock logger
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	// Mock KeeperClient
+	mockClient := mocks.NewKeeperClient(t)
+	initClient(mockClient)
+
+	mockClient.On("CreateItem", mock.Anything, mock.Anything).Return(nil, nil)
+
+	// Execute
+	err := keepCreateTextCmdRunE(cmd, []string{})
+
+	// Assert
+	assert.Error(t, err)
+}
+
+func TestKeepCreateTextCmdRunE_Error3(t *testing.T) {
+	// Setup
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	cmd.Flags().String("data", "test-data", "secret data")
+
+	// Mock logger
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	mockCipher := mockSecret.NewCipher(t)
+	initCipher(mockCipher)
+
+	mockCipher.On("Encrypt", mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
+
+	// Execute
+	err := keepCreateTextCmdRunE(cmd, []string{})
 
 	// Assert
 	assert.Error(t, err)

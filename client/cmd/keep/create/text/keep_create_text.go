@@ -25,6 +25,7 @@ var keepCreateText = &cobra.Command{
 }
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 // NewCommand creates a cobra.Command for creating a text secret.
 // The command is responsible for handling the execution of the "text" subcommand of the "keep create" command.
@@ -76,7 +77,10 @@ func keepCreateTextCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Encrypt the secret
-	content, err := secret.NewCryptographer().Encrypt(text)
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+	content, err := cipher.Encrypt(text)
 	if err != nil {
 		log.Error("Failed to encrypt secret: ",
 			slog.String("error", err.Error()))
@@ -132,4 +136,12 @@ func textCmdFlags(cmd *cobra.Command) {
 
 func init() {
 	textCmdFlags(keepCreateText)
+}
+
+func initClient(newClient app.KeeperClient) {
+	client = newClient
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }
