@@ -13,7 +13,7 @@ jobs:
           - 'darwin/amd64'
           - 'windows/amd64'
           - 'linux/386'
-          - 'darwin/386'
+          - 'darwin/arm64'
           - 'windows/386'
 
     runs-on: ubuntu-latest
