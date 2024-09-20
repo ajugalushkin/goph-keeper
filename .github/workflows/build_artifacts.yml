@@ -21,9 +21,10 @@ jobs:
         with:
           go-version: 'stable'
       - name: Build
-        run: GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -C client -o bin/client-cli-${{ matrix.os }}-${{ matrix.GOARCH }} main.go
+        run: |
+          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -C client -o bin/client-cli-${{ matrix.GOOS }}-${{ matrix.GOARCH }} main.go
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: client-cli-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          name: assets-for-download
           path: bin
