@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/brianvoe/gofakeit"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -88,14 +87,14 @@ func fixturePath(t *testing.T, fixture string) string {
 }
 
 func writeFixture(t *testing.T, fixture string, content []byte) {
-	err := ioutil.WriteFile(fixturePath(t, fixture), content, 0644)
+	err := os.WriteFile(fixturePath(t, fixture), content, 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func loadFixture(t *testing.T, fixture string) string {
-	content, err := ioutil.ReadFile(fixturePath(t, fixture))
+	content, err := os.ReadFile(fixturePath(t, fixture))
 	if err != nil {
 		t.Fatal(err)
 	}
