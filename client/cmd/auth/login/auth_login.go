@@ -16,7 +16,11 @@ import (
 )
 
 // loginCmd is the command line for login
-var loginCmd = NewCommand()
+var loginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Logins a user in the gophkeeper service",
+	RunE:  authLoginCmdRunE,
+}
 
 var client app.AuthClient
 
@@ -32,11 +36,7 @@ var client app.AuthClient
 // Return:
 // - A pointer to a configured Cobra command for logging in a user.
 func NewCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "login",
-		Short: "Logins a user in the gophkeeper service",
-		RunE:  authLoginCmdRunE,
-	}
+	return loginCmd
 }
 
 // authLoginCmdRunE is the main function for the login command. It handles the user authentication process.
@@ -89,7 +89,7 @@ func authLoginCmdRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Print the access token to the console
-	fmt.Printf("Access Token: %s\n", token)
+	fmt.Print("Access Token Received")
 	return nil
 }
 

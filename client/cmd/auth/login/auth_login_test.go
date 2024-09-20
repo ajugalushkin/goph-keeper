@@ -7,24 +7,13 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
 )
-
-func TestMain(m *testing.M) {
-	err := os.Mkdir("test", 0777)
-	if err != nil {
-		return
-	}
-
-	exitcode := m.Run()
-
-	os.RemoveAll("test")
-	os.Exit(exitcode)
-}
 
 func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	// Arrange
@@ -42,7 +31,7 @@ func TestAuthLoginCmdRunE_ValidEmailAndPassword(t *testing.T) {
 	token_cache.InitTokenStorage("./test/test_save_token.txt")
 	assert.NoError(t, token_cache.GetToken().Save(expectedToken))
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	loginCmdFlags(cmd)
 
 	err := cmd.Flags().Set("email", email)
@@ -69,7 +58,7 @@ func TestAuthLoginCmdRunE_Error(t *testing.T) {
 	email := "test@example.com"
 	password := "testpassword"
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	loginCmdFlags(cmd)
 
 	err := cmd.Flags().Set("email", email)
@@ -88,7 +77,7 @@ func TestAuthLoginCmdRunE_EmptyEmail(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	loginCmdFlags(cmd)
 	err := cmd.Flags().Set("email", "")
 	require.NoError(t, err)
@@ -111,7 +100,7 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
-	cmd := NewCommand()
+	cmd := &cobra.Command{}
 	loginCmdFlags(cmd)
 
 	email := "test@example.com"
@@ -126,7 +115,7 @@ func TestAuthLoginCmdRunE_EmptyPassword(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "password is required")
 
-	loginCmd := NewCommand()
+	loginCmd := &cobra.Command{}
 	loginCmdFlags(loginCmd)
 
 	err = loginCmd.Flags().Set("email", email)

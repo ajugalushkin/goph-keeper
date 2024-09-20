@@ -82,10 +82,10 @@ func initConfig() {
 			slog.Error("Error reading config file: ", slog.String("error", err.Error()))
 		}
 		// Log a message indicating that the config file was not found.
-		slog.Info("Config file not found in ", slog.String("file", cfgFile))
+		slog.Debug("Config file not found in ", slog.String("file", cfgFile))
 	} else {
 		// Log a message indicating that the config file was successfully used.
-		slog.Info("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
+		slog.Debug("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
 	}
 
 	// Initialize the configuration and logger instances.

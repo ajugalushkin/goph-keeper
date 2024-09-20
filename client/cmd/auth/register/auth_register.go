@@ -13,7 +13,11 @@ import (
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
 
-var registerCmd = NewCommand()
+var registerCmd = &cobra.Command{
+	Use:   "register",
+	Short: "Registers a user in the gophkeeper service",
+	RunE:  registerCmdRun,
+}
 
 var client app.AuthClient
 
@@ -27,11 +31,7 @@ var client app.AuthClient
 // Returns:
 // - A pointer to the cobra.Command representing the 'register' command.
 func NewCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "register",
-		Short: "Registers a user in the gophkeeper service",
-		RunE:  registerCmdRun,
-	}
+	return registerCmd
 }
 
 // registerCmdRun handles the registration process for a user in the gophkeeper service.
