@@ -8,9 +8,15 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        goosarch:
+          - 'linux/amd64'
+          - 'darwin/amd64'
+          - 'windows/amd64'
+          - 'linux/386'
+          - 'darwin/386'
+          - 'windows/386'
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -19,13 +25,20 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
+      - name: Get OS and arch info
+        run: |
+            GOOSARCH=${{matrix.goosarch}}
+            GOOS=${GOOSARCH%/*}
+            GOARCH=${GOOSARCH#*/}
+            BINARY_NAME=client-cli-$GOOS-$GOARCH
+            echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+            echo "GOOS=$GOOS" >> $GITHUB_ENV
+            echo "GOARCH=$GOARCH" >> $GITHUB_ENV
       - name: Build
         run: |
-          GOOS=darwin GOARCH=amd64 go build -C client -o bin-macos-latest/client-cli-darwin-amd64 main.go
-          GOOS=linux GOARCH=amd64 go build -C client -o bin-ubuntu-latest/client-cli-linux-amd64 main.go
-          GOOS=windows GOARCH=amd64 go build -C client -o bin-windows-latest/client-cli-windows-amd64 main.go
+           go build -o "$BINARY_NAME" -v
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: assets-for-download-${{ matrix.os }}
-          path: bin-${{ matrix.os }}
+          name: assets-for-download-"$BINARY_NAME"
+          path: ./"$BINARY_NAME"
