@@ -36,7 +36,7 @@ jobs:
             echo "GOARCH=$GOARCH" >> $GITHUB_ENV
       - name: Build
         run: |
-           go build -o "$BINARY_NAME" -v
+           go build -C client -o "$BINARY_NAME" -v
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
