@@ -40,5 +40,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: assets-for-download-"$BINARY_NAME"
-          path: ./"$BINARY_NAME"
+          name: assets-for-download-${{ env.BINARY_NAME }}
+          path: ./${{ env.BINARY_NAME }}
