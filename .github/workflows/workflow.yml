@@ -1,4 +1,4 @@
-name: Test and coverage
+name: Workflow
 
 on: [ push, pull_request ]
 
@@ -55,3 +55,22 @@ jobs:
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  upload:
+    name: Generate Build Artifacts
+
+    strategy:
+      matrix:
+        GOOS: [ darwin, linux, windows ]
+        GOARCH: [ arm64, 386 ]
+
+    runs-on: ${{ matrix.GOOS }}
+
+    steps:
+      - name: Build
+        run: GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -C client -o bin/client-cli-${{ matrix.os }}-${{ matrix.GOARCH }} main.go
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-cli-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: bin
