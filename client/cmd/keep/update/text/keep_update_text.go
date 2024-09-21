@@ -25,6 +25,7 @@ var keepUpdateText = &cobra.Command{
 }
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 func NewCommand() *cobra.Command {
 	return keepUpdateText
@@ -71,8 +72,12 @@ func keeperUpdateTextCmdRunE(cmd *cobra.Command, args []string) error {
 		Data: data,
 	}
 
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+
 	// Encrypt the secret data
-	content, err := secret.NewCryptographer().Encrypt(text)
+	content, err := cipher.Encrypt(text)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))
@@ -125,4 +130,8 @@ func init() {
 
 func initClient(newClient app.KeeperClient) {
 	client = newClient
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }
