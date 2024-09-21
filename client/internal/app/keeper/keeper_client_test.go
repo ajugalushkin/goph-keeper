@@ -4,13 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/secret"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/mocks"
+	"github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"io"
 	"log/slog"
 	"os"
 	"testing"
@@ -230,22 +234,44 @@ func TestGetItem_Error(t *testing.T) {
 	mockAPI.AssertExpectations(t)
 }
 
-//// Successfully retrieves a stream when given a valid context and name
-//func TestGetFile_Success(t *testing.T) {
-//	ctx := context.Background()
-//	name := "test-file"
-//	path := "testdata"
-//
-//	mockStream := mocks.NewServerStreamingClient[keeperv1.GetItemStreamResponseV1](t)
-//	mockAPI := mocks.NewKeeperServiceV1Client(t)
-//	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(mockStream, nil)
-//
-//	client := &KeeperClient{api: mockAPI}
-//
-//	err := client.GetFile(ctx, name, path)
-//
-//	assert.NoError(t, err)
-//}
+// Successfully retrieves a stream when given a valid context and name
+func TestGetFile_Success(t *testing.T) {
+	ctx := context.Background()
+	name := "test-file.txt"
+	path := ""
+
+	bin := vaulttypes.Bin{
+		FileName: name,
+		Size:     10,
+	}
+	encrypt, err := secret.NewCryptographer().Encrypt(bin)
+	require.NoError(t, err)
+
+	mockStream := mocks.NewServerStreamingClient[keeperv1.GetItemStreamResponseV1](t)
+	mockStream.On("Recv").Once().Return(&keeperv1.GetItemStreamResponseV1{
+		Content: encrypt}, nil)
+
+	mockStream.On("Recv").Once().Return(&keeperv1.GetItemStreamResponseV1{
+		ChunkData: []byte(gofakeit.Letter())}, nil)
+
+	mockStream.On("Recv").Once().Return(nil, io.EOF)
+
+	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	mockAPI.On("GetItemStreamV1", ctx, &keeperv1.GetItemRequestV1{Name: name}).Return(mockStream, nil)
+
+	decrypt, err := secret.NewCryptographer().Decrypt(encrypt)
+	require.NoError(t, err)
+
+	mockCipher := mocks.NewCipher(t)
+	mockCipher.On("Decrypt", encrypt).Return(decrypt, nil)
+	initCipher(mockCipher)
+
+	client := &KeeperClient{api: mockAPI}
+
+	err = client.GetFile(ctx, name, path)
+
+	assert.NoError(t, err)
+}
 
 // Handles the case where the context is canceled or expired
 func TestGetFile_ContextCanceled(t *testing.T) {

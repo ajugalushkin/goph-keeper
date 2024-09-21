@@ -17,11 +17,6 @@ import (
 	keeperv1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
-//go:generate mockery --name CreateItemStream
-type CreateItemStream interface {
-	keeperv1.KeeperServiceV1_CreateItemStreamV1Client
-}
-
 type KeeperClient struct {
 	api keeperv1.KeeperServiceV1Client
 }
@@ -170,6 +165,8 @@ func (k *KeeperClient) GetItem(
 	return resp, nil
 }
 
+var cipher secret.Cipher
+
 func (k *KeeperClient) GetFile(
 	ctx context.Context,
 	name string,
@@ -191,8 +188,12 @@ func (k *KeeperClient) GetFile(
 		return fmt.Errorf("%s: %w ", op, err)
 	}
 
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+
 	// Decrypt the secret file content
-	respSecret, err := secret.NewCryptographer().Decrypt(req.GetContent())
+	respSecret, err := cipher.Decrypt(req.GetContent())
 	if err != nil {
 		return fmt.Errorf("%s: %w ", op, err)
 	}
@@ -225,6 +226,10 @@ func (k *KeeperClient) GetFile(
 	}
 
 	return nil
+}
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
 }
 
 func (k *KeeperClient) ListItems(
