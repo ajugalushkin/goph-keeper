@@ -16,6 +16,7 @@ import (
 )
 
 func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -32,6 +33,7 @@ func TestKeepGetBinRunE_NoSecretName(t *testing.T) {
 	require.Contains(t, err.Error(), "secret name is required")
 }
 func TestKeepGetBinRunE_SecretPathNotProvided(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -49,6 +51,7 @@ func TestKeepGetBinRunE_SecretPathNotProvided(t *testing.T) {
 }
 
 func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -72,6 +75,7 @@ func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
 }
 
 func TestKeepGetBinRunE_UninitializedClient(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -90,11 +94,11 @@ func TestKeepGetBinRunE_UninitializedClient(t *testing.T) {
 
 	err = keepGetBinRunE(cmd, nil)
 	require.NoError(t, err)
-	require.Contains(t, "file downloaded: /tmp/test-secret.txt", fmt.Sprintf("%v", err))
 	mockClient.AssertExpectations(t)
 }
 
 func TestKeepGetBinRunE_TokenCacheLoadFailure(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -113,6 +117,7 @@ func TestKeepGetBinRunE_TokenCacheLoadFailure(t *testing.T) {
 }
 
 func TestKeepGetBinRunE_KeeperClientConnectionFailure(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
@@ -138,6 +143,7 @@ func TestKeepGetBinRunE_KeeperClientConnectionFailure(t *testing.T) {
 }
 
 func TestKeepGetBinRunE_TokenCacheLoadFailure2(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{
 		Env: "dev",
 	})
