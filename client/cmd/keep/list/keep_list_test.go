@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
+	"github.com/ajugalushkin/goph-keeper/client/secret"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	"github.com/ajugalushkin/goph-keeper/mocks"
 	"github.com/stretchr/testify/require"
 	"log/slog"
@@ -180,4 +182,33 @@ func TestKeepListRunError2(t *testing.T) {
 	// Call the function under test
 	err = keepListRunE(fakeCmd, []string{})
 	require.Error(t, err)
+}
+
+func TestKeepListRunE_ValidList(t *testing.T) {
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	mockClient := mocks.NewKeeperClient(t)
+	initClient(mockClient)
+
+	text := vaulttypes.Text{Data: "test-content"}
+	content, err := secret.NewCryptographer().Encrypt(text)
+	require.NoError(t, err)
+
+	var list []*v1.SecretInfo
+	list = append(list, &v1.SecretInfo{
+		Name:    "test-secret",
+		Version: "1",
+		Content: content,
+	})
+
+	mockClient.On(
+		"ListItems",
+		context.Background(),
+		&v1.ListItemsRequestV1{},
+	).Return(&v1.ListItemsResponseV1{Secrets: list}, nil)
+
+	err = keepListRunE(nil, nil)
+	assert.NoError(t, err)
 }
