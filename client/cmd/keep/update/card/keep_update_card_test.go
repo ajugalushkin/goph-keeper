@@ -3,6 +3,7 @@ package card
 import (
 	"context"
 	"errors"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/mocks"
@@ -367,13 +368,76 @@ func TestKeeperUpdateCardCmdRunE_Error(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Error2(t *testing.T) {
 	initClient(nil)
 	initCipher(nil)
-	
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	newMockCipher := mocks.NewCipher(t)
 
 	newMockCipher.On("Encrypt", mock.Anything).Return(nil, errors.New("error encrypting card"))
 	initCipher(newMockCipher)
+
+	// Create a Cobra command and set the flags
+	cmd := &cobra.Command{}
+	updateCardCmdFlags(cmd)
+
+	err := cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
+
+	// Run the command with empty security code
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
+	assert.Error(t, err)
+}
+
+func TestKeeperUpdateCardCmdRunE_Error4(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+	
+	token_cache.InitTokenStorage("test_token.txt")
+	err := token_cache.GetToken().Save("test_token")
+	require.NoError(t, err)
+
+	// Create a Cobra command and set the flags
+	cmd := &cobra.Command{}
+	updateCardCmdFlags(cmd)
+
+	err = cmd.Flags().Set("name", "test_secret")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("number", "1234567890123456")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("date", "12/24")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("code", "123")
+	require.NoError(t, err)
+
+	err = cmd.Flags().Set("holder", "John Doe")
+	require.NoError(t, err)
+
+	// Run the command with empty security code
+	err = keeperUpdateCardCmdRunE(cmd, []string{})
+	assert.Error(t, err)
+}
+func TestKeeperUpdateCardCmdRunE_Error5(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	// Create a Cobra command and set the flags
 	cmd := &cobra.Command{}
