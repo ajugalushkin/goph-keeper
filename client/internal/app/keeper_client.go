@@ -37,7 +37,8 @@ type KeeperClient interface {
 	GetFile(
 		ctx context.Context,
 		name string,
-	) (keeperv1.KeeperServiceV1_GetItemStreamV1Client, error)
+		path string,
+	) error
 	ListItems(
 		ctx context.Context,
 		item *keeperv1.ListItemsRequestV1,

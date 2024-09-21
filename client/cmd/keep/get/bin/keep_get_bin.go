@@ -3,19 +3,12 @@ package bin
 import (
 	"context"
 	"fmt"
-	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
-	"io"
-	"log/slog"
-	"os"
-	"path/filepath"
-
 	"github.com/ajugalushkin/goph-keeper/client/internal/app"
 	"github.com/ajugalushkin/goph-keeper/client/internal/app/keeper"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
-	"github.com/ajugalushkin/goph-keeper/client/secret"
-
 	"github.com/spf13/cobra"
+	"log/slog"
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
@@ -86,54 +79,10 @@ func keepGetBinRunE(cmd *cobra.Command, args []string) error {
 		client = keeper.NewKeeperClient(keeper.GetKeeperConnection(log, cfg.Address, token))
 	}
 	// Request the file stream from the goph-keeper service
-	stream, err := client.GetFile(context.Background(), name)
+	err = client.GetFile(context.Background(), name, path)
 	if err != nil {
 		log.Error("Error getting file stream: ", slog.String("error", err.Error()))
 		return err
-	}
-
-	// Receive the file information from the stream
-	req, err := stream.Recv()
-	if err != nil {
-		log.Error("Error getting file info: ", slog.String("error", err.Error()))
-		return err
-	}
-
-	// Decrypt the secret file content
-	respSecret, err := secret.NewCryptographer().Decrypt(req.GetContent())
-	if err != nil {
-		log.Error("Failed to decrypt secret: ", slog.String("error", err.Error()))
-		return err
-	}
-
-	// Extract the file information from the decrypted secret
-	fileInfo := respSecret.(vaulttypes.Bin)
-
-	// Create a new local file to save the downloaded secret
-	newFile, err := os.Create(filepath.Join(path, fileInfo.FileName))
-	if err != nil {
-		log.Error("Error creating file: ", slog.String("error", err.Error()))
-		return err
-	}
-	defer newFile.Close()
-
-	// Stream the file chunks from the goph-keeper service to the local file
-	for {
-		req, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Error("Error getting file chunk: ", slog.String("error", err.Error()))
-			return err
-		}
-		chunk := req.GetChunkData()
-
-		_, err = newFile.Write(chunk)
-		if err != nil {
-			log.Error("Error add chunk to file: ", slog.String("error", err.Error()))
-			return err
-		}
 	}
 
 	// Print a success message

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"io/ioutil"
 	"log/slog"
 	"os"
 	"testing"
@@ -416,18 +415,4 @@ type mockKeeperServiceClient struct {
 func (m *mockKeeperServiceClient) CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (keeperv1.KeeperServiceV1_CreateItemStreamV1Client, error) {
 	args := m.Called(ctx, opts)
 	return args.Get(0).(keeperv1.KeeperServiceV1_CreateItemStreamV1Client), args.Error(1)
-}
-
-func createTempFile(t *testing.T, content string) string {
-	file, err := ioutil.TempFile("", "test-file-*.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
-
-	if _, err := file.WriteString(content); err != nil {
-		t.Fatal(err)
-	}
-
-	return file.Name()
 }

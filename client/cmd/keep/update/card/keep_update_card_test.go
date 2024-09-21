@@ -17,7 +17,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
-	mockCipher "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 )
 
 func TestKeeperUpdateCardCmdRunE_MissingNameFlag(t *testing.T) {
@@ -261,7 +260,7 @@ func TestKeeperUpdateCardCmdRunE_EmptySecurityCode(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	newMockCipher := mockCipher.NewCipher(t)
+	newMockCipher := mocks.NewCipher(t)
 
 	card := vaulttypes.Card{
 		Number:       "1234567890123456",
@@ -312,7 +311,7 @@ func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Error(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	newMockCipher := mockCipher.NewCipher(t)
+	newMockCipher := mocks.NewCipher(t)
 
 	card := vaulttypes.Card{
 		Number:       "1234567890123456",
@@ -360,7 +359,7 @@ func TestKeeperUpdateCardCmdRunE_Error(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Error2(t *testing.T) {
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	newMockCipher := mockCipher.NewCipher(t)
+	newMockCipher := mocks.NewCipher(t)
 
 	newMockCipher.On("Encrypt", mock.Anything).Return(nil, errors.New("error encrypting card"))
 	initCipher(newMockCipher)

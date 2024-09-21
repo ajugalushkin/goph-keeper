@@ -60,7 +60,7 @@ func TestKeepGetBinRunE_NonExistentSecretName(t *testing.T) {
 	require.NoError(t, err)
 
 	mockClient := mocks.NewKeeperClient(t)
-	mockClient.On("GetFile", mock.Anything, "non-existent-secret").Return(nil, fmt.Errorf("secret not found"))
+	mockClient.On("GetFile", mock.Anything, "non-existent-secret", "/tmp").Return(fmt.Errorf("secret not found"))
 
 	initClient(mockClient)
 

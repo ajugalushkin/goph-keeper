@@ -13,7 +13,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
-	secretCipher "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -77,7 +76,7 @@ func TestKeepGetRunE_Error(t *testing.T) {
 		&v1.GetItemRequestV1{Name: "non-existent-secret"},
 	).Return(nil, nil)
 
-	mockCipher := secretCipher.NewCipher(t)
+	mockCipher := mocks.NewCipher(t)
 	cipher = mockCipher
 
 	mockCipher.On("Decrypt", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("decryption error"))

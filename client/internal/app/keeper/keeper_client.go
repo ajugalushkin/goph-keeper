@@ -173,7 +173,8 @@ func (k *KeeperClient) GetItem(
 func (k *KeeperClient) GetFile(
 	ctx context.Context,
 	name string,
-) (keeperv1.KeeperServiceV1_GetItemStreamV1Client, error) {
+	path string,
+) error {
 	const op = "client.keeper.GetItem"
 
 	stream, err := k.api.GetItemStreamV1(
@@ -181,10 +182,49 @@ func (k *KeeperClient) GetFile(
 		&keeperv1.GetItemRequestV1{Name: name},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return stream, nil
+	// Receive the file information from the stream
+	req, err := stream.Recv()
+	if err != nil {
+		return fmt.Errorf("%s: %w ", op, err)
+	}
+
+	// Decrypt the secret file content
+	respSecret, err := secret.NewCryptographer().Decrypt(req.GetContent())
+	if err != nil {
+		return fmt.Errorf("%s: %w ", op, err)
+	}
+
+	// Extract the file information from the decrypted secret
+	fileInfo := respSecret.(vaulttypes.Bin)
+
+	// Create a new local file to save the downloaded secret
+	newFile, err := os.Create(filepath.Join(path, fileInfo.FileName))
+	if err != nil {
+		return fmt.Errorf("%s: %w ", op, err)
+	}
+	defer newFile.Close()
+
+	// Stream the file chunks from the goph-keeper service to the local file
+	for {
+		req, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("%s: %w ", op, err)
+		}
+		chunk := req.GetChunkData()
+
+		_, err = newFile.Write(chunk)
+		if err != nil {
+			return fmt.Errorf("%s: %w ", op, err)
+		}
+	}
+
+	return nil
 }
 
 func (k *KeeperClient) ListItems(

@@ -68,6 +68,7 @@ func TestDecodeVaultWithValidBinaryData(t *testing.T) {
 	}
 
 	data, err := Serialise(bin)
+	require.NoError(t, err)
 
 	vault, err := Deserialise(data)
 	if err != nil {

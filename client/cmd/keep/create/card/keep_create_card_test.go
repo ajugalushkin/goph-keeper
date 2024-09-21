@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
-	mockSecret "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 	"github.com/ajugalushkin/goph-keeper/mocks"
@@ -357,7 +356,7 @@ func TestCreateCardCmdRunE_Error3(t *testing.T) {
 	}
 
 	// Encrypt the card details.
-	mockCipher := mockSecret.NewCipher(t)
+	mockCipher := mocks.NewCipher(t)
 	mockCipher.On("Encrypt", card).Return(nil, errors.New("Internal server error"))
 	initCipher(mockCipher)
 

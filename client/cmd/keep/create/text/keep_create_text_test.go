@@ -13,7 +13,6 @@ import (
 
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
-	mockSecret "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
 )
 
@@ -129,7 +128,7 @@ func TestKeepCreateTextCmdRunE_Error3(t *testing.T) {
 	// Mock logger
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
-	mockCipher := mockSecret.NewCipher(t)
+	mockCipher := mocks.NewCipher(t)
 	initCipher(mockCipher)
 
 	mockCipher.On("Encrypt", mock.Anything, mock.Anything).Return(nil, errors.New("test error"))
