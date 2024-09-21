@@ -20,6 +20,9 @@ import (
 )
 
 func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
+	initClient(nil)
+	token_cache.InitTokenStorage("")
+
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
@@ -29,7 +32,7 @@ func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
 	data := "test-data"
 
 	// Mock dependencies
-	token_cache.InitTokenStorage("test/token.txt")
+	token_cache.InitTokenStorage("test_token.txt")
 	err := token_cache.GetToken().Save("test-token")
 	assert.NoError(t, err)
 
@@ -49,6 +52,7 @@ func TestKeeperUpdateTextCmdRunE_EmptySecretName(t *testing.T) {
 
 // Handles error when the secret name flag is missing or empty
 func TestKeeperUpdateTextCmdRunE_MissingName(t *testing.T) {
+	initClient(nil)
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
@@ -67,6 +71,7 @@ func TestKeeperUpdateTextCmdRunE_MissingName(t *testing.T) {
 
 func TestKeeperUpdateTextCmdRunE_NonExistentSecretName(t *testing.T) {
 	initClient(nil)
+	token_cache.InitTokenStorage("")
 
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
@@ -117,6 +122,7 @@ func TestKeeperUpdateTextCmdRunE_NonExistentSecretName(t *testing.T) {
 func TestKeeperUpdateTextCmdRunE_Success(t *testing.T) {
 	initClient(nil)
 	initCipher(nil)
+	token_cache.InitTokenStorage("")
 
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
