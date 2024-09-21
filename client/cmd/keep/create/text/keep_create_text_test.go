@@ -18,6 +18,7 @@ import (
 
 // Successfully reads secret name and data from command flags
 func TestKeepCreateTextCmdRunE_Success(t *testing.T) {
+	initClient(nil)
 	// Setup
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")
@@ -48,6 +49,7 @@ func TestKeepCreateTextCmdRunE_Success(t *testing.T) {
 
 // Command flags for name or data are missing or invalid
 func TestKeepCreateTextCmdRunE_MissingFlags(t *testing.T) {
+	initClient(nil)
 	// Setup
 	cmd := &cobra.Command{}
 
@@ -71,6 +73,7 @@ func TestKeepCreateTextCmdRunE_MissingFlags(t *testing.T) {
 }
 
 func TestKeepCreateTextCmdRunE_Error(t *testing.T) {
+	initClient(nil)
 	// Setup
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")
@@ -98,6 +101,7 @@ func TestKeepCreateTextCmdRunE_Error(t *testing.T) {
 }
 
 func TestKeepCreateTextCmdRunE_Error2(t *testing.T) {
+	initClient(nil)
 	// Setup
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")
@@ -120,6 +124,8 @@ func TestKeepCreateTextCmdRunE_Error2(t *testing.T) {
 }
 
 func TestKeepCreateTextCmdRunE_Error3(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
 	// Setup
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")

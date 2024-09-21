@@ -87,6 +87,8 @@ func TestKeepUpdateCredsRunE_EmptyName(t *testing.T) {
 
 // Successfully reads command-line flags for name, login, and password
 func TestKeepUpdateCredsRunE_SuccessfulFlagRead(t *testing.T) {
+	initClient(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -118,6 +120,7 @@ func TestKeepUpdateCredsRunE_SuccessfulFlagRead(t *testing.T) {
 
 // Command-line flag for name is missing or empty
 func TestKeepUpdateCredsRunE_MissingNameFlag(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -132,6 +135,7 @@ func TestKeepUpdateCredsRunE_MissingNameFlag(t *testing.T) {
 
 // Creates Credentials object with provided login and password
 func TestKeepUpdateCredsRunE_CreatesCredentials(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -147,6 +151,7 @@ func TestKeepUpdateCredsRunE_CreatesCredentials(t *testing.T) {
 
 // Command-line flag for login is missing or empty
 func TestKeepUpdateCredsRunE_LoginFlagMissingOrEmpty(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -162,6 +167,7 @@ func TestKeepUpdateCredsRunE_LoginFlagMissingOrEmpty(t *testing.T) {
 
 // Command-line flag for password is missing or empty
 func TestKeepUpdateCredsRunE_PasswordFlagMissingOrEmpty(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}

@@ -165,6 +165,7 @@ func TestCreateCardCmdRunE_ErrorWhenAllFlagsAreProvided(t *testing.T) {
 }
 
 func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -218,6 +219,7 @@ func TestCreateCardCmdRunE_SuccessWhenAllFlagsAreProvided(t *testing.T) {
 }
 
 func TestCreateCardCmdRunE_Error(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -271,6 +273,7 @@ func TestCreateCardCmdRunE_Error(t *testing.T) {
 }
 
 func TestCreateCardCmdRunE_Error2(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -321,6 +324,7 @@ func TestCreateCardCmdRunE_Error2(t *testing.T) {
 }
 
 func TestCreateCardCmdRunE_Error3(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}

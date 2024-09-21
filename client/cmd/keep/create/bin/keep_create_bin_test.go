@@ -37,6 +37,7 @@ func TestKeepCreateBinCmdRunE_EmptySecretName(t *testing.T) {
 	require.EqualError(t, err, "name is required")
 }
 func TestKeepCreateBinCmdRunE_EmptyFilePath(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
@@ -67,6 +68,7 @@ func TestKeepCreateBinCmdRunE_EmptyFilePath(t *testing.T) {
 	clientMock.AssertExpectations(t)
 }
 func TestKeepCreateBinCmdRunE_NonExistentFilePath(t *testing.T) {
+	initClient(nil)
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
@@ -100,6 +102,7 @@ func TestKeepCreateBinCmdRunE_NonExistentFilePath(t *testing.T) {
 	}
 }
 func TestKeepCreateBinCmdRunE_InvalidToken(t *testing.T) {
+	initClient(nil)
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})

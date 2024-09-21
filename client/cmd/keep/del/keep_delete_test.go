@@ -35,6 +35,7 @@ func TestKeepDeleteCmdRunE_MissingNameFlag(t *testing.T) {
 }
 
 func TestKeepDeleteCmdRunE_NonExistentSecret(t *testing.T) {
+	initClient(nil)
 	// Arrange
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "non-existent-secret", "secret name")
@@ -63,6 +64,8 @@ func TestKeepDeleteCmdRunE_NonExistentSecret(t *testing.T) {
 	assert.Contains(t, err.Error(), "secret not found")
 }
 func TestKeepDeleteCmdRunE_EmptyTokenCache(t *testing.T) {
+	initClient(nil)
+
 	// Arrange
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")
@@ -104,6 +107,8 @@ func TestKeepDeleteCmdRunE_EmptyNameFlag(t *testing.T) {
 }
 
 func TestKeepDeleteCmdRunE_Success(t *testing.T) {
+	initClient(nil)
+
 	// Arrange
 	cmd := &cobra.Command{}
 	cmd.Flags().String("name", "test-secret", "secret name")

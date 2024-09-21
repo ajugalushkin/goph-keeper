@@ -20,6 +20,7 @@ import (
 
 // Command creation with correct use and short description
 func TestNewCommandCreation(t *testing.T) {
+	initClient(nil)
 	cmd := NewCommand()
 
 	if cmd.Use != "list" {
@@ -36,6 +37,7 @@ func TestNewCommandCreation(t *testing.T) {
 }
 
 func TestKeepListRunE_EmptyList(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
@@ -53,6 +55,7 @@ func TestKeepListRunE_EmptyList(t *testing.T) {
 }
 
 func TestKeepListRunE_Error(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
@@ -71,6 +74,7 @@ func TestKeepListRunE_Error(t *testing.T) {
 }
 
 func TestNewCommand_NoItemsFound(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
@@ -92,6 +96,7 @@ func TestNewCommand_NoItemsFound(t *testing.T) {
 
 // Successful execution of keepListRunE function
 func TestKeepListRunEErrorHandling(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 
@@ -116,6 +121,7 @@ func TestKeepListRunEErrorHandling(t *testing.T) {
 
 // Logging of errors during secret listing
 func TestKeepListRunErrorLogging(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})
 

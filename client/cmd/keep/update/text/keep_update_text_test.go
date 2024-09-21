@@ -78,6 +78,8 @@ func TestKeeperUpdateTextCmdRunE_MissingName(t *testing.T) {
 }
 
 func TestKeeperUpdateTextCmdRunE_NonExistentSecretName(t *testing.T) {
+	initClient(nil)
+
 	// Arrange
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 		&config.Config{Env: "dev"})

@@ -103,6 +103,7 @@ func TestEmptyPasswordFlag(t *testing.T) {
 }
 
 func TestCreateCredsSuccess(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	name := gofakeit.Name()
@@ -141,6 +142,7 @@ func TestCreateCredsSuccess(t *testing.T) {
 }
 
 func TestCreateCredsError(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	name := gofakeit.Name()
@@ -178,6 +180,7 @@ func TestCreateCredsError(t *testing.T) {
 }
 
 func TestCreateCredsError2(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	name := gofakeit.Name()

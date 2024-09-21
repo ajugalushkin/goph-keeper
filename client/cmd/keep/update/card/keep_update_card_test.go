@@ -207,6 +207,7 @@ func TestKeeperUpdateCardCmdRunE_EmptyCardNumber(t *testing.T) {
 	mockClient.AssertNotCalled(t, "UpdateItem", mock.Anything, mock.Anything)
 }
 func TestKeeperUpdateCardCmdRunE_EmptyExpiryDate(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	// Set up the mock Keeper client
@@ -232,6 +233,7 @@ func TestKeeperUpdateCardCmdRunE_EmptyExpiryDate(t *testing.T) {
 	mockClient.AssertNotCalled(t, "UpdateItem", mock.Anything, mock.Anything)
 }
 func TestKeeperUpdateCardCmdRunE_EmptySecurityCode(t *testing.T) {
+	initClient(nil)
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	// Set up the mock Keeper client
@@ -258,6 +260,9 @@ func TestKeeperUpdateCardCmdRunE_EmptySecurityCode(t *testing.T) {
 }
 
 func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	newMockCipher := mocks.NewCipher(t)
@@ -309,6 +314,9 @@ func TestKeeperUpdateCardCmdRunE_Success(t *testing.T) {
 }
 
 func TestKeeperUpdateCardCmdRunE_Error(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	newMockCipher := mocks.NewCipher(t)
@@ -357,6 +365,9 @@ func TestKeeperUpdateCardCmdRunE_Error(t *testing.T) {
 }
 
 func TestKeeperUpdateCardCmdRunE_Error2(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+	
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	newMockCipher := mocks.NewCipher(t)
