@@ -150,3 +150,7 @@ func init() {
 func initClient(newClient app.KeeperClient) {
 	client = newClient
 }
+
+func initCipher(newCipher secret.Cipher) {
+	cipher = newCipher
+}

@@ -21,6 +21,9 @@ import (
 )
 
 func TestKeepUpdateCredsRunE_SecretNameNotProvided(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+	
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -37,6 +40,9 @@ func TestKeepUpdateCredsRunE_SecretNameNotProvided(t *testing.T) {
 }
 
 func TestKeepUpdateCredsRunE_NoLogin(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -52,6 +58,9 @@ func TestKeepUpdateCredsRunE_NoLogin(t *testing.T) {
 	assert.EqualError(t, err, "login is required")
 }
 func TestKeepUpdateCredsRunE_PasswordNotProvided(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -70,6 +79,9 @@ func TestKeepUpdateCredsRunE_PasswordNotProvided(t *testing.T) {
 }
 
 func TestKeepUpdateCredsRunE_EmptyName(t *testing.T) {
+	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -90,6 +102,7 @@ func TestKeepUpdateCredsRunE_EmptyName(t *testing.T) {
 // Successfully reads command-line flags for name, login, and password
 func TestKeepUpdateCredsRunE_SuccessfulFlagRead(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -123,6 +136,8 @@ func TestKeepUpdateCredsRunE_SuccessfulFlagRead(t *testing.T) {
 // Command-line flag for name is missing or empty
 func TestKeepUpdateCredsRunE_MissingNameFlag(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -138,6 +153,8 @@ func TestKeepUpdateCredsRunE_MissingNameFlag(t *testing.T) {
 // Creates Credentials object with provided login and password
 func TestKeepUpdateCredsRunE_CreatesCredentials(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -152,6 +169,8 @@ func TestKeepUpdateCredsRunE_CreatesCredentials(t *testing.T) {
 // Command-line flag for login is missing or empty
 func TestKeepUpdateCredsRunE_LoginFlagMissingOrEmpty(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -168,6 +187,8 @@ func TestKeepUpdateCredsRunE_LoginFlagMissingOrEmpty(t *testing.T) {
 // Command-line flag for password is missing or empty
 func TestKeepUpdateCredsRunE_PasswordFlagMissingOrEmpty(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -183,6 +204,7 @@ func TestKeepUpdateCredsRunE_PasswordFlagMissingOrEmpty(t *testing.T) {
 
 func TestKeepUpdateCredsRunE_Error(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -207,6 +229,7 @@ func TestKeepUpdateCredsRunE_Error(t *testing.T) {
 
 func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -214,8 +237,6 @@ func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
 	cmd.Flags().String("name", "testName", "name of the secret")
 	cmd.Flags().String("login", "testLogin", "login for the secret")
 	cmd.Flags().String("password", "testPassword", "password for the secret")
-
-	mockClient := mocks.NewKeeperClient(t)
 
 	credentials := vaulttypes.Credentials{
 		Login:    "testLogin",
@@ -225,6 +246,7 @@ func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
 	content, err := secret.NewCryptographer().Encrypt(credentials)
 	assert.NoError(t, err)
 
+	mockClient := mocks.NewKeeperClient(t)
 	mockClient.On("UpdateItem", context.Background(), &v1.UpdateItemRequestV1{
 		Name:    "testName",
 		Content: content,
@@ -237,6 +259,7 @@ func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
 
 func TestKeepUpdateCredsRunE_Error3(t *testing.T) {
 	initClient(nil)
+	initCipher(nil)
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
