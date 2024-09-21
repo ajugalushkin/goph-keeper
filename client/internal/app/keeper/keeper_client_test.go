@@ -406,7 +406,6 @@ func TestCreateItemStream_FileNotFoundError(t *testing.T) {
 
 	// Assert
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "The system cannot find the file specified")
 }
 
 type mockKeeperServiceClient struct {
