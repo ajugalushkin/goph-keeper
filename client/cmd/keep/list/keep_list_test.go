@@ -3,7 +3,9 @@ package list
 import (
 	"context"
 	"errors"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/mocks"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"strings"
@@ -149,4 +151,33 @@ func TestKeepListRunErrorLogging(t *testing.T) {
 	if err == nil || err.Error() != mockError.Error() {
 		t.Errorf("expected error to be returned, got: %v", err)
 	}
+}
+
+func TestKeepListRunError(t *testing.T) {
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	// Create a fake cobra.Command
+	fakeCmd := &cobra.Command{}
+
+	// Call the function under test
+	err := keepListRunE(fakeCmd, []string{})
+	require.Error(t, err)
+}
+
+func TestKeepListRunError2(t *testing.T) {
+	initClient(nil)
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		&config.Config{Env: "dev"})
+
+	// Create a fake cobra.Command
+	fakeCmd := &cobra.Command{}
+	token_cache.InitTokenStorage("test_token.txt")
+	err := token_cache.GetToken().Save("test_token")
+	require.NoError(t, err)
+
+	// Call the function under test
+	err = keepListRunE(fakeCmd, []string{})
+	require.Error(t, err)
 }
