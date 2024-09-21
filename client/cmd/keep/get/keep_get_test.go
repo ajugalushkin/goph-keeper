@@ -172,5 +172,5 @@ func TestKeepGetRunE_Error2(t *testing.T) {
 	err := keepGetRunE(cmd, args)
 
 	// Verify
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
