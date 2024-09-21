@@ -403,9 +403,10 @@ func TestKeeperUpdateCardCmdRunE_Error2(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Error4(t *testing.T) {
 	initClient(nil)
 	initCipher(nil)
+	token_cache.InitTokenStorage("")
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
-	
+
 	token_cache.InitTokenStorage("test_token.txt")
 	err := token_cache.GetToken().Save("test_token")
 	require.NoError(t, err)
@@ -436,6 +437,7 @@ func TestKeeperUpdateCardCmdRunE_Error4(t *testing.T) {
 func TestKeeperUpdateCardCmdRunE_Error5(t *testing.T) {
 	initClient(nil)
 	initCipher(nil)
+	token_cache.InitTokenStorage("")
 
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
