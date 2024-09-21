@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )

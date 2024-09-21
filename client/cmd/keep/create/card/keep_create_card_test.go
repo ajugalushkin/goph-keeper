@@ -3,12 +3,12 @@ package card
 import (
 	"context"
 	"errors"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/client/secret"
 	mockSecret "github.com/ajugalushkin/goph-keeper/client/secret/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -2,7 +2,7 @@ package bin
 
 import (
 	"fmt"
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
 	"os"

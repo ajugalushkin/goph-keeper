@@ -3,6 +3,7 @@ package list
 import (
 	"context"
 	"errors"
+	"github.com/ajugalushkin/goph-keeper/mocks"
 	"log/slog"
 	"os"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 	v1 "github.com/ajugalushkin/goph-keeper/gen/keeper/v1"

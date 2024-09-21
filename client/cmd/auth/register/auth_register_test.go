@@ -1,6 +1,7 @@
 package register
 
 import (
+	"github.com/ajugalushkin/goph-keeper/mocks"
 	"log/slog"
 	"os"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ajugalushkin/goph-keeper/client/internal/app/mocks"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 	"github.com/ajugalushkin/goph-keeper/client/internal/logger"
 )
