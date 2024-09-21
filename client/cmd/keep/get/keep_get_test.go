@@ -21,6 +21,8 @@ import (
 
 // TestKeepGetRunE_SecretNotFound verifies behavior when the secret name does not exist in the vault
 func TestKeepGetRunE_SecretNotFound(t *testing.T) {
+	client = nil
+	cipher = nil
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -48,6 +50,8 @@ func TestKeepGetRunE_SecretNotFound(t *testing.T) {
 
 // Handles errors when reading the secret name from command flags
 func TestKeepGetRunE_ErrorReadingSecretName(t *testing.T) {
+	client = nil
+	cipher = nil
 	// Setup
 	cmd := &cobra.Command{}
 	args := []string{}
@@ -63,6 +67,8 @@ func TestKeepGetRunE_ErrorReadingSecretName(t *testing.T) {
 	assert.Equal(t, "secret name is required", err.Error())
 }
 func TestKeepGetRunE_Error(t *testing.T) {
+	client = nil
+	cipher = nil
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -94,6 +100,8 @@ func TestKeepGetRunE_Error(t *testing.T) {
 }
 
 func TestKeepGetRunE_Success(t *testing.T) {
+	client = nil
+	cipher = nil
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -129,6 +137,9 @@ func TestKeepGetRunE_Success(t *testing.T) {
 }
 
 func TestKeepGetRunE_Success2(t *testing.T) {
+	client = nil
+	cipher = nil
+
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -161,6 +172,9 @@ func TestKeepGetRunE_Success2(t *testing.T) {
 }
 
 func TestKeepGetRunE_Error2(t *testing.T) {
+	client = nil
+	cipher = nil
+
 	// Setup
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
@@ -172,5 +186,5 @@ func TestKeepGetRunE_Error2(t *testing.T) {
 	err := keepGetRunE(cmd, args)
 
 	// Verify
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
