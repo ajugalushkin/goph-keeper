@@ -254,7 +254,7 @@ func GetKeeperConnection(
 	const op = "app.GetKeeperConnection"
 	log.With("op", op)
 
-	interceptor, err := interceptors.NewAuthInterceptor(token, authMethods())
+	interceptor, err := interceptors.NewAuthInterceptor(token, authEmptyMethods())
 	if err != nil {
 		log.Error("Unable to create interceptor: ", slog.String("error", err.Error()))
 	}
@@ -288,4 +288,7 @@ func authMethods() map[string]bool {
 		keeperv1.KeeperServiceV1_DeleteItemV1_FullMethodName:       true,
 		keeperv1.KeeperServiceV1_UpdateItemV1_FullMethodName:       true,
 	}
+}
+func authEmptyMethods() map[string]bool {
+	return map[string]bool{}
 }

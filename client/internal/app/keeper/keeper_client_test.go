@@ -398,6 +398,21 @@ func TestGetKeeperConnectionWithNilToken(t *testing.T) {
 	}
 }
 
+func TestGetKeeperConnectionError(t *testing.T) {
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	address := "invalid_connection"
+	token := ""
+
+	conn := GetKeeperConnection(log, address, token)
+
+	if conn.Target() != "invalid_connection" {
+		t.Fatalf("Expected nil grpc.ClientConn, got a valid connection")
+	}
+}
+
 // Returns a map with correct method names as keys
 func TestAuthMethodsReturnsCorrectKeys(t *testing.T) {
 	expectedKeys := []string{

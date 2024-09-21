@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"google.golang.org/grpc"
@@ -17,6 +18,10 @@ func NewAuthInterceptor(
 	token string,
 	authMethods map[string]bool,
 ) (*AuthInterceptor, error) {
+	if len(authMethods) == 0 {
+		return nil, errors.New("authMethods cannot be nil")
+	}
+
 	interceptor := &AuthInterceptor{
 		authMethods: authMethods,
 	}
