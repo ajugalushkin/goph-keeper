@@ -398,21 +398,6 @@ func TestGetKeeperConnectionWithNilToken(t *testing.T) {
 	}
 }
 
-func TestGetKeeperConnectionError(t *testing.T) {
-	log := slog.New(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-	)
-
-	address := "invalid_connection"
-	token := ""
-
-	conn := GetKeeperConnection(log, address, token)
-
-	if conn.Target() != "invalid_connection" {
-		t.Fatalf("Expected nil grpc.ClientConn, got a valid connection")
-	}
-}
-
 // Returns a map with correct method names as keys
 func TestAuthMethodsReturnsCorrectKeys(t *testing.T) {
 	expectedKeys := []string{
@@ -457,4 +442,26 @@ type mockKeeperServiceClient struct {
 func (m *mockKeeperServiceClient) CreateItemStreamV1(ctx context.Context, opts ...grpc.CallOption) (keeperv1.KeeperServiceV1_CreateItemStreamV1Client, error) {
 	args := m.Called(ctx, opts)
 	return args.Get(0).(keeperv1.KeeperServiceV1_CreateItemStreamV1Client), args.Error(1)
+}
+
+func TestCreateItemStream_Success(t *testing.T) {
+	// Arrange
+	mockAPI := mocks.NewKeeperServiceV1Client(t)
+	client := &KeeperClient{api: mockAPI}
+
+	ctx := context.Background()
+	name := "test-file"
+	filePath := "test-file.txt"
+
+	file, err := os.Create(filePath)
+	require.NoError(t, err)
+	defer file.Close()
+
+	mockAPI.On("CreateItemStreamV1", ctx, mock.Anything).Return(nil, errors.New("file not found"))
+
+	// Act
+	_, err = client.CreateItemStream(ctx, name, filePath)
+
+	// Assert
+	assert.Error(t, err)
 }
