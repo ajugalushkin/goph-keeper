@@ -31,3 +31,4 @@ test_*.txt
 .idea
 dist/
 testdata/
+client/cmd/keep/del/empty_token.txt

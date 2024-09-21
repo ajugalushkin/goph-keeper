@@ -133,3 +133,41 @@ func TestKeepDeleteCmdRunE_Success(t *testing.T) {
 	// Verify
 	assert.NoError(t, err)
 }
+
+func TestKeepDeleteCmdRunE_Error(t *testing.T) {
+	initClient(nil)
+
+	// Arrange
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	args := []string{}
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	// Execute
+	err := keepDeleteCmdRunE(cmd, args)
+
+	// Verify
+	assert.Error(t, err)
+}
+
+func TestKeepDeleteCmdRunE_Error2(t *testing.T) {
+	initClient(nil)
+
+	// Arrange
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "test-secret", "secret name")
+	args := []string{}
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	token_cache.InitTokenStorage("test_token.txt")
+	err := token_cache.GetToken().Save("mock-token")
+	require.NoError(t, err)
+
+	// Execute
+	err = keepDeleteCmdRunE(cmd, args)
+
+	// Verify
+	assert.Error(t, err)
+}
