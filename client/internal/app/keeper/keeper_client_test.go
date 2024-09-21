@@ -4,9 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/internal/app/auth"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
+	"github.com/brianvoe/gofakeit"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -388,4 +393,54 @@ func TestAuthMethodsReturnsCorrectKeys(t *testing.T) {
 	for _, key := range expectedKeys {
 		assert.True(t, authMap[key], "Expected key %s to be present in the map", key)
 	}
+}
+
+func TestCreateItemStream_Success(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "testdata")
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Remove(tmpDir)
+
+	cfg := config.Client{
+		Address: ":8080",
+		Timeout: time.Hour,
+		Retries: 3,
+	}
+	log := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+
+	dirPath := "testdata"
+
+	temp, err := os.CreateTemp(dirPath, "test_bin.txt")
+	require.NoError(t, err)
+
+	stat, err := temp.Stat()
+	require.NoError(t, err)
+
+	fileName := stat.Name()
+	filePath := filepath.Join(dirPath, fileName)
+
+	_, err = temp.WriteString(gofakeit.Letter())
+	require.NoError(t, err)
+
+	// Register a new user for authentication
+	authClient := auth.NewAuthClient(auth.GetAuthConnection(log, cfg))
+
+	login := gofakeit.Email()
+	password := gofakeit.Password(true, true, true, true, true, 8)
+
+	err = authClient.Register(context.Background(), login, password)
+	require.NoError(t, err)
+
+	// Log in the user
+	newToken, err := authClient.Login(context.Background(), login, password)
+	require.NoError(t, err)
+
+	keepClient := NewKeeperClient(GetKeeperConnection(log, cfg.Address, newToken))
+
+	resp, err := keepClient.CreateItemStream(context.Background(), fileName, filePath)
+	require.NoError(t, err)
+	assert.Equal(t, fileName, resp.GetName())
 }
