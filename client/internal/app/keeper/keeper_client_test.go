@@ -9,7 +9,6 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -396,12 +395,6 @@ func TestAuthMethodsReturnsCorrectKeys(t *testing.T) {
 }
 
 func TestCreateItemStream_Success(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "testdata")
-	if err != nil {
-		t.Error(err)
-	}
-	defer os.Remove(tmpDir)
-
 	cfg := config.Client{
 		Address: ":8080",
 		Timeout: time.Hour,
@@ -411,16 +404,14 @@ func TestCreateItemStream_Success(t *testing.T) {
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 	)
 
-	dirPath := "testdata"
-
-	temp, err := os.CreateTemp(dirPath, "test_bin.txt")
+	temp, err := os.Create("test_bin.txt")
+	defer os.Remove("test_bin.txt")
 	require.NoError(t, err)
 
 	stat, err := temp.Stat()
 	require.NoError(t, err)
 
 	fileName := stat.Name()
-	filePath := filepath.Join(dirPath, fileName)
 
 	_, err = temp.WriteString(gofakeit.Letter())
 	require.NoError(t, err)
@@ -440,7 +431,7 @@ func TestCreateItemStream_Success(t *testing.T) {
 
 	keepClient := NewKeeperClient(GetKeeperConnection(log, cfg.Address, newToken))
 
-	resp, err := keepClient.CreateItemStream(context.Background(), fileName, filePath)
+	resp, err := keepClient.CreateItemStream(context.Background(), fileName, fileName)
 	require.NoError(t, err)
 	assert.Equal(t, fileName, resp.GetName())
 }
