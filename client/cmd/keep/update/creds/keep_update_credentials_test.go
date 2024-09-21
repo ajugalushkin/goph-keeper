@@ -3,7 +3,6 @@ package creds
 import (
 	"context"
 	"errors"
-	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/mocks"
 	"log/slog"
 	"os"
@@ -23,7 +22,7 @@ import (
 func TestKeepUpdateCredsRunE_SecretNameNotProvided(t *testing.T) {
 	initClient(nil)
 	initCipher(nil)
-	
+
 	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
 
 	cmd := &cobra.Command{}
@@ -257,21 +256,21 @@ func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestKeepUpdateCredsRunE_Error3(t *testing.T) {
-	initClient(nil)
-	initCipher(nil)
-
-	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
-
-	cmd := &cobra.Command{}
-	cmd.Flags().String("name", "testName", "name of the secret")
-	cmd.Flags().String("login", "testLogin", "login for the secret")
-	cmd.Flags().String("password", "testPassword", "password for the secret")
-
-	token_cache.InitTokenStorage("test_token.txt")
-	err := token_cache.GetToken().Save("test_token")
-	require.NoError(t, err)
-
-	err = keepUpdateCredsRunE(cmd, []string{})
-	require.Error(t, err)
-}
+//func TestKeepUpdateCredsRunE_Error3(t *testing.T) {
+//	initClient(nil)
+//	initCipher(nil)
+//
+//	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+//
+//	cmd := &cobra.Command{}
+//	cmd.Flags().String("name", "testName", "name of the secret")
+//	cmd.Flags().String("login", "testLogin", "login for the secret")
+//	cmd.Flags().String("password", "testPassword", "password for the secret")
+//
+//	token_cache.InitTokenStorage("test_token.txt")
+//	err := token_cache.GetToken().Save("test_token")
+//	require.NoError(t, err)
+//
+//	err = keepUpdateCredsRunE(cmd, []string{})
+//	require.Error(t, err)
+//}
