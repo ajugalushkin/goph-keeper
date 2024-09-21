@@ -144,9 +144,7 @@ func TestKeepUpdateCredsRunE_CreatesCredentials(t *testing.T) {
 	cmd.Flags().String("password", "testPassword", "password for the secret")
 
 	err := keepUpdateCredsRunE(cmd, []string{})
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
+	require.Error(t, err)
 }
 
 // Command-line flag for login is missing or empty
