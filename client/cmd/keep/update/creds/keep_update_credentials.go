@@ -25,6 +25,7 @@ var keepUpdateCreds = &cobra.Command{
 }
 
 var client app.KeeperClient
+var cipher secret.Cipher
 
 // NewCommand creates a new Cobra command for updating creds secret in the Goph-Keeper vault.
 // The command accepts three flags: --name, --login, and --password.
@@ -88,8 +89,12 @@ func keepUpdateCredsRunE(cmd *cobra.Command, args []string) error {
 		Password: password,
 	}
 
+	if cipher == nil {
+		cipher = secret.NewCryptographer()
+	}
+
 	// Encrypt the creds using the encryptSecret function.
-	content, err := secret.NewCryptographer().Encrypt(credentials)
+	content, err := cipher.Encrypt(credentials)
 	if err != nil {
 		log.Error("Failed to secret secret: ",
 			slog.String("error", err.Error()))

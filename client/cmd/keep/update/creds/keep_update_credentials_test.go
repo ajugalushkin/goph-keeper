@@ -2,6 +2,8 @@ package creds
 
 import (
 	"context"
+	"errors"
+	"github.com/ajugalushkin/goph-keeper/client/internal/token_cache"
 	"github.com/ajugalushkin/goph-keeper/mocks"
 	"log/slog"
 	"os"
@@ -177,4 +179,76 @@ func TestKeepUpdateCredsRunE_PasswordFlagMissingOrEmpty(t *testing.T) {
 	if err == nil || err.Error() != "password is required" {
 		t.Fatalf("Expected error 'password is required', got %v", err)
 	}
+}
+
+func TestKeepUpdateCredsRunE_Error(t *testing.T) {
+	initClient(nil)
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "testName", "name of the secret")
+	cmd.Flags().String("login", "testLogin", "login for the secret")
+	cmd.Flags().String("password", "testPassword", "password for the secret")
+
+	credentials := vaulttypes.Credentials{
+		Login:    "testLogin",
+		Password: "testPassword",
+	}
+
+	mockCipher := mocks.NewCipher(t)
+	cipher = mockCipher
+
+	mockCipher.On("Encrypt", credentials).Return(nil, errors.New("test error"))
+
+	err := keepUpdateCredsRunE(cmd, []string{})
+	require.Error(t, err)
+}
+
+func TestKeepUpdateCredsRunE_Error2(t *testing.T) {
+	initClient(nil)
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "testName", "name of the secret")
+	cmd.Flags().String("login", "testLogin", "login for the secret")
+	cmd.Flags().String("password", "testPassword", "password for the secret")
+
+	mockClient := mocks.NewKeeperClient(t)
+
+	credentials := vaulttypes.Credentials{
+		Login:    "testLogin",
+		Password: "testPassword",
+	}
+
+	content, err := secret.NewCryptographer().Encrypt(credentials)
+	assert.NoError(t, err)
+
+	mockClient.On("UpdateItem", context.Background(), &v1.UpdateItemRequestV1{
+		Name:    "testName",
+		Content: content,
+	}).Return(nil, errors.New("test error"))
+	initClient(mockClient)
+
+	err = keepUpdateCredsRunE(cmd, []string{})
+	require.Error(t, err)
+}
+
+func TestKeepUpdateCredsRunE_Error3(t *testing.T) {
+	initClient(nil)
+
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "testName", "name of the secret")
+	cmd.Flags().String("login", "testLogin", "login for the secret")
+	cmd.Flags().String("password", "testPassword", "password for the secret")
+
+	token_cache.InitTokenStorage("test_token.txt")
+	err := token_cache.GetToken().Save("test_token")
+	require.NoError(t, err)
+
+	err = keepUpdateCredsRunE(cmd, []string{})
+	require.Error(t, err)
 }
