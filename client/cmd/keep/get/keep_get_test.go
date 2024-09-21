@@ -2,7 +2,10 @@ package get
 
 import (
 	"fmt"
+	"github.com/ajugalushkin/goph-keeper/client/secret"
+	"github.com/ajugalushkin/goph-keeper/client/vaulttypes"
 	"github.com/ajugalushkin/goph-keeper/mocks"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"os"
 	"testing"
@@ -88,4 +91,86 @@ func TestKeepGetRunE_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "decryption error")
 	mockCipher.AssertExpectations(t)
+}
+
+func TestKeepGetRunE_Success(t *testing.T) {
+	// Setup
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "non-existent-secret", "secret name")
+	args := []string{}
+
+	mockClient := mocks.NewKeeperClient(t)
+	client = mockClient
+
+	mockClient.On(
+		"GetItem",
+		mock.Anything,
+		&v1.GetItemRequestV1{Name: "non-existent-secret"},
+	).Return(nil, nil)
+
+	mockCipher := mocks.NewCipher(t)
+	cipher = mockCipher
+
+	bin := vaulttypes.Bin{
+		FileName: "secret name",
+		Size:     4,
+	}
+
+	mockCipher.On("Decrypt", mock.Anything, mock.Anything).Return(vaulttypes.Vault(bin), nil)
+
+	// Execute
+	err := keepGetRunE(cmd, args)
+
+	// Verify
+	assert.NoError(t, err)
+	mockCipher.AssertExpectations(t)
+}
+
+func TestKeepGetRunE_Success2(t *testing.T) {
+	// Setup
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "non-existent-secret", "secret name")
+	args := []string{}
+
+	mockClient := mocks.NewKeeperClient(t)
+	client = mockClient
+
+	bin := vaulttypes.Bin{
+		FileName: "secret name",
+		Size:     4,
+	}
+
+	encrypt, err := secret.NewCryptographer().Encrypt(bin)
+	require.NoError(t, err)
+
+	mockClient.On(
+		"GetItem",
+		mock.Anything,
+		&v1.GetItemRequestV1{Name: "non-existent-secret"},
+	).Return(&v1.GetItemResponseV1{Name: "secret-name", Content: encrypt}, nil)
+
+	// Execute
+	err = keepGetRunE(cmd, args)
+
+	// Verify
+	assert.NoError(t, err)
+}
+
+func TestKeepGetRunE_Error2(t *testing.T) {
+	// Setup
+	logger.InitLogger(slog.New(slog.NewJSONHandler(os.Stdout, nil)), &config.Config{Env: "dev"})
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("name", "non-existent-secret", "secret name")
+	args := []string{}
+
+	// Execute
+	err := keepGetRunE(cmd, args)
+
+	// Verify
+	assert.Error(t, err)
 }
