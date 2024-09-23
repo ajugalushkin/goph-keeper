@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"log/slog"
+	"os"
 	"sync"
 	"time"
 
@@ -35,7 +37,8 @@ func GetConfig() *Config {
 			var config Config
 			if err := viper.Unmarshal(&config); err != nil {
 				slog.Error("Unable to unmarshal config file: ", slog.String("error", err.Error()))
-				panic(err)
+				fmt.Printf("use env CONFIG_CLIENT or flag --config for setting config.yaml path: %v", err)
+				os.Exit(1)
 			}
 
 			cfg = &config
