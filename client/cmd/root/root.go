@@ -2,6 +2,7 @@ package root
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/auth"
 	"github.com/ajugalushkin/goph-keeper/client/cmd/keep"
 	"github.com/ajugalushkin/goph-keeper/client/internal/config"
@@ -83,6 +84,8 @@ func initConfig() {
 		}
 		// Log a message indicating that the config file was not found.
 		slog.Debug("Config file not found in ", slog.String("file", cfgFile))
+		fmt.Printf("use env CONFIG_CLIENT or flag --config for setting config.yaml path")
+		os.Exit(1)
 	} else {
 		// Log a message indicating that the config file was successfully used.
 		slog.Debug("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
