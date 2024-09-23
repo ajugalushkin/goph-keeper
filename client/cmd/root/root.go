@@ -76,6 +76,11 @@ func initConfig() {
 		viper.AddConfigPath(".")
 	}
 
+	if viper.ConfigFileUsed() == "" {
+		fmt.Printf("use env CONFIG_CLIENT or flag --config for setting config.yaml path")
+		os.Exit(1)
+	}
+
 	// Attempt to read the configuration file.
 	if err := viper.ReadInConfig(); err != nil {
 		// If the error is not a ConfigFileNotFoundError, log it as an error.
@@ -84,8 +89,6 @@ func initConfig() {
 		}
 		// Log a message indicating that the config file was not found.
 		slog.Debug("Config file not found in ", slog.String("file", cfgFile))
-		fmt.Printf("use env CONFIG_CLIENT or flag --config for setting config.yaml path")
-		os.Exit(1)
 	} else {
 		// Log a message indicating that the config file was successfully used.
 		slog.Debug("Using config file: ", slog.String("file", viper.ConfigFileUsed()))
