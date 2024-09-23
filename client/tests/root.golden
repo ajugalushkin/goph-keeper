@@ -1,0 +1,16 @@
+GophKeeper cli client allows keep and return secrets in/from Keeper server.
+
+Usage:
+  gophkeeper_client [command]
+
+Available Commands:
+  auth        Manage user registration, authentication and authorization
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  keep        Manage user private data
+
+Flags:
+  -c, --config string   Client config filepath
+  -h, --help            help for gophkeeper_client
+
+Use "gophkeeper_client [command] --help" for more information about a command.

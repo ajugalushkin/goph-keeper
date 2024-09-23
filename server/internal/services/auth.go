@@ -16,9 +16,10 @@ type Auth struct {
 	log         *slog.Logger
 	usrSaver    UserSaver
 	usrProvider UserProvider
-	jwtManager  *JWTManager
+	jwtManager  TokenManager
 }
 
+//go:generate mockery --name UserSaver
 type UserSaver interface {
 	SaveUser(
 		ctx context.Context,
@@ -27,18 +28,35 @@ type UserSaver interface {
 	) (uid int64, err error)
 }
 
+//go:generate mockery --name UserProvider
 type UserProvider interface {
 	User(ctx context.Context, email string) (user models.User, err error)
 }
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInvalidCredentials = errors.New("invalid creds")
 	ErrUserExists         = errors.New("user already exists")
 	ErrUserNotFound       = errors.New("user not found")
 )
 
 // NewAuthService returns a new instance of the Auth service.
-func NewAuthService(log *slog.Logger, userSaver UserSaver, userProvider UserProvider, jwtManager *JWTManager) *Auth {
+// NewAuthService creates a new instance of the Auth service.
+// The Auth service provides methods for user authentication and registration.
+//
+// Parameters:
+// - log: A pointer to a slog.Logger instance for logging.
+// - userSaver: An implementation of the UserSaver interface for saving user data.
+// - userProvider: An implementation of the UserProvider interface for retrieving user data.
+// - jwtManager: An implementation of the TokenManager interface for managing JWT tokens.
+//
+// Returns:
+// - A pointer to a new instance of the Auth service.
+func NewAuthService(
+	log *slog.Logger,
+	userSaver UserSaver,
+	userProvider UserProvider,
+	jwtManager TokenManager,
+) *Auth {
 	return &Auth{
 		log:         log,
 		usrSaver:    userSaver,
@@ -47,6 +65,14 @@ func NewAuthService(log *slog.Logger, userSaver UserSaver, userProvider UserProv
 	}
 }
 
+// Login attempts to authenticate a user with the provided email and password.
+// It retrieves the user from the user provider using the provided email.
+// If the user is not found, it returns an error with the ErrInvalidCredentials code.
+// If the user is found, it compares the provided password with the stored password hash.
+// If the passwords do not match, it returns an error with the ErrInvalidCredentials code.
+// If the passwords match, it generates a new JWT token_cache for the user using the JWT manager.
+// If the token_cache generation fails, it returns an error.
+// If the user is successfully authenticated, it logs the successful login and returns the generated token_cache.
 func (a *Auth) Login(
 	ctx context.Context,
 	email string,
@@ -68,7 +94,7 @@ func (a *Auth) Login(
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
-		a.log.Info("invalid credentials", slog.String("error", err.Error()))
+		a.log.Info("invalid creds", slog.String("error", err.Error()))
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
@@ -79,11 +105,24 @@ func (a *Auth) Login(
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	log.Debug("Created token", slog.String("token", token))
+	log.Debug("Created token_cache", slog.String("token_cache", token))
 
 	return token, nil
 }
 
+// RegisterNewUser registers a new user with the provided email and password.
+// It generates a password hash using bcrypt and saves the user to the storage.
+//
+// Parameters:
+// - ctx: A context.Context for cancellation and deadline support.
+// - email: A string representing the user's email address.
+// - password: A string representing the user's password.
+//
+// Returns:
+//   - userID: An int64 representing the unique identifier of the registered user.
+//   - err: An error if the registration process fails. If the user already exists,
+//     it returns ErrUserExists. If any other error occurs during the registration process,
+//     it returns the corresponding error.
 func (a *Auth) RegisterNewUser(
 	ctx context.Context,
 	email string,

@@ -1,0 +1,44 @@
+name: Build Artifacts
+
+on: [ push, pull_request ]
+
+jobs:
+  upload:
+    name: Generate Build Artifacts
+
+    strategy:
+      matrix:
+        goosarch:
+          - 'linux/amd64'
+          - 'darwin/amd64'
+          - 'windows/amd64'
+          - 'linux/386'
+          - 'darwin/arm64'
+          - 'windows/386'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Get OS and arch info
+        run: |
+            GOOSARCH=${{matrix.goosarch}}
+            GOOS=${GOOSARCH%/*}
+            GOARCH=${GOOSARCH#*/}
+            BINARY_NAME=client-cli-$GOOS-$GOARCH
+            echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+            echo "GOOS=$GOOS" >> $GITHUB_ENV
+            echo "GOARCH=$GOARCH" >> $GITHUB_ENV
+      - name: Build
+        run: |
+           go build -C client -o "$BINARY_NAME" -v
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets-for-download-${{ env.BINARY_NAME }}
+          path: client/${{ env.BINARY_NAME }}

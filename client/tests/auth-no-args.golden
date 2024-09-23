@@ -1,0 +1,16 @@
+Manage user registration, authentication and authorization
+
+Usage:
+  gophkeeper_client auth [command]
+
+Available Commands:
+  login       Logins a user in the gophkeeper service
+  register    Registers a user in the gophkeeper service
+
+Flags:
+  -h, --help   help for auth
+
+Global Flags:
+  -c, --config string   Client config filepath
+
+Use "gophkeeper_client auth [command] --help" for more information about a command.
