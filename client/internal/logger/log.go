@@ -5,25 +5,27 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ajugalushkin/goph-keeper/client/config"
+	"github.com/ajugalushkin/goph-keeper/client/internal/config"
 )
 
-type LogInstance struct {
-	Log *slog.Logger
-}
-
 var (
-	log  *LogInstance
+	log  *slog.Logger
+	cfg  *config.Config
 	once sync.Once
 )
 
-func GetInstance() *LogInstance {
+func InitLogger(newLog *slog.Logger, newCfg *config.Config) {
+	log = newLog
+	cfg = newCfg
+}
+
+func GetLogger() *slog.Logger {
 	once.Do(
 		func() {
-			cfg := config.GetInstance().Config
-			log = &LogInstance{
-				Log: setupLogger(cfg.Env),
+			if cfg == nil {
+				cfg = config.GetConfig()
 			}
+			log = setupLogger(cfg.Env)
 		})
 
 	return log

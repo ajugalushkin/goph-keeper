@@ -1,0 +1,57 @@
+name: Workflow
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: praktikum
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: goph_keeper
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        # fixme: let's not depend on external unofficial image
+        image: lazybit/minio
+        ports:
+          - 9000:9000
+          - 9001:9001
+        env:
+          MINIO_ROOT_USER: praktikum
+          MINIO_ROOT_PASSWORD: pass1234567
+        options: --name=minio --health-cmd "curl http://localhost:9000/minio/health/live"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install goose migrate
+        run: |
+          curl -fsSL \
+          https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
+          sh
+
+      - name: Run migrations
+        run: goose -dir ./server/migrations postgres postgresql://praktikum:pass@localhost:5432/goph_keeper?sslmode=disable up
+
+      - name: Run coverage
+        run: make test
+#        run: go test $(go list ./... | grep -v ./tests/)  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
+#        run: go test ./...  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

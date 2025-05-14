@@ -5,31 +5,29 @@ on:
   push:
     branches:
       - main
-
-env:
-  token_secret: ${{ secrets.TOKEN_SECRET }}
-
+      -
 jobs:
-  statictest:
+  build:
     runs-on: ubuntu-latest
-    container: golang:1.22
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Download statictest binary
-        uses: robinraju/release-downloader@v1.8
+      - uses: actions/checkout@v4
         with:
-          repository: Yandex-Practicum/go-autotests
-          latest: true
-          fileName: statictest
-          out-file-path: .tools
+          fetch-depth: 2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
 
-      - name: Setup autotest binary
-        run: |
-          chmod -R +x $GITHUB_WORKSPACE/.tools/statictest
-          mv $GITHUB_WORKSPACE/.tools/statictest /usr/local/bin/statictest
+      - name: Verify dependencies
+        run: go mod verify
 
-      - name: Run statictest
-        run: |
-          go vet -vettool=$(which statictest) ./...
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run staticcheck
+        run: staticcheck ./...

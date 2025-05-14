@@ -1,4 +1,4 @@
-env: "dev"  #dev, prod
+env: "prod"
 client:
   address: ":8080"
   timeout: 1h

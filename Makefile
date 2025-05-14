@@ -4,7 +4,6 @@ POSTGRES_APP_PASS ?= pass
 POSTGRES_APP_DB ?= goph_keeper
 
 DATABASE_URL ?= postgresql://${POSTGRES_APP_USER}:${POSTGRES_APP_PASS}@localhost:5432/${POSTGRES_APP_DB}
-
 #######################################################################################################################
 
 DOCKER_COMPOSE_FILES ?= $(shell find docker -maxdepth 1 -type f -name "*.yaml" -exec printf -- '-f %s ' {} +; echo)
@@ -15,27 +14,6 @@ DOCKER_COMPOSE_FILES ?= $(shell find docker -maxdepth 1 -type f -name "*.yaml" -
 .PHONY: help
 help:			## Show this help
 	@fgrep -h "## " $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/## //'
-#
-#.PHONY: fmt
-#fmt:			## Format code
-#	find . -iname "*.go" | xargs gofmt -w
-
-#.PHONY: build
-#build:			## Build apps
-#	CGO_ENABLED=0 go build \
-#		-mod=mod \
-#		-tags='no_mysql no_sqlite3' \
-#		-o ./bin/shortener$(shell go env GOEXE) cmd/shortener/main.go
-#
-#	CGO_ENABLED=0 go build \
-#		-mod=mod \
-#		-tags='no_mysql no_sqlite3' \
-#		-o ./bin/migrate$(shell go env GOEXE) cmd/migrate/main.go
-#
-#	CGO_ENABLED=0 go build \
-#		-mod=mod \
-#		-tags='no_mysql no_sqlite3' \
-#		-o ./bin/connect$(shell go env GOEXE) cmd/connect/main.go
 
 .PHONY: clean
 clean:			## Remove generated artifacts
@@ -82,10 +60,14 @@ PHONY: goose-down
 goose-down:		## Roll back the version by 1
 	goose -dir ./server/migrations postgres ${DATABASE_URL} down
 
-#######################################################################################################################
+test: build-with-coverage
+	@go test ./...  -coverpkg=./... -race -coverprofile=coverage.out -covermode=atomic
 
-#.reqs:
-#	pip install --upgrade pip
-#	pip install pgcli
-#	pip install "psycopg[binary,pool]"
-#	go install github.com/pressly/goose/v3/cmd/goose@latest
+build:
+	@go build -C client -o client
+
+build-with-coverage:
+	@go build -C client -cover -o client
+
+.DEFAULT_GOAL := build
+#######################################################################################################################
